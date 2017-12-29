@@ -1,0 +1,8 @@
+{
+  "name": "klok",
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "./src/autoreload.py src/main.py",
+    "lint": "pylint src"
+  }
+}
