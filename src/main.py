@@ -3,6 +3,7 @@
 from ctypes import py_object, pointer, cast, c_void_p, POINTER, byref
 import sdl2.ext as sdl2ext
 from sdl2 import events as sdlevents, timer
+from sdl2.keycode import SDLK_ESCAPE
 from sdl2.sdlttf import TTF_Init, TTF_Quit
 from datetime import datetime
 from window import Window, SCREEN_WIDTH, SCREEN_HEIGHT
@@ -10,7 +11,7 @@ from textsprite import TextSprite
 
 
 def get_time():
-    return datetime.now().strftime("%H:%M:%S")
+    return datetime.now().strftime("%H:%M")
 
 
 class Klok(sdl2ext.Entity):
@@ -27,7 +28,7 @@ class Klok(sdl2ext.Entity):
 
         object.__setattr__(self, 'callback', self.getCallBackFunc())
         object.__setattr__(self, 'timerId', timer.SDL_AddTimer(
-            1000, self.callback, None))
+            15000, self.callback, None))
 
     def getCallBackFunc(self):
         def oneSecondElapsed(time, userdata):
@@ -73,8 +74,14 @@ def main():
                 raise sdl2ext.SDLError()
 
             if event.type == sdlevents.SDL_QUIT:
+                # Closed window
+                break
+            elif (event.type == sdlevents.SDL_KEYUP and
+                  event.key.keysym.sym == SDLK_ESCAPE):
+                # Pressed ESC
                 break
             elif event.type == sdlevents.SDL_USEREVENT:
+                # Timer event (probably)
                 entity = cast(event.user.data1, POINTER(
                     py_object)).contents.value
                 entity.textsprite.text = get_time()

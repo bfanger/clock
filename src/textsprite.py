@@ -5,12 +5,12 @@ from sdl2.sdlttf import (TTF_OpenFont,
                          TTF_RenderText_Shaded,
                          TTF_GetError
                          )
-from constants import RESOURCES, ORANGE, BLACK
+from constants import RESOURCES, WHITE, BLACK
 
 
 class TextSprite(sdl2ext.TextureSprite):
     def __init__(self, renderer, text="", fontSize=16,
-                 textColor=ORANGE,
+                 textColor=WHITE,
                  backgroundColor=BLACK):
         if isinstance(renderer, sdl2ext.Renderer):
             self.renderer = renderer.renderer
@@ -20,7 +20,7 @@ class TextSprite(sdl2ext.TextureSprite):
             raise TypeError("unsupported renderer type")
 
         self.font = TTF_OpenFont(
-            bytes(RESOURCES.get_path("DJB Get Digital.ttf"), 'utf-8'),
+            bytes(RESOURCES.get_path("Oswald-Medium.ttf"), 'utf-8'),
             fontSize)
         if self.font is None:
             raise TTF_GetError()
