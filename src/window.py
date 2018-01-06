@@ -1,15 +1,13 @@
 from sdl2.ext import Window as SDL_Window
 from sdl2.ext.common import SDLError
-from sdl2.video import (SDL_GetNumVideoDisplays,
-                        SDL_DisplayMode,
-                        SDL_GetCurrentDisplayMode,
-                        SDL_WINDOWPOS_CENTERED_DISPLAY,
-                        SDL_WINDOW_FULLSCREEN)
-from sdl2.mouse import SDL_ShowCursor
-from sdl2.events import SDL_DISABLE
-
-SCREEN_WIDTH = 320
-SCREEN_HEIGHT = 240
+from sdl2 import (SDL_GetNumVideoDisplays,
+                  SDL_DisplayMode,
+                  SDL_GetCurrentDisplayMode,
+                  SDL_WINDOWPOS_CENTERED_DISPLAY,
+                  SDL_WINDOW_FULLSCREEN,
+                  SDL_ShowCursor,
+                  SDL_DISABLE)
+from constants import SCREEN_WIDTH, SCREEN_HEIGHT
 
 
 class Window(SDL_Window):

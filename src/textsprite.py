@@ -20,7 +20,7 @@ class TextSprite(sdl2ext.TextureSprite):
             raise TypeError("unsupported renderer type")
 
         self.font = TTF_OpenFont(
-            bytes(RESOURCES.get_path("Oswald-Medium.ttf"), 'utf-8'),
+            bytes(RESOURCES.get_path("Okuda Bold.otf"), 'utf-8'),
             fontSize)
         if self.font is None:
             raise TTF_GetError()
