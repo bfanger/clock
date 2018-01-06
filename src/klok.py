@@ -1,11 +1,8 @@
 from ctypes import py_object, pointer, cast, c_void_p
 from datetime import datetime
 import sdl2.ext as sdl2ext
-from sdl2 import (timer,
-                  SDL_Event,
-                  SDL_UserEvent,
-                  SDL_USEREVENT,
-                  SDL_PushEvent)
+from sdl2 import (timer, SDL_Event, SDL_UserEvent,
+                  SDL_USEREVENT, SDL_PushEvent)
 from textsprite import TextSprite
 
 
@@ -19,11 +16,13 @@ class Klok(sdl2ext.Entity):
             raise ValueError("you have to provide a renderer= argument")
         renderer = kwargs['renderer']
         # super(Klok, self).__init__()
-        textSprite = TextSprite(renderer, '00:00', fontSize=120)
+        textSprite = TextSprite(
+            renderer, get_time(),
+            fontFile="Teko-Light.ttf",
+            fontSize=120)
         self.textSprite = textSprite
-        textSprite.x = 120
-        textSprite.y = 96
-        self.update()
+        textSprite.x = 106
+        textSprite.y = 92
 
         object.__setattr__(self, 'callback', self.getCallBackFunc())
         object.__setattr__(self, 'timerId', timer.SDL_AddTimer(

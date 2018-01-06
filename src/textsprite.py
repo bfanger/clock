@@ -9,7 +9,7 @@ from constants import RESOURCES, WHITE, BLACK
 
 
 class TextSprite(sdl2ext.TextureSprite):
-    def __init__(self, renderer, text="", fontSize=16,
+    def __init__(self, renderer, text="", fontFile="Oswald-Regular.ttf", fontSize=16,
                  textColor=WHITE,
                  backgroundColor=BLACK):
         if isinstance(renderer, sdl2ext.Renderer):
@@ -20,7 +20,7 @@ class TextSprite(sdl2ext.TextureSprite):
             raise TypeError("unsupported renderer type")
 
         self.font = TTF_OpenFont(
-            bytes(RESOURCES.get_path("Okuda Bold.otf"), 'utf-8'),
+            bytes(RESOURCES.get_path(fontFile), 'utf-8'),
             fontSize)
         if self.font is None:
             raise TTF_GetError()
