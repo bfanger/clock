@@ -9,7 +9,7 @@ from constants import RESOURCES, WHITE, BLACK
 
 
 class TextSprite(sdl2ext.TextureSprite):
-    def __init__(self, renderer, text="", fontFile="Oswald-Regular.ttf", fontSize=16,
+    def __init__(self, renderer, text="", fontFile=None, fontSize=16,
                  textColor=WHITE,
                  backgroundColor=BLACK):
         if isinstance(renderer, sdl2ext.Renderer):

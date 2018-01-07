@@ -4,13 +4,14 @@ import sdl2.ext as sdl2ext
 from sdl2 import (timer, SDL_Event, SDL_UserEvent,
                   SDL_USEREVENT, SDL_PushEvent)
 from textsprite import TextSprite
+from constants import DEPTH_TIME
 
 
 def get_time():
     return datetime.now().strftime("%H:%M")
 
 
-class Klok(sdl2ext.Entity):
+class Time(sdl2ext.Entity):
     def __init__(self, world, *args, **kwargs):
         if "renderer" not in kwargs:
             raise ValueError("you have to provide a renderer= argument")
@@ -23,6 +24,7 @@ class Klok(sdl2ext.Entity):
         self.textSprite = textSprite
         textSprite.x = 106
         textSprite.y = 92
+        textSprite.depth = DEPTH_TIME
 
         object.__setattr__(self, 'callback', self.getCallBackFunc())
         object.__setattr__(self, 'timerId', timer.SDL_AddTimer(
