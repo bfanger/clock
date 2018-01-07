@@ -49,10 +49,13 @@ class TextSprite(sdl2ext.TextureSprite):
         textureToDelete = self.texture
 
         texture = self._createTexture()
-        position = self.position
+        x = self.x
+        y = self.y
+        depth = self.depth
         super(TextSprite, self).__init__(texture)
-        self.x = position[0]
-        self.y = position[1]
+        self.x = x
+        self.y = y
+        self.depth = depth
         render.SDL_DestroyTexture(textureToDelete)
 
     @property

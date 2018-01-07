@@ -26,6 +26,7 @@ def main():
     Brightness(world, renderer=renderer)
 
     world.add_system(TextureSpriteRenderSystem(renderer))
+    world.process()
 
     try:
         event = SDL_Event()
@@ -46,11 +47,10 @@ def main():
                 entity = cast(event.user.data1, POINTER(
                     py_object)).contents.value
                 entity.update()
+                # renderer.clear()
+                world.process()
             else:
                 print("Event:", event.type)
-
-            renderer.clear()
-            world.process()
 
     except KeyboardInterrupt:
         pass
