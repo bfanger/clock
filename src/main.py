@@ -1,16 +1,18 @@
 #!/usr/bin/env python3
 
 from ctypes import py_object, cast, POINTER, byref
+from locale import setlocale, LC_TIME
 from sdl2.ext import init, Renderer, TextureSpriteRenderSystem, World
 from sdl2.sdlttf import TTF_Init, TTF_Quit
 from sdl2 import (SDLK_ESCAPE, SDL_Event, SDL_WaitEvent, SDL_QUIT,
                   SDL_KEYUP, SDL_USEREVENT, SDL_BLENDMODE_BLEND)
 from window import Window
-from entities import Time, Background, Brightness
+from entities import Time, Date, Background, Brightness
 import sdl2.ext as sdl2ext
 
 
 def main():
+    setlocale(LC_TIME, 'nl_NL.UTF-8')
     init()
     TTF_Init()
 
@@ -23,6 +25,7 @@ def main():
 
     Background(world, renderer=renderer)
     Time(world, renderer=renderer)
+    Date(world, renderer=renderer)
     Brightness(world, renderer=renderer)
 
     world.add_system(TextureSpriteRenderSystem(renderer))

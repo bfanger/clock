@@ -1,4 +1,5 @@
-from sdl2.ext import Entity, TEXTURE, SpriteFactory
+from sdl2.ext import Entity, TEXTURE, SpriteFactory, SDLError
+from sdl2 import SDL_DisplayMode, SDL_GetCurrentDisplayMode
 from constants import SCREEN_WIDTH, SCREEN_HEIGHT, DEPTH_BRIGHTNESS
 
 
@@ -10,8 +11,9 @@ class Brightness(Entity):
             raise ValueError("you have to provide a renderer= argument")
         renderer = kwargs['renderer']
         factory = SpriteFactory(TEXTURE, renderer=renderer)
+
         sprite = factory.from_color(
-            color=0xAA000000,
+            color=detect_brightness(),
             size=(SCREEN_WIDTH, SCREEN_HEIGHT),
             masks=(0xFF000000,
                    0x00FF0000,
@@ -20,3 +22,13 @@ class Brightness(Entity):
         )
         sprite.depth = DEPTH_BRIGHTNESS
         self.sprite = sprite
+
+
+def detect_brightness():
+    mode = SDL_DisplayMode()
+    if SDL_GetCurrentDisplayMode(0, mode) != 0:
+        raise SDLError()
+    if mode.w == 320:
+        return 0x90000000
+
+    return 0x10000000
