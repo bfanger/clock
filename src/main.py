@@ -7,7 +7,7 @@ from sdl2.sdlttf import TTF_Init, TTF_Quit
 from sdl2 import (SDLK_ESCAPE, SDL_Event, SDL_WaitEvent, SDL_QUIT,
                   SDL_KEYUP, SDL_USEREVENT, SDL_BLENDMODE_BLEND)
 from window import Window
-from entities import Time, Date, Background, Brightness
+from entities import Time, Date, Day, Background, Brightness
 import sdl2.ext as sdl2ext
 
 
@@ -26,6 +26,7 @@ def main():
     Background(world, renderer=renderer)
     Time(world, renderer=renderer)
     Date(world, renderer=renderer)
+    Day(world, renderer=renderer)
     Brightness(world, renderer=renderer)
 
     world.add_system(TextureSpriteRenderSystem(renderer))

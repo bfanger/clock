@@ -4,26 +4,27 @@ import sdl2.ext as sdl2ext
 from sdl2 import (timer, SDL_Event, SDL_UserEvent,
                   SDL_USEREVENT, SDL_PushEvent)
 from textsprite import TextSprite
-from constants import DEPTH_TIME
+from constants import DEPTH_TIME, ORANGE
 
 
-def get_date():
-    return datetime.now().strftime("%d %b").upper()
+def get_day():
+    return datetime.now().strftime("%a").upper()
 
 
-class Date(sdl2ext.Entity):
+class Day(sdl2ext.Entity):
     def __init__(self, world, *args, **kwargs):
         if "renderer" not in kwargs:
             raise ValueError("you have to provide a renderer= argument")
         renderer = kwargs['renderer']
-        # super(Date, self).__init__()
+        # super(Day, self).__init__()
         textSprite = TextSprite(
-            renderer, get_date(),
+            renderer, get_day(),
+            textColor=ORANGE,
             fontFile="Teko-Light.ttf",
-            fontSize=60)
+            fontSize=68)
         self.textSprite = textSprite
-        textSprite.x = 74
-        textSprite.y = -5
+        textSprite.x = 242
+        textSprite.y = -13
         textSprite.depth = DEPTH_TIME
 
         object.__setattr__(self, 'callback', self.getCallBackFunc())
@@ -32,7 +33,7 @@ class Date(sdl2ext.Entity):
 
     def update(self):
         pass
-        self.textsprite.text = get_date()
+        self.textsprite.text = get_day()
 
     def getCallBackFunc(self):
         def oneMinuteElapsed(time, userdata):

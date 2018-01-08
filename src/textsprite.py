@@ -2,16 +2,15 @@
 import sdl2.ext as sdl2ext
 from sdl2 import render, surface
 from sdl2.sdlttf import (TTF_OpenFont,
-                         TTF_RenderText_Shaded,
+                         TTF_RenderText_Blended,
                          TTF_GetError
                          )
-from constants import RESOURCES, WHITE, BLACK
+from constants import RESOURCES, WHITE
 
 
 class TextSprite(sdl2ext.TextureSprite):
     def __init__(self, renderer, text="", fontFile=None, fontSize=16,
-                 textColor=WHITE,
-                 backgroundColor=BLACK):
+                 textColor=WHITE):
         if isinstance(renderer, sdl2ext.Renderer):
             self.renderer = renderer.renderer
         elif isinstance(renderer, render.SDL_Renderer):
@@ -27,15 +26,14 @@ class TextSprite(sdl2ext.TextureSprite):
         self._text = text
         self.fontSize = fontSize
         self.textColor = textColor
-        self.backgroundColor = backgroundColor
         texture = self._createTexture()
 
         super(TextSprite, self).__init__(texture)
 
     def _createTexture(self):
-        textSurface = TTF_RenderText_Shaded(
+        textSurface = TTF_RenderText_Blended(
             self.font,
-            bytes(self._text, 'utf-8'), self.textColor, self.backgroundColor)
+            bytes(self._text, 'utf-8'), self.textColor)
         if textSurface is None:
             raise TTF_GetError()
         texture = render.SDL_CreateTextureFromSurface(
