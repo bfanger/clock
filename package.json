@@ -1,0 +1,8 @@
+{
+  "name": "clock-go",
+  "version": "1.0.0",
+  "main": "cmd/clock/clock.go",
+  "scripts": {
+    "dev": "find cmd internal assets |entr -r go run cmd/clock/clock.go"
+  }
+}
