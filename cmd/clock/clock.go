@@ -72,12 +72,18 @@ func main() {
 	sprites = append(sprites, timeSprite)
 
 	// Brightness
-	brightnessSprite, err := engine.NewBrightnessSprite(renderer, 128)
-	if err != nil {
+	var displayMode sdl.DisplayMode
+	if err := sdl.GetCurrentDisplayMode(0, &displayMode); err != nil {
 		panic(err)
 	}
-	defer brightnessSprite.Destroy()
-	sprites = append(sprites, brightnessSprite)
+	if displayMode.W <= 320 {
+		brightnessSprite, err := engine.NewBrightnessSprite(renderer, 128)
+		if err != nil {
+			panic(err)
+		}
+		defer brightnessSprite.Destroy()
+		sprites = append(sprites, brightnessSprite)
+	}
 
 	quit := make(chan bool)
 	go ticker(timeSprite, renderer, quit)
