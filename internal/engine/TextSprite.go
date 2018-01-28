@@ -16,6 +16,20 @@ type TextSprite struct {
 	TextureSprite *TextureSprite
 }
 
+// NewTextSprite creates a ready to use
+func NewTextSprite(font *ttf.Font, color sdl.Color, text string, renderer *sdl.Renderer) (*TextSprite, error) {
+	textSprite := TextSprite{
+		Font:     font,
+		Color:    color,
+		Text:     text,
+		Renderer: renderer}
+	if err := textSprite.Update(); err != nil {
+		return nil, err
+	}
+	return &textSprite, nil
+
+}
+
 // Render the text
 func (textSprite *TextSprite) Render() error {
 	if textSprite.TextureSprite == nil {
@@ -47,6 +61,8 @@ func (textSprite *TextSprite) Update() error {
 		return err
 	}
 	if textSprite.TextureSprite != nil {
+		textureSprite.Destination.X = textSprite.TextureSprite.Destination.X
+		textureSprite.Destination.Y = textSprite.TextureSprite.Destination.Y
 		textSprite.TextureSprite.Destroy()
 	}
 	textSprite.TextureSprite = textureSprite

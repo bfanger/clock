@@ -46,14 +46,12 @@ func TextureSpriteFromImage(renderer *sdl.Renderer, path string) (*TextureSprite
 
 // TextureSpriteFromSurface creates a sprite from a surface
 func TextureSpriteFromSurface(renderer *sdl.Renderer, surface *sdl.Surface) (*TextureSprite, error) {
-
 	texture, err := renderer.CreateTextureFromSurface(surface)
 	if err != nil {
 		return nil, err
 	}
-
 	source := sdl.Rect{X: 0, Y: 0, W: surface.W, H: surface.H}
-	destination := sdl.Rect{X: 95, Y: 90, W: surface.W, H: surface.H}
+	destination := sdl.Rect{X: 0, Y: 0, W: surface.W, H: surface.H}
 	return &TextureSprite{
 		Renderer:    renderer,
 		Texture:     texture,

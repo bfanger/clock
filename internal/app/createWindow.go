@@ -2,16 +2,21 @@ package app
 
 import "github.com/veandco/go-sdl2/sdl"
 
+// WindowWidth 320
+const WindowWidth = 320
+
+// WindowHeight 240
+const WindowHeight = 240
+
 // CreateWindow is documented
 func CreateWindow() (*sdl.Window, error) {
-
-	var displays, err = sdl.GetNumVideoDisplays()
+	displays, err := sdl.GetNumVideoDisplays()
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 	var mode sdl.DisplayMode
 	if err := sdl.GetCurrentDisplayMode(0, &mode); err != nil {
-		panic(err)
+		return nil, err
 	}
 	var x, y int32
 	var flags uint32
@@ -20,15 +25,14 @@ func CreateWindow() (*sdl.Window, error) {
 	} else {
 		x, y = sdl.WINDOWPOS_CENTERED, sdl.WINDOWPOS_CENTERED
 		x = 0
-		y = mode.H - 240
+		y = mode.H - WindowHeight
 	}
-	if mode.W == 320 {
+	if mode.W == WindowWidth {
 		flags += sdl.WINDOW_FULLSCREEN
 	}
 
 	sdl.ShowCursor(sdl.DISABLE)
-	window, err := sdl.CreateWindow("Klok", x, y, 320, 240, flags)
 
-	return window, err
+	return sdl.CreateWindow("Klok", x, y, WindowWidth, WindowHeight, flags)
 
 }

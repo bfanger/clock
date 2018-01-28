@@ -9,10 +9,9 @@ import (
 const debug = false
 
 // EventLoop handle the events
-func EventLoop(render func(renderer *sdl.Renderer), renderer *sdl.Renderer) int {
+func EventLoop() {
 
 	running := true
-	dirty := true
 	for running {
 		event := sdl.WaitEvent() // wait here until an event is in the event queue
 		switch t := event.(type) {
@@ -45,11 +44,5 @@ func EventLoop(render func(renderer *sdl.Renderer), renderer *sdl.Renderer) int 
 				fmt.Printf("[%d ms] Window\ttype:%d\tevent:%d\n", t.Timestamp, t.Type, t.Event)
 			}
 		}
-		if dirty {
-			render(renderer)
-			dirty = false
-		}
 	}
-
-	return 0
 }

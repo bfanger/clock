@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"os"
 	"time"
 
 	"../../internal/app"
@@ -14,6 +15,11 @@ import (
 var sprites = make([]engine.Sprite, 0)
 
 func main() {
+	fmt.Println("Clock")
+	assetPath := sdl.GetBasePath() + "assets/"
+	if _, err := os.Stat(assetPath); err != nil {
+		assetPath = "./assets/"
+	}
 
 	if err := sdl.Init(sdl.INIT_VIDEO); err != nil {
 		panic(err)
@@ -36,7 +42,7 @@ func main() {
 	defer renderer.Destroy()
 
 	// Background
-	backgroundSprite, err := engine.TextureSpriteFromImage(renderer, "./assets/background.png")
+	backgroundSprite, err := engine.TextureSpriteFromImage(renderer, assetPath+"background.png")
 	if err != nil {
 		panic(err)
 	}
@@ -44,27 +50,41 @@ func main() {
 	sprites = append(sprites, backgroundSprite)
 
 	// Time
-	font, err := ttf.OpenFont("./assets/Teko-Light.ttf", 130)
+	font, err := ttf.OpenFont(assetPath+"Teko-Light.ttf", 135)
 	if err != nil {
 		panic(err)
 	}
+	font.SetHinting(ttf.HINTING_NORMAL)
 	date := time.Now()
-	timeSprite := engine.TextSprite{
-		Font:     font,
-		Color:    engine.White(),
-		Text:     date.Format("15:04"),
-		Renderer: renderer}
+	timeSprite, err := engine.NewTextSprite(
+		font,
+		engine.White(),
+		date.Format("15:04"),
+		renderer)
+	if err != nil {
+		panic(err)
+	}
+	timeSprite.TextureSprite.Destination.X = 95
+	timeSprite.TextureSprite.Destination.Y = 80
 
 	defer timeSprite.Destroy()
-	timeSprite.Update()
 
-	sprites = append(sprites, &timeSprite)
+	sprites = append(sprites, timeSprite)
+
+	// Brightness
+	brightnessSprite, err := engine.NewBrightnessSprite(renderer, 128)
+	if err != nil {
+		panic(err)
+	}
+	defer brightnessSprite.Destroy()
+	sprites = append(sprites, brightnessSprite)
 
 	quit := make(chan bool)
-	go ticker(&timeSprite, renderer, quit)
+	go ticker(timeSprite, renderer, quit)
 
 	// Main loop
-	app.EventLoop(render, renderer)
+	render(renderer)
+	app.EventLoop()
 	quit <- true
 }
 
@@ -91,9 +111,11 @@ func ticker(timeSprite *engine.TextSprite, renderer *sdl.Renderer, quit chan boo
 			return
 		case <-ticker.C:
 			date := time.Now()
-			fmt.Println("\nClock", date.Format("15:04"))
+			// fmt.Println(date.Format("15:04"))
 			timeSprite.Text = date.Format("15:04")
-			timeSprite.Update()
+			if err := timeSprite.Update(); err != nil {
+				panic(err)
+			}
 			render(renderer)
 		}
 	}
