@@ -40,6 +40,10 @@ func EventLoop(render func(renderer *sdl.Renderer), renderer *sdl.Renderer) int 
 				fmt.Printf("[%d ms] Keyboard\ttype:%d\tsym:%c\tmodifiers:%d\tstate:%d\trepeat:%d\n",
 					t.Timestamp, t.Type, t.Keysym.Sym, t.Keysym.Mod, t.State, t.Repeat)
 			}
+		case *sdl.WindowEvent:
+			if debug {
+				fmt.Printf("[%d ms] Window\ttype:%d\tevent:%d\n", t.Timestamp, t.Type, t.Event)
+			}
 		}
 		if dirty {
 			render(renderer)

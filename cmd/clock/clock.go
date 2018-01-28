@@ -14,8 +14,7 @@ import (
 var sprites = make([]engine.Sprite, 0)
 
 func main() {
-	date := time.Now()
-	fmt.Println("\nClock", date.Format("15:04"))
+
 	if err := sdl.Init(sdl.INIT_VIDEO); err != nil {
 		panic(err)
 	}
@@ -36,38 +35,66 @@ func main() {
 	}
 	defer renderer.Destroy()
 
-	background, err := engine.TextureSpriteFromImage("./assets/background.png", renderer)
+	// Background
+	backgroundSprite, err := engine.TextureSpriteFromImage(renderer, "./assets/background.png")
 	if err != nil {
 		panic(err)
 	}
-	defer background.Destroy()
+	defer backgroundSprite.Destroy()
+	sprites = append(sprites, backgroundSprite)
 
-	time, err := engine.TextSpriteFromText(date.Format("15:04"), renderer)
+	// Time
+	font, err := ttf.OpenFont("./assets/Teko-Light.ttf", 130)
 	if err != nil {
 		panic(err)
 	}
-	defer time.Destroy()
+	date := time.Now()
+	timeSprite := engine.TextSprite{
+		Font:     font,
+		Color:    engine.White(),
+		Text:     date.Format("15:04"),
+		Renderer: renderer}
 
-	sprites = append(sprites, background)
-	sprites = append(sprites, time)
-	// ticker := time.NewTicker(1 * time.Second)
+	defer timeSprite.Destroy()
+	timeSprite.Update()
 
-	// for {
-	// 	select {
-	// 	case <-ticker.C:
-	// 		date := time.Now()
-	// 		fmt.Println("\nClock", date)
-	// 	}
-	// }
+	sprites = append(sprites, &timeSprite)
 
+	quit := make(chan bool)
+	go ticker(&timeSprite, renderer, quit)
+
+	// Main loop
 	app.EventLoop(render, renderer)
+	quit <- true
 }
 
+// render all sprite layers
 func render(renderer *sdl.Renderer) {
-	fmt.Println("Draw")
 	count := len(sprites)
 	for i := 0; i < count; i++ {
-		sprites[i].Render()
+		err := sprites[i].Render()
+		if err != nil {
+			fmt.Println(err)
+		}
 	}
 	renderer.Present()
+}
+
+// ticker updates the time every 15 seconds
+func ticker(timeSprite *engine.TextSprite, renderer *sdl.Renderer, quit chan bool) {
+	ticker := time.NewTicker(15 * time.Second)
+
+	for {
+		select {
+		case <-quit:
+			ticker.Stop()
+			return
+		case <-ticker.C:
+			date := time.Now()
+			fmt.Println("\nClock", date.Format("15:04"))
+			timeSprite.Text = date.Format("15:04")
+			timeSprite.Update()
+			render(renderer)
+		}
+	}
 }

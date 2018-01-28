@@ -14,7 +14,7 @@ func CreateWindow() (*sdl.Window, error) {
 		panic(err)
 	}
 	var x, y int32
-	var flags uint32 = sdl.WINDOW_BORDERLESS
+	var flags uint32
 	if displays > 1 {
 		x, y = sdl.WINDOWPOS_CENTERED_MASK+1, sdl.WINDOWPOS_CENTERED_MASK+1
 	} else {

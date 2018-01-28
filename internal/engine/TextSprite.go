@@ -1,7 +1,7 @@
 package engine
 
 import (
-	"fmt"
+	"errors"
 
 	"github.com/veandco/go-sdl2/sdl"
 	"github.com/veandco/go-sdl2/ttf"
@@ -9,69 +9,46 @@ import (
 
 // TextSprite provides text rendering
 type TextSprite struct {
-	dirty         bool
-	font          *ttf.Font
-	color         sdl.Color
-	text          string
-	textureSprite TextureSprite
+	Font          *ttf.Font
+	Color         sdl.Color
+	Text          string
+	Renderer      *sdl.Renderer
+	TextureSprite *TextureSprite
 }
 
 // Render the text
-func (sprite *TextSprite) Render() error {
-	fmt.Println("Render Text")
-	return sprite.textureSprite.Render()
+func (textSprite *TextSprite) Render() error {
+	if textSprite.TextureSprite == nil {
+		return errors.New("Must call Update() before Render()")
+	}
+	return textSprite.TextureSprite.Render()
 }
 
 // Destroy the sprite and free memory
-func (sprite *TextSprite) Destroy() error {
-	return sprite.textureSprite.Destroy()
+func (textSprite *TextSprite) Destroy() error {
+	if textSprite.TextureSprite != nil {
+		return textSprite.TextureSprite.Destroy()
+	}
+	return nil
 }
 
-// TextSpriteFromText create a sprite from text
-func TextSpriteFromText(text string, renderer *sdl.Renderer) (*TextSprite, error) {
-	font, err := DefaultFont()
+// Update texture based on the text, font and color settings.
+func (textSprite *TextSprite) Update() error {
+	if textSprite.Font == nil {
+		return errors.New("Font must be set before calling Update()")
+	}
+	surface, err := textSprite.Font.RenderUTF8Blended(textSprite.Text, textSprite.Color)
 	if err != nil {
-		return nil, err
+		return err
 	}
-	color := DefaultColor()
-	surface, err := font.RenderUTF8Blended(text, color)
 	defer surface.Free()
-
-	texture, err := renderer.CreateTextureFromSurface(surface)
-
-	source := sdl.Rect{X: 0, Y: 0, W: surface.W, H: surface.H}
-	destination := sdl.Rect{X: 95, Y: 90, W: surface.W, H: surface.H}
-	textureSprite := TextureSprite{
-		Renderer:    renderer,
-		Texture:     texture,
-		Frame:       &source,
-		Destination: &destination}
-	return &TextSprite{
-		dirty:         true,
-		text:          text,
-		font:          font,
-		color:         DefaultColor(),
-		textureSprite: textureSprite}, nil
-}
-
-var defaultFont *ttf.Font
-
-// DefaultFont default font
-func DefaultFont() (*ttf.Font, error) {
-	if defaultFont == nil {
-		var err error
-		defaultFont, err = ttf.OpenFont("./assets/Teko-Light.ttf", 120)
-		if err != nil {
-			return nil, err
-		}
-		// 	defer defaultFont.Close()
+	textureSprite, err := TextureSpriteFromSurface(textSprite.Renderer, surface)
+	if err != nil {
+		return err
 	}
-	return defaultFont, nil
-}
-
-var defaultColor sdl.Color
-
-// DefaultColor determines the text color
-func DefaultColor() sdl.Color {
-	return sdl.Color{R: 255, G: 255, B: 255, A: 0}
+	if textSprite.TextureSprite != nil {
+		textSprite.TextureSprite.Destroy()
+	}
+	textSprite.TextureSprite = textureSprite
+	return nil
 }

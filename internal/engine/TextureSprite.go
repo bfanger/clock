@@ -1,8 +1,6 @@
 package engine
 
 import (
-	"fmt"
-
 	"github.com/veandco/go-sdl2/img"
 	"github.com/veandco/go-sdl2/sdl"
 )
@@ -16,18 +14,17 @@ type TextureSprite struct {
 }
 
 // Render the sprite
-func (sprite *TextureSprite) Render() error {
-	fmt.Println("Render Texture")
-	return sprite.Renderer.Copy(sprite.Texture, sprite.Frame, sprite.Destination)
+func (textureSprite *TextureSprite) Render() error {
+	return textureSprite.Renderer.Copy(textureSprite.Texture, textureSprite.Frame, textureSprite.Destination)
 }
 
 // Destroy the sprite and free memory
-func (sprite *TextureSprite) Destroy() error {
-	return sprite.Texture.Destroy()
+func (textureSprite *TextureSprite) Destroy() error {
+	return textureSprite.Texture.Destroy()
 }
 
 // TextureSpriteFromImage creates a sprite from an image
-func TextureSpriteFromImage(path string, renderer *sdl.Renderer) (*TextureSprite, error) {
+func TextureSpriteFromImage(renderer *sdl.Renderer, path string) (*TextureSprite, error) {
 	image, err := img.Load(path)
 	if err != nil {
 		return nil, err
@@ -44,5 +41,22 @@ func TextureSpriteFromImage(path string, renderer *sdl.Renderer) (*TextureSprite
 		Renderer:    renderer,
 		Texture:     texture,
 		Frame:       &frame,
+		Destination: &destination}, nil
+}
+
+// TextureSpriteFromSurface creates a sprite from a surface
+func TextureSpriteFromSurface(renderer *sdl.Renderer, surface *sdl.Surface) (*TextureSprite, error) {
+
+	texture, err := renderer.CreateTextureFromSurface(surface)
+	if err != nil {
+		return nil, err
+	}
+
+	source := sdl.Rect{X: 0, Y: 0, W: surface.W, H: surface.H}
+	destination := sdl.Rect{X: 95, Y: 90, W: surface.W, H: surface.H}
+	return &TextureSprite{
+		Renderer:    renderer,
+		Texture:     texture,
+		Frame:       &source,
 		Destination: &destination}, nil
 }
