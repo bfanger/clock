@@ -5,26 +5,26 @@ import (
 	"github.com/veandco/go-sdl2/sdl"
 )
 
-// TextureSprite /container
-type TextureSprite struct {
+// Texture is a renderable from a sdl.Texture
+type Texture struct {
 	Renderer    *sdl.Renderer
 	Texture     *sdl.Texture
 	Frame       *sdl.Rect
 	Destination *sdl.Rect
 }
 
-// Render the sprite
-func (textureSprite *TextureSprite) Render() error {
-	return textureSprite.Renderer.Copy(textureSprite.Texture, textureSprite.Frame, textureSprite.Destination)
+// Render the texture
+func (texture *Texture) Render() error {
+	return texture.Renderer.Copy(texture.Texture, texture.Frame, texture.Destination)
 }
 
-// Destroy the sprite and free memory
-func (textureSprite *TextureSprite) Destroy() error {
-	return textureSprite.Texture.Destroy()
+// Dispose and free resources
+func (texture *Texture) Dispose() error {
+	return texture.Texture.Destroy()
 }
 
-// TextureSpriteFromImage creates a sprite from an image
-func TextureSpriteFromImage(renderer *sdl.Renderer, path string) (*TextureSprite, error) {
+// TextureFromImage creates a Texture from an image
+func TextureFromImage(renderer *sdl.Renderer, path string) (*Texture, error) {
 	image, err := img.Load(path)
 	if err != nil {
 		return nil, err
@@ -37,22 +37,22 @@ func TextureSpriteFromImage(renderer *sdl.Renderer, path string) (*TextureSprite
 	}
 	frame := sdl.Rect{X: 0, Y: 0, W: image.W, H: image.H}
 	destination := frame
-	return &TextureSprite{
+	return &Texture{
 		Renderer:    renderer,
 		Texture:     texture,
 		Frame:       &frame,
 		Destination: &destination}, nil
 }
 
-// TextureSpriteFromSurface creates a sprite from a surface
-func TextureSpriteFromSurface(renderer *sdl.Renderer, surface *sdl.Surface) (*TextureSprite, error) {
+// TextureFromSurface creates a Texture from a surface
+func TextureFromSurface(renderer *sdl.Renderer, surface *sdl.Surface) (*Texture, error) {
 	texture, err := renderer.CreateTextureFromSurface(surface)
 	if err != nil {
 		return nil, err
 	}
 	source := sdl.Rect{X: 0, Y: 0, W: surface.W, H: surface.H}
 	destination := sdl.Rect{X: 0, Y: 0, W: surface.W, H: surface.H}
-	return &TextureSprite{
+	return &Texture{
 		Renderer:    renderer,
 		Texture:     texture,
 		Frame:       &source,
