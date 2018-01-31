@@ -44,20 +44,12 @@ func (brightness *Brightness) Dispose() error {
 // Update generates the texture based on the settings
 func (brightness *Brightness) Update() error {
 	rect := brightness.Renderer.GetViewport()
-	surface, err := sdl.CreateRGBSurfaceWithFormat(0, rect.W, rect.H, 32, sdl.PIXELFORMAT_ARGB8888)
-	if err != nil {
-		return err
-	}
-	defer surface.Free()
 	color := sdl.Color{R: 0, G: 0, B: 0, A: brightness.Alpha}
-	surface.FillRect(nil, color.Uint32())
-	texture, err := TextureFromSurface(brightness.Renderer, surface)
+	texture, err := TextureFromColor(brightness.Renderer, rect.W, rect.H, color)
 	if err != nil {
 		return err
 	}
 	if brightness.Texture != nil {
-		texture.Destination.X = brightness.Texture.Destination.X
-		texture.Destination.Y = brightness.Texture.Destination.Y
 		brightness.Texture.Dispose()
 	}
 	brightness.Texture = texture

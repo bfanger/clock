@@ -20,7 +20,12 @@ func (texture *Texture) Render() error {
 
 // Dispose and free resources
 func (texture *Texture) Dispose() error {
-	return texture.Texture.Destroy()
+	if texture == nil || texture.Texture == nil {
+		return nil
+	}
+	err := texture.Texture.Destroy()
+	texture.Texture = nil
+	return err
 }
 
 // TextureFromImage creates a Texture from an image
@@ -57,4 +62,19 @@ func TextureFromSurface(renderer *sdl.Renderer, surface *sdl.Surface) (*Texture,
 		Texture:     texture,
 		Frame:       &source,
 		Destination: &destination}, nil
+}
+
+// TextureFromColor create a Texture filled with a single color
+func TextureFromColor(renderer *sdl.Renderer, width int32, height int32, color sdl.Color) (*Texture, error) {
+	surface, err := sdl.CreateRGBSurfaceWithFormat(0, width, height, 32, sdl.PIXELFORMAT_ARGB8888)
+	if err != nil {
+		return nil, err
+	}
+	defer surface.Free()
+	surface.FillRect(nil, color.Uint32())
+	texture, err := TextureFromSurface(renderer, surface)
+	if err != nil {
+		return nil, err
+	}
+	return texture, nil
 }

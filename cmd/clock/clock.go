@@ -33,7 +33,6 @@ func main() {
 	}
 	defer renderer.Destroy()
 	world := engine.NewContainer(renderer)
-	defer world.Dispose()
 
 	needsRedraw := make(chan bool)
 

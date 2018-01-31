@@ -29,6 +29,11 @@ func (container *Container) Render() error {
 
 // Dispose all items
 func (container *Container) Dispose() error {
+	for _, item := range container.Items {
+		if err := item.Dispose(); err != nil {
+			return err
+		}
+	}
 	return nil
 }
 
