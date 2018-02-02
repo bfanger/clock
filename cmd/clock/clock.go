@@ -34,30 +34,46 @@ func main() {
 	defer renderer.Destroy()
 	world := engine.NewContainer(renderer)
 
-	needsRedraw := make(chan bool)
+	requestUpdate := make(chan app.Widget)
 
-	time, err := app.NewTimeWidget(world, needsRedraw)
+	clock, err := app.NewClockWidget(world, requestUpdate)
 	if err != nil {
 		panic(err)
 	}
-	defer time.Dispose()
+	defer clock.Dispose()
 
-	brightness, err := app.NewBrightnessWidget(world, needsRedraw)
+	school, err := app.NewTimerWidget("school_background.png", 8, 15, world, requestUpdate)
+	if err != nil {
+		panic(err)
+	}
+	defer school.Dispose()
+
+	brightness, err := app.NewBrightnessWidget(world, requestUpdate)
 	if err != nil {
 		panic(err)
 	}
 	defer brightness.Dispose()
 
 	// Main loop
-	go renderLoop(world, needsRedraw)
+	go renderLoop(world, requestUpdate)
 
 	app.EventLoop()
 }
 
-func renderLoop(world *engine.Container, needsRedraw chan bool) {
+func renderLoop(world *engine.Container, requestUpdate chan app.Widget) {
 	for {
-		world.Render()
+		if err := world.Renderer.Clear(); err != nil {
+			panic(err)
+		}
+
+		if err := world.Render(); err != nil {
+			panic(err)
+		}
 		world.Renderer.Present()
-		<-needsRedraw
+
+		widget := <-requestUpdate
+		if err := widget.Update(); err != nil {
+			panic(err)
+		}
 	}
 }

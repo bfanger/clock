@@ -9,18 +9,18 @@ import (
 
 // BrightnessWidget adapts the brighness to time of day
 type BrightnessWidget struct {
-	NeedsRedraw chan bool
-	World       *engine.Container
-	Brightness  *engine.Brightness
-	Disposed    chan bool
+	RequestUpdate chan Widget
+	World         *engine.Container
+	Brightness    *engine.Brightness
+	Disposed      chan bool
 }
 
 // NewBrightnessWidget creates an active BrightnessWidget
-func NewBrightnessWidget(world *engine.Container, needsRedraw chan bool) (*BrightnessWidget, error) {
+func NewBrightnessWidget(world *engine.Container, requestUpdate chan Widget) (*BrightnessWidget, error) {
 
 	brightnessWidget := &BrightnessWidget{
-		NeedsRedraw: needsRedraw,
-		World:       world}
+		RequestUpdate: requestUpdate,
+		World:         world}
 
 	var displayMode sdl.DisplayMode
 	if err := sdl.GetCurrentDisplayMode(0, &displayMode); err != nil {
@@ -50,6 +50,11 @@ func (brightnessWidget *BrightnessWidget) Dispose() error {
 	return nil
 }
 
+// Update the brightness texture
+func (brightnessWidget *BrightnessWidget) Update() error {
+	return brightnessWidget.Brightness.Update()
+}
+
 func brightnessWidgetLifecycle(brightnessWidget *BrightnessWidget) {
 	for {
 		// Calculate the delay to the start of the next hour
@@ -64,8 +69,7 @@ func brightnessWidgetLifecycle(brightnessWidget *BrightnessWidget) {
 		case <-time.After(delay):
 			now := time.Now().Local()
 			brightnessWidget.Brightness.Alpha = brightnessAlphaForTime(now)
-			brightnessWidget.Brightness.Update()
-			brightnessWidget.NeedsRedraw <- true
+			brightnessWidget.RequestUpdate <- brightnessWidget
 		}
 	}
 }
