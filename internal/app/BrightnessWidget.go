@@ -12,7 +12,7 @@ type BrightnessWidget struct {
 	RequestUpdate chan Widget
 	World         *engine.Container
 	Brightness    *engine.Brightness
-	Disposed      chan bool
+	disposed      chan bool
 }
 
 // NewBrightnessWidget creates an active BrightnessWidget
@@ -34,7 +34,7 @@ func NewBrightnessWidget(world *engine.Container, requestUpdate chan Widget) (*B
 		}
 		world.Add(brightness)
 		brightnessWidget.Brightness = brightness
-		brightnessWidget.Disposed = make(chan bool)
+		brightnessWidget.disposed = make(chan bool)
 		go brightnessWidgetLifecycle(brightnessWidget)
 	}
 
@@ -44,7 +44,11 @@ func NewBrightnessWidget(world *engine.Container, requestUpdate chan Widget) (*B
 // Dispose resources
 func (brightnessWidget *BrightnessWidget) Dispose() error {
 	if brightnessWidget.Brightness != nil {
-		brightnessWidget.Disposed <- true
+		brightnessWidget.disposed <- true
+		close(brightnessWidget.disposed)
+		if err := brightnessWidget.World.Remove(brightnessWidget.Brightness); err != nil {
+			return err
+		}
 		return brightnessWidget.Brightness.Dispose()
 	}
 	return nil
@@ -64,7 +68,7 @@ func brightnessWidgetLifecycle(brightnessWidget *BrightnessWidget) {
 		delay -= (time.Duration(started.Second()) * time.Second)
 
 		select {
-		case <-brightnessWidget.Disposed:
+		case <-brightnessWidget.disposed:
 			return
 		case <-time.After(delay):
 			now := time.Now().Local()

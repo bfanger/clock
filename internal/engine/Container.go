@@ -6,23 +6,23 @@ import (
 	"github.com/veandco/go-sdl2/sdl"
 )
 
-// Container with multiple renderables
+// Container with multiple Drawables
 type Container struct {
 	Renderer *sdl.Renderer
-	Items    []Renderable
+	Items    []Drawable
 }
 
 // NewContainer creates a ready tot use container
 func NewContainer(renderer *sdl.Renderer) *Container {
 	return &Container{
 		Renderer: renderer,
-		Items:    make([]Renderable, 0)}
+		Items:    make([]Drawable, 0)}
 }
 
-// Render all items
-func (container *Container) Render() error {
+// Draw all items
+func (container *Container) Draw() error {
 	for _, item := range container.Items {
-		if err := item.Render(); err != nil {
+		if err := item.Draw(); err != nil {
 			return err
 		}
 	}
@@ -31,21 +31,40 @@ func (container *Container) Render() error {
 
 // Dispose nothing
 func (container *Container) Dispose() error {
-	// for _, item := range container.Items {
-	// 	if err := item.Dispose(); err != nil {
-	// 		return err
-	// 	}
-	// }
+	return nil
+}
+
+// Dispose all items
+func (container *Container) DisposeItems() error {
+	for _, item := range container.Items {
+		if err := item.Dispose(); err != nil {
+			return err
+		}
+	}
+	container.Items = make([]Drawable, 0)
+	return nil
+}
+
+// Render the frame
+func (container *Container) Render() error {
+	if err := container.Renderer.Clear(); err != nil {
+		panic(err)
+	}
+
+	if err := container.Draw(); err != nil {
+		panic(err)
+	}
+	container.Renderer.Present()
 	return nil
 }
 
 // Add item
-func (container *Container) Add(item Renderable) {
+func (container *Container) Add(item Drawable) {
 	container.Items = append(container.Items, item)
 }
 
 // Remove item
-func (container *Container) Remove(item Renderable) error {
+func (container *Container) Remove(item Drawable) error {
 
 	for index, _item := range container.Items {
 		if _item == item {

@@ -12,7 +12,6 @@ import (
 
 func main() {
 	fmt.Println("Clock")
-
 	if err := sdl.Init(sdl.INIT_VIDEO); err != nil {
 		panic(err)
 	}
@@ -21,59 +20,65 @@ func main() {
 		panic(err)
 	}
 
-	window, err := app.CreateWindow()
-	if err != nil {
-		panic(err)
-	}
-	defer window.Destroy()
+	sdl.Main(run)
+}
 
-	renderer, err := sdl.CreateRenderer(window, -1, 0)
-	if err != nil {
-		panic(err)
-	}
-	defer renderer.Destroy()
+func run() {
+
+	var err error
+	var window *sdl.Window
+	sdl.Do(func() {
+		window, err = app.CreateWindow()
+		if err != nil {
+			panic(err)
+		}
+	})
+
+	defer sdl.Do(func() {
+		window.Destroy()
+	})
+	var renderer *sdl.Renderer
+	sdl.Do(func() {
+		renderer, err = sdl.CreateRenderer(window, -1, 0)
+		if err != nil {
+			panic(err)
+		}
+	})
+	defer sdl.Do(func() {
+		renderer.Destroy()
+	})
 	world := engine.NewContainer(renderer)
 
 	requestUpdate := make(chan app.Widget)
-
-	clock, err := app.NewClockWidget(world, requestUpdate)
-	if err != nil {
-		panic(err)
-	}
-	defer clock.Dispose()
+	var clock *app.ClockWidget
+	sdl.Do(func() {
+		clock, err = app.NewClockWidget(world, requestUpdate)
+		if err != nil {
+			panic(err)
+		}
+	})
+	defer sdl.Do(func() {
+		clock.Dispose()
+	})
 
 	school, err := app.NewTimerWidget("school_background.png", 8, 15, world, requestUpdate)
 	if err != nil {
 		panic(err)
 	}
-	defer school.Dispose()
-
-	brightness, err := app.NewBrightnessWidget(world, requestUpdate)
-	if err != nil {
-		panic(err)
-	}
-	defer brightness.Dispose()
-
-	// Main loop
-	go renderLoop(world, requestUpdate)
-
-	app.EventLoop()
-}
-
-func renderLoop(world *engine.Container, requestUpdate chan app.Widget) {
-	for {
-		if err := world.Renderer.Clear(); err != nil {
+	school.Repeat = true
+	defer sdl.Do(func() {
+		school.Dispose()
+	})
+	var brightness *app.BrightnessWidget
+	sdl.Do(func() {
+		brightness, err = app.NewBrightnessWidget(world, requestUpdate)
+		if err != nil {
 			panic(err)
 		}
+	})
+	defer sdl.Do(func() {
+		brightness.Dispose()
+	})
+	app.EventLoop(world, requestUpdate)
 
-		if err := world.Render(); err != nil {
-			panic(err)
-		}
-		world.Renderer.Present()
-
-		widget := <-requestUpdate
-		if err := widget.Update(); err != nil {
-			panic(err)
-		}
-	}
 }

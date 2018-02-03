@@ -5,7 +5,7 @@ import (
 	"github.com/veandco/go-sdl2/sdl"
 )
 
-// Texture is a renderable from a sdl.Texture
+// Texture is a Drawable from a sdl.Texture
 type Texture struct {
 	Renderer    *sdl.Renderer
 	Texture     *sdl.Texture
@@ -13,8 +13,8 @@ type Texture struct {
 	Destination *sdl.Rect
 }
 
-// Render the texture
-func (texture *Texture) Render() error {
+// Draw the texture
+func (texture *Texture) Draw() error {
 	return texture.Renderer.Copy(texture.Texture, texture.Frame, texture.Destination)
 }
 

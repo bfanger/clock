@@ -25,12 +25,12 @@ func NewBrightness(renderer *sdl.Renderer, alpha uint8) (*Brightness, error) {
 	return &brightness, nil
 }
 
-// Render the overlay
-func (brightness *Brightness) Render() error {
+// Draw the overlay
+func (brightness *Brightness) Draw() error {
 	if brightness.Texture == nil {
-		return errors.New("Must call Update() before Render()")
+		return errors.New("Must call Update() before Draw()")
 	}
-	return brightness.Texture.Render()
+	return brightness.Texture.Draw()
 }
 
 // Dispose and free resources

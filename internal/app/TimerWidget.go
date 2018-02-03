@@ -2,6 +2,7 @@ package app
 
 import (
 	"fmt"
+	"strconv"
 	"time"
 
 	"../../internal/engine"
@@ -16,14 +17,18 @@ type TimerWidget struct {
 	Font              *ttf.Font
 	Hour              int
 	Minute            int
+	Second            int
+	Repeat            bool
 	Countdown         int64
 	Blink             int64
+	Alarm             string
 	Timer             *engine.Text
 	BlinkingTimer     *engine.Hideable
 	Background        *engine.Texture
-	Visible           bool
 	RequestUpdate     chan Widget
-	Disposed          chan bool
+	Completed         chan bool
+	disposed          chan bool
+	visible           bool
 }
 
 // NewTimerWidget creates an active TimerWidget
@@ -44,7 +49,7 @@ func NewTimerWidget(backgroundPath string, hour int, minute int, world *engine.C
 	timer, err := engine.NewText(
 		font,
 		Black(),
-		"--:--",
+		"-",
 		world.Renderer)
 	if err != nil {
 		return nil, err
@@ -62,13 +67,15 @@ func NewTimerWidget(backgroundPath string, hour int, minute int, world *engine.C
 		Minute:            minute,
 		Countdown:         900,  // 15 min
 		Blink:             -120, // blink for 2 min
+		Alarm:             "0",
 		Timer:             timer,
 		BlinkingTimer:     engine.NewHideable(timer),
 		Background:        background,
 		Container:         container,
 		HideableContainer: engine.NewHideable(container),
-		Visible:           false,
-		Disposed:          make(chan bool)}
+		visible:           false,
+		disposed:          make(chan bool),
+		Completed:         make(chan bool)}
 
 	timerWidget.Update()
 
@@ -83,16 +90,16 @@ func NewTimerWidget(backgroundPath string, hour int, minute int, world *engine.C
 
 // Dispose resources
 func (timerWidget *TimerWidget) Dispose() error {
-	timerWidget.Disposed <- true
+	timerWidget.disposed <- true
+	close(timerWidget.disposed)
 	timerWidget.Font.Close()
-	if err := timerWidget.Background.Dispose(); err != nil {
-		return err
+	if err := timerWidget.World.Remove(timerWidget.HideableContainer); err != nil {
+		panic(err)
 	}
-	if err := timerWidget.Timer.Dispose(); err != nil {
-		return err
+	if err := timerWidget.Container.DisposeItems(); err != nil {
+		panic(err)
 	}
-
-	return timerWidget.Container.Dispose()
+	return nil
 }
 
 // Update based on current time and center-align the elements.
@@ -101,13 +108,12 @@ func (timerWidget *TimerWidget) Update() error {
 	if !timerWidget.HideableContainer.Visible {
 		return nil
 	}
-
-	if remaining < 0 {
+	if remaining <= 0 {
 		if remaining < -120 {
 			timerWidget.HideableContainer.Visible = false
 		} else {
 			timerWidget.Timer.Color = Red()
-			timerWidget.Timer.Content = "00:00" //fmt.Sprintf("-%d:%02d", int(remaining*-1)/60, int(remaining*-1)%60)
+			timerWidget.Timer.Content = timerWidget.Alarm //fmt.Sprintf("-%d:%02d", int(remaining*-1)/60, int(remaining*-1)%60)
 			timerWidget.BlinkingTimer.Visible = time.Now().Second()%2 == 0
 			if err := timerWidget.Timer.Update(); err != nil {
 				return err
@@ -115,7 +121,14 @@ func (timerWidget *TimerWidget) Update() error {
 		}
 	} else {
 		timerWidget.Timer.Color = Black()
-		timerWidget.Timer.Content = fmt.Sprintf("%d:%02d", int(remaining)/60, int(remaining)%60)
+		timerWidget.BlinkingTimer.Visible = true
+		minutes := int(remaining) / 60
+		seconds := int(remaining) % 60
+		if minutes == 0 {
+			timerWidget.Timer.Content = strconv.Itoa(seconds)
+		} else {
+			timerWidget.Timer.Content = fmt.Sprintf("%d:%02d", minutes, seconds)
+		}
 		if err := timerWidget.Timer.Update(); err != nil {
 			return err
 		}
@@ -142,20 +155,24 @@ func timerWidgetLifecycle(timerWidget *TimerWidget) {
 			if currentlyVisible {
 				timerWidget.RequestUpdate <- timerWidget
 			}
-			// @todo calculate the delay until the next day
-			delay = (time.Duration(1) * time.Hour)
+			if timerWidget.Repeat {
+				// @todo calculate the delay until the next day
+				delay = (time.Duration(1) * time.Hour)
+			} else {
+				timerWidget.Completed <- true
+				return
+			}
 		}
 		select {
-		case <-timerWidget.Disposed:
+		case <-timerWidget.disposed:
 			return
 		case <-time.After(delay):
 			timerWidget.RequestUpdate <- timerWidget
-
 		}
 	}
 }
 func (timerWidget *TimerWidget) secondsRemaining() int64 {
 	now := time.Now().Local()
-	target := time.Date(now.Year(), now.Month(), now.Day(), timerWidget.Hour, timerWidget.Minute, 0, 0, time.Local)
+	target := time.Date(now.Year(), now.Month(), now.Day(), timerWidget.Hour, timerWidget.Minute, timerWidget.Second, 0, time.Local)
 	return target.Unix() - now.Unix()
 }

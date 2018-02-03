@@ -30,12 +30,12 @@ func NewText(font *ttf.Font, color sdl.Color, content string, renderer *sdl.Rend
 
 }
 
-// Render the text
-func (text *Text) Render() error {
+// Draw the text
+func (text *Text) Draw() error {
 	if text.Texture == nil {
-		return errors.New("Must call Update() before Render()")
+		return errors.New("Must call Update() before Draw()")
 	}
-	return text.Texture.Render()
+	return text.Texture.Draw()
 }
 
 // Dispose the sprite and free memory

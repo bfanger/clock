@@ -12,24 +12,26 @@ import (
 type ClockWidget struct {
 	World         *engine.Container
 	Font          *ttf.Font
+	Container     *engine.Container
+	Background    *engine.Texture
 	Hours         *engine.Text
 	Dots          *engine.Text
 	Minutes       *engine.Text
-	Background    *engine.Texture
 	RequestUpdate chan Widget
-	Disposed      chan bool
+	disposed      chan bool
 }
 
 // NewClockWidget creates an active ClockWidget
 func NewClockWidget(world *engine.Container, requestUpdate chan Widget) (*ClockWidget, error) {
 
+	container := engine.NewContainer(world.Renderer)
 	// Background
 	background, err := engine.TextureFromImage(world.Renderer, ResourcePath("time_background.png"))
 	if err != nil {
 		return nil, err
 	}
 	background.Destination.Y = 84
-	world.Add(background)
+	container.Add(background)
 
 	// Text
 	font, err := ttf.OpenFont(ResourcePath("Teko-Light.ttf"), 135)
@@ -46,6 +48,7 @@ func NewClockWidget(world *engine.Container, requestUpdate chan Widget) (*ClockW
 		return nil, err
 	}
 	hours.Texture.Destination.Y = 80
+	container.Add(hours)
 
 	dotFont, err := ttf.OpenFont(ResourcePath("Teko-Light.ttf"), 110)
 	if err != nil {
@@ -61,6 +64,7 @@ func NewClockWidget(world *engine.Container, requestUpdate chan Widget) (*ClockW
 		return nil, err
 	}
 	dots.Texture.Destination.Y = 90
+	container.Add(dots)
 
 	minutes, err := engine.NewText(
 		font,
@@ -71,6 +75,7 @@ func NewClockWidget(world *engine.Container, requestUpdate chan Widget) (*ClockW
 		return nil, err
 	}
 	minutes.Texture.Destination.Y = 80
+	container.Add(minutes)
 
 	clockWidget := &ClockWidget{
 		RequestUpdate: requestUpdate,
@@ -80,14 +85,11 @@ func NewClockWidget(world *engine.Container, requestUpdate chan Widget) (*ClockW
 		Dots:          dots,
 		Minutes:       minutes,
 		Background:    background,
-		Disposed:      make(chan bool)}
-
-	world.Add(hours)
-	world.Add(dots)
-	world.Add(minutes)
+		Container:     container,
+		disposed:      make(chan bool)}
 
 	clockWidget.Update()
-
+	world.Add(container)
 	go clockWidgetLifecycle(clockWidget)
 
 	return clockWidget, nil
@@ -95,18 +97,13 @@ func NewClockWidget(world *engine.Container, requestUpdate chan Widget) (*ClockW
 
 // Dispose resources
 func (clockWidget *ClockWidget) Dispose() error {
-	clockWidget.Disposed <- true
+	clockWidget.disposed <- true
+	close(clockWidget.disposed)
 	clockWidget.Font.Close()
-	if err := clockWidget.Background.Dispose(); err != nil {
+	if err := clockWidget.Container.DisposeItems(); err != nil {
 		return err
 	}
-	if err := clockWidget.Hours.Dispose(); err != nil {
-		return err
-	}
-	if err := clockWidget.Minutes.Dispose(); err != nil {
-		return err
-	}
-	return clockWidget.Dots.Dispose()
+	return clockWidget.World.Remove(clockWidget.Container)
 }
 
 const left int32 = 178
@@ -138,7 +135,7 @@ func clockWidgetLifecycle(clockWidget *ClockWidget) {
 		delay -= (time.Duration(started.Nanosecond()) * time.Nanosecond)
 
 		select {
-		case <-clockWidget.Disposed:
+		case <-clockWidget.disposed:
 			return
 		case <-time.After(delay):
 			clockWidget.RequestUpdate <- clockWidget

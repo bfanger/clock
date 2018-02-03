@@ -1,22 +1,22 @@
 package engine
 
-// Hideable wraps a renderable and adds the abillity to toggle visibility
+// Hideable wraps a Drawable and adds the abillity to toggle visibility
 type Hideable struct {
-	Renderable Renderable
-	Visible    bool
+	Drawable Drawable
+	Visible  bool
 }
 
 // NewHideable creates a ready tot use hideable
-func NewHideable(renderable Renderable) *Hideable {
+func NewHideable(Drawable Drawable) *Hideable {
 	return &Hideable{
-		Renderable: renderable,
-		Visible:    true}
+		Drawable: Drawable,
+		Visible:  true}
 }
 
-// Render all items
-func (hideable *Hideable) Render() error {
+// Draw all items
+func (hideable *Hideable) Draw() error {
 	if hideable.Visible {
-		return hideable.Renderable.Render()
+		return hideable.Drawable.Draw()
 	}
 	return nil
 }
