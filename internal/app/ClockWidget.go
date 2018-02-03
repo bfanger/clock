@@ -1,7 +1,6 @@
 package app
 
 import (
-	"strconv"
 	"time"
 
 	"../../internal/engine"
@@ -111,7 +110,7 @@ const left int32 = 178
 // Update based on current time and center-align the elements.
 func (clockWidget *ClockWidget) Update() error {
 	now := time.Now().Local()
-	clockWidget.Hours.Content = strconv.Itoa(now.Hour())
+	clockWidget.Hours.Content = now.Format("3")
 	if err := clockWidget.Hours.Update(); err != nil {
 		return err
 	}
