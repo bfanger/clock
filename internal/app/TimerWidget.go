@@ -41,7 +41,7 @@ func NewTimerWidget(backgroundPath string, hour int, minute int, world *engine.C
 	}
 
 	// Text
-	font, err := ttf.OpenFont(ResourcePath("Teko-Light.ttf"), 48)
+	font, err := ttf.OpenFont(ResourcePath("Teko-Regular.ttf"), 80)
 	if err != nil {
 		return nil, err
 	}
@@ -54,8 +54,8 @@ func NewTimerWidget(backgroundPath string, hour int, minute int, world *engine.C
 	if err != nil {
 		return nil, err
 	}
-	timer.Texture.Destination.X = 20
-	timer.Texture.Destination.Y = 10
+	timer.Texture.Destination.X = 15
+	timer.Texture.Destination.Y = -11
 
 	container := engine.NewContainer(world.Renderer)
 
