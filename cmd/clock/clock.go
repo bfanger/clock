@@ -24,7 +24,6 @@ func main() {
 }
 
 func run() {
-
 	var err error
 	var window *sdl.Window
 	sdl.Do(func() {
@@ -48,11 +47,13 @@ func run() {
 		renderer.Destroy()
 	})
 	world := engine.NewContainer(renderer)
+	scene := engine.NewContainer(renderer)
+	world.Add(scene)
 
 	requestUpdate := make(chan app.Widget)
 	var clock *app.ClockWidget
 	sdl.Do(func() {
-		clock, err = app.NewClockWidget(world, requestUpdate)
+		clock, err = app.NewClockWidget(scene, requestUpdate)
 		if err != nil {
 			panic(err)
 		}
@@ -61,7 +62,7 @@ func run() {
 		clock.Dispose()
 	})
 
-	school, err := app.NewTimerWidget("school_background.png", 8, 15, world, requestUpdate)
+	school, err := app.NewTimerWidget("school_background.png", 8, 15, scene, requestUpdate)
 	if err != nil {
 		panic(err)
 	}
@@ -79,6 +80,5 @@ func run() {
 	defer sdl.Do(func() {
 		brightness.Dispose()
 	})
-	app.EventLoop(world, requestUpdate)
-
+	app.EventLoop(world, scene, requestUpdate)
 }

@@ -15,13 +15,13 @@ const debug = false
 var runningMutex sync.Mutex
 
 // EventLoop handle the events
-func EventLoop(world *engine.Container, requestUpdate chan Widget) {
+func EventLoop(world *engine.Container, scene *engine.Container, requestUpdate chan Widget) {
 	go renderLoop(world, requestUpdate)
 	buttonPressed := make(chan bool)
 	if _, err := os.Stat("/sys/class/gpio/"); err == nil {
 		go GpioButton(buttonPressed)
 	}
-	go timerOnClick(buttonPressed, world, requestUpdate)
+	go timerOnClick(buttonPressed, scene, requestUpdate)
 
 	running := true
 
