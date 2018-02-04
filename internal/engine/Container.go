@@ -14,9 +14,7 @@ type Container struct {
 
 // NewContainer creates a ready tot use container
 func NewContainer(renderer *sdl.Renderer) *Container {
-	return &Container{
-		Renderer: renderer,
-		Items:    make([]Drawable, 0)}
+	return &Container{Renderer: renderer}
 }
 
 // Draw all items
@@ -34,14 +32,14 @@ func (container *Container) Dispose() error {
 	return nil
 }
 
-// Dispose all items
+// DisposeItems disposes all items
 func (container *Container) DisposeItems() error {
 	for _, item := range container.Items {
 		if err := item.Dispose(); err != nil {
 			return err
 		}
 	}
-	container.Items = make([]Drawable, 0)
+	container.Items = nil
 	return nil
 }
 

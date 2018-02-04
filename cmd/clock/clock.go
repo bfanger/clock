@@ -61,8 +61,7 @@ func run() {
 		clock.Dispose()
 	})
 
-	// school, err := app.NewTimerWidget("school_background.png", 8, 15, world, requestUpdate)
-	school, err := app.NewTimerWidget("school_background.png", 14, 55, world, requestUpdate)
+	school, err := app.NewTimerWidget("school_background.png", 8, 15, world, requestUpdate)
 	if err != nil {
 		panic(err)
 	}

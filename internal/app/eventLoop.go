@@ -2,6 +2,7 @@ package app
 
 import (
 	"fmt"
+	"os"
 	"sync"
 	"time"
 
@@ -16,7 +17,10 @@ var runningMutex sync.Mutex
 // EventLoop handle the events
 func EventLoop(world *engine.Container, requestUpdate chan Widget) {
 	go renderLoop(world, requestUpdate)
-	buttonPressed := make(chan *sdl.MouseButtonEvent)
+	buttonPressed := make(chan bool)
+	if _, err := os.Stat("/sys/class/gpio/"); err == nil {
+		go GpioButton(buttonPressed)
+	}
 	go timerOnClick(buttonPressed, world, requestUpdate)
 
 	running := true
@@ -41,7 +45,7 @@ func EventLoop(world *engine.Container, requestUpdate chan Widget) {
 		// 	}
 		case *sdl.MouseButtonEvent:
 			if t.State == 0 { // Pressed
-				buttonPressed <- t
+				buttonPressed <- true
 			}
 			if debug {
 				fmt.Printf("[%d ms] MouseButton\ttype:%d\tid:%d\tx:%d\ty:%d\tbutton:%d\tstate:%d\n",
@@ -89,7 +93,7 @@ func renderLoop(world *engine.Container, requestUpdate chan Widget) {
 	}
 }
 
-func timerOnClick(buttonPressed chan *sdl.MouseButtonEvent, world *engine.Container, requestUpdate chan Widget) {
+func timerOnClick(buttonPressed chan bool, world *engine.Container, requestUpdate chan Widget) {
 
 	var timer *TimerWidget
 	var err error
