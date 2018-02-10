@@ -106,18 +106,21 @@ func timerOnClick(buttonPressed chan bool, world *engine.Container, requestUpdat
 				sdl.Do(func() {
 					timer.Dispose()
 					timer = nil
-					if countdown == 20 {
-						countdown = 5
-						requestUpdate <- nil
-					} else {
+				})
+				if countdown == 20 {
+					countdown = 5
+					requestUpdate <- nil
+				} else {
+					sdl.Do(func() {
 						_timer, err := createTimer(countdown, world, requestUpdate)
 						if err != nil {
 							panic(err)
 						}
 						timer = _timer
 						countdown += 5
-					}
-				})
+					})
+					requestUpdate <- nil
+				}
 			case <-timer.Completed:
 				sdl.Do(func() {
 					timer.Dispose()
@@ -133,6 +136,7 @@ func timerOnClick(buttonPressed chan bool, world *engine.Container, requestUpdat
 				}
 				countdown += 5
 			})
+			requestUpdate <- timer
 		}
 	}
 }
@@ -148,6 +152,5 @@ func createTimer(countdown int, world *engine.Container, requestUpdate chan Widg
 
 	timer.Second = now.Second()
 	timer.Blink = -10
-	requestUpdate <- timer
 	return timer, nil
 }

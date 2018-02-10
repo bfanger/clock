@@ -25,6 +25,7 @@ type TimerWidget struct {
 	Timer             *engine.Text
 	BlinkingTimer     *engine.Hideable
 	Background        *engine.Texture
+	Dial              *engine.Texture
 	RequestUpdate     chan Widget
 	Completed         chan bool
 	disposed          chan bool
@@ -41,7 +42,7 @@ func NewTimerWidget(backgroundPath string, hour int, minute int, world *engine.C
 	}
 
 	// Text
-	font, err := ttf.OpenFont(ResourcePath("Roboto-Medium.ttf"), 55)
+	font, err := ttf.OpenFont(ResourcePath("Roboto-Medium.ttf"), 50)
 	if err != nil {
 		return nil, err
 	}
@@ -54,8 +55,18 @@ func NewTimerWidget(backgroundPath string, hour int, minute int, world *engine.C
 	if err != nil {
 		return nil, err
 	}
-	timer.Texture.Destination.X = 10
-	timer.Texture.Destination.Y = 5
+	timer.Texture.Destination.Y = 10
+
+	dial, err := engine.TextureFromImage(world.Renderer, ResourcePath("dial.png"))
+	if err != nil {
+		return nil, err
+	}
+	dial.Destination.X = 248
+	dial.Destination.Y = 8
+	dial.Destination.W = 64
+	dial.Destination.H = 64
+	dial.Frame.W = 64
+	dial.Frame.H = 64
 
 	container := engine.NewContainer(world.Renderer)
 
@@ -69,6 +80,7 @@ func NewTimerWidget(backgroundPath string, hour int, minute int, world *engine.C
 		Blink:             -120, // blink for 2 min
 		Alarm:             "0",
 		Timer:             timer,
+		Dial:              dial,
 		BlinkingTimer:     engine.NewHideable(timer),
 		Background:        background,
 		Container:         container,
@@ -81,6 +93,7 @@ func NewTimerWidget(backgroundPath string, hour int, minute int, world *engine.C
 
 	container.Add(timerWidget.Background)
 	container.Add(timerWidget.BlinkingTimer)
+	container.Add(timerWidget.Dial)
 	world.Add(timerWidget.HideableContainer)
 
 	go timerWidgetLifecycle(timerWidget)
@@ -109,6 +122,7 @@ func (timerWidget *TimerWidget) Update() error {
 		return nil
 	}
 	if remaining <= 0 {
+		timerWidget.Dial.Frame.Y = 64 * 7
 		if remaining < -120 {
 			timerWidget.HideableContainer.Visible = false
 		} else {
@@ -132,6 +146,12 @@ func (timerWidget *TimerWidget) Update() error {
 		if err := timerWidget.Timer.Update(); err != nil {
 			return err
 		}
+		timerWidget.Timer.Texture.Destination.X = (320 / 2) - (timerWidget.Timer.Texture.Frame.W / 2)
+		frame := int32((900 - int(remaining)) / 10)
+		y := frame / 16
+		x := frame % 16
+		timerWidget.Dial.Frame.X = x * 64
+		timerWidget.Dial.Frame.Y = y * 64
 	}
 	return nil
 }
