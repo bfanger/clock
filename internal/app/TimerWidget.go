@@ -88,6 +88,7 @@ func NewTimerWidget(backgroundPath string, hour int, minute int) (*TimerWidget, 
 	return timerWidget, nil
 }
 
+// Mount timer and update timer & visibity
 func (timerWidget *TimerWidget) Mount(parent engine.ContainerInterface) error {
 	parent.Add(timerWidget.HideableContainer)
 	timerWidget.Parent = parent
@@ -155,14 +156,17 @@ func (timerWidget *TimerWidget) tick() {
 	if timerWidget.HideableContainer.Visible {
 		// Update every second when visible
 		started := time.Now().Local()
-		delay = (time.Duration(1) * time.Second)
-		delay -= (time.Duration(started.Nanosecond()) * time.Nanosecond)
+		delay = time.Second
+		delay -= time.Duration(started.Nanosecond()) * time.Nanosecond
 	} else if remaining > 0 {
-		//delay  count down to 15 minutes before
-		delay = (time.Duration(remaining-timerWidget.Countdown) * time.Second)
+		// delay count down to 15 minutes before
+		delay = time.Duration(remaining-timerWidget.Countdown) * time.Second
+		if delay < time.Second {
+			delay = time.Second
+		}
 	} else if timerWidget.Repeat {
-		// @todo calculate the delay until the next day
-		delay = (time.Duration(1) * time.Hour)
+		// calculate the delay until the next day
+		delay = (24 * time.Hour) + time.Duration(remaining-timerWidget.Countdown)*time.Second
 	} else {
 		completed = true
 	}
@@ -191,11 +195,9 @@ func TimerWidgetButtonHandler(parent engine.ContainerInterface) {
 	}
 	timerWidgetCountdown += 5
 	if timerWidgetCountdown == 20 {
-		fmt.Println("Clear timer")
 		timerWidgetCountdown = 0
 		return
 	}
-	fmt.Println("Set timer", timerWidgetCountdown)
 	now := time.Now()
 	var err error
 	timerWidget, err = NewTimerWidget("timer_background.png", now.Hour(), now.Minute()+timerWidgetCountdown)
