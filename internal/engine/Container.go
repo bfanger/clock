@@ -2,19 +2,17 @@ package engine
 
 import (
 	"errors"
-
-	"github.com/veandco/go-sdl2/sdl"
 )
+
+// ContainerInterface is used by Mount & Unmount
+type ContainerInterface interface {
+	Add(Drawable)
+	Remove(Drawable) error
+}
 
 // Container with multiple Drawables
 type Container struct {
-	Renderer *sdl.Renderer
-	Items    []Drawable
-}
-
-// NewContainer creates a ready tot use container
-func NewContainer(renderer *sdl.Renderer) *Container {
-	return &Container{Renderer: renderer}
+	Items []Drawable
 }
 
 // Draw all items
@@ -40,19 +38,6 @@ func (container *Container) DisposeItems() error {
 		}
 	}
 	container.Items = nil
-	return nil
-}
-
-// Render the frame
-func (container *Container) Render() error {
-	if err := container.Renderer.Clear(); err != nil {
-		panic(err)
-	}
-
-	if err := container.Draw(); err != nil {
-		panic(err)
-	}
-	container.Renderer.Present()
 	return nil
 }
 

@@ -8,16 +8,13 @@ import (
 
 // Brightness provides software based brightness control
 type Brightness struct {
-	Alpha    uint8
-	Renderer *sdl.Renderer
-	Texture  *Texture
+	Alpha   uint8
+	Texture *Texture
 }
 
 // NewBrightness creates a ready to use Brightness
-func NewBrightness(renderer *sdl.Renderer, alpha uint8) (*Brightness, error) {
-	brightness := Brightness{
-		Renderer: renderer,
-		Alpha:    alpha}
+func NewBrightness(alpha uint8) (*Brightness, error) {
+	brightness := Brightness{Alpha: alpha}
 
 	if err := brightness.Update(); err != nil {
 		return nil, err
@@ -43,9 +40,9 @@ func (brightness *Brightness) Dispose() error {
 
 // Update generates the texture based on the settings
 func (brightness *Brightness) Update() error {
-	rect := brightness.Renderer.GetViewport()
+	rect := Renderer().GetViewport()
 	color := sdl.Color{R: 0, G: 0, B: 0, A: brightness.Alpha}
-	texture, err := TextureFromColor(brightness.Renderer, rect.W, rect.H, color)
+	texture, err := TextureFromColor(rect.W, rect.H, color)
 	if err != nil {
 		return err
 	}

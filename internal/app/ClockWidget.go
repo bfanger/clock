@@ -9,106 +9,96 @@ import (
 
 // ClockWidget displays the current time
 type ClockWidget struct {
-	World         *engine.Container
-	Font          *ttf.Font
-	Container     *engine.Container
-	Background    *engine.Texture
-	Hours         *engine.Text
-	Dots          *engine.Text
-	Minutes       *engine.Text
-	RequestUpdate chan Widget
-	disposed      chan bool
+	Parent     engine.ContainerInterface
+	Font       *ttf.Font
+	Container  *engine.Container
+	Background *engine.Texture
+	Hours      *engine.Text
+	Dots       *engine.Text
+	Minutes    *engine.Text
+	Timer      *time.Timer
 }
 
-// NewClockWidget creates an active ClockWidget
-func NewClockWidget(world *engine.Container, requestUpdate chan Widget) (*ClockWidget, error) {
-
-	container := engine.NewContainer(world.Renderer)
+// Mount activates the clock
+func (clockWidget *ClockWidget) Mount(parent engine.ContainerInterface) error {
 	// Background
-	background, err := engine.TextureFromImage(world.Renderer, ResourcePath("time_background.png"))
+	background, err := engine.TextureFromImage(ResourcePath("time_background.png"))
 	if err != nil {
-		return nil, err
+		return err
 	}
 	background.Destination.Y = 84
-	container.Add(background)
 
 	// Text
 	font, err := ttf.OpenFont(ResourcePath("Teko-Light.ttf"), 135)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	hours, err := engine.NewText(
 		font,
 		White(),
-		"--",
-		world.Renderer)
+		"--")
 	if err != nil {
-		return nil, err
+		return err
 	}
 	hours.Texture.Destination.Y = 80
-	container.Add(hours)
 
 	dotFont, err := ttf.OpenFont(ResourcePath("Teko-Light.ttf"), 110)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	defer dotFont.Close()
 	dots, err := engine.NewText(
 		dotFont,
 		White(),
-		":",
-		world.Renderer)
+		":")
 	if err != nil {
-		return nil, err
+		return err
 	}
 	dots.Texture.Destination.Y = 90
-	container.Add(dots)
 
 	minutes, err := engine.NewText(
 		font,
 		White(),
-		"--",
-		world.Renderer)
+		"--")
 	if err != nil {
-		return nil, err
-	}
-	minutes.Texture.Destination.Y = 80
-	container.Add(minutes)
-
-	clockWidget := &ClockWidget{
-		RequestUpdate: requestUpdate,
-		World:         world,
-		Font:          font,
-		Hours:         hours,
-		Dots:          dots,
-		Minutes:       minutes,
-		Background:    background,
-		Container:     container,
-		disposed:      make(chan bool)}
-
-	clockWidget.Update()
-	world.Add(container)
-	go clockWidgetLifecycle(clockWidget)
-
-	return clockWidget, nil
-}
-
-// Dispose resources
-func (clockWidget *ClockWidget) Dispose() error {
-	clockWidget.disposed <- true
-	close(clockWidget.disposed)
-	clockWidget.Font.Close()
-	if err := clockWidget.Container.DisposeItems(); err != nil {
 		return err
 	}
-	return clockWidget.World.Remove(clockWidget.Container)
+	minutes.Texture.Destination.Y = 80
+
+	container := engine.Container{}
+	container.Add(background)
+	container.Add(hours)
+	container.Add(dots)
+	container.Add(minutes)
+
+	clockWidget.Parent = parent
+	clockWidget.Font = font
+	clockWidget.Container = &container
+	clockWidget.Background = background
+	clockWidget.Hours = hours
+	clockWidget.Dots = dots
+	clockWidget.Minutes = minutes
+	clockWidget.tick()
+
+	parent.Add(&container)
+	return nil
+}
+
+// Unmount Dispose resources
+func (clockWidget *ClockWidget) Unmount() error {
+	if err := clockWidget.Parent.Remove(clockWidget.Container); err != nil {
+		return err
+	}
+	clockWidget.Timer.Stop()
+	clockWidget.Font.Close()
+	return clockWidget.Container.DisposeItems()
 }
 
 const left int32 = 178
 
-// Update based on current time and center-align the elements.
-func (clockWidget *ClockWidget) Update() error {
+// Redraw based on current time and center-align the elements.
+func (clockWidget *ClockWidget) Redraw() error {
 	now := time.Now().Local()
 	clockWidget.Hours.Content = now.Format("3")
 	if err := clockWidget.Hours.Update(); err != nil {
@@ -125,19 +115,14 @@ func (clockWidget *ClockWidget) Update() error {
 	return nil
 }
 
-func clockWidgetLifecycle(clockWidget *ClockWidget) {
-	for {
-		// Calculate the delay to the start of the next minute
-		started := time.Now().Local()
-		delay := (time.Duration(1) * time.Minute)
-		delay -= (time.Duration(started.Second()) * time.Second)
-		delay -= (time.Duration(started.Nanosecond()) * time.Nanosecond)
+func (clockWidget *ClockWidget) tick() {
+	clockWidget.Redraw()
 
-		select {
-		case <-clockWidget.disposed:
-			return
-		case <-time.After(delay):
-			clockWidget.RequestUpdate <- clockWidget
-		}
-	}
+	// Calculate the delay to the start of the next minute
+	started := time.Now().Local()
+	delay := (time.Duration(1) * time.Minute)
+	delay -= (time.Duration(started.Second()) * time.Second)
+	delay -= (time.Duration(started.Nanosecond()) * time.Nanosecond)
+
+	clockWidget.Timer = engine.Timeout(clockWidget.tick, delay)
 }

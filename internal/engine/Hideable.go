@@ -13,7 +13,7 @@ func NewHideable(Drawable Drawable) *Hideable {
 		Visible:  true}
 }
 
-// Draw all items
+// Draw the items when it's visible
 func (hideable *Hideable) Draw() error {
 	if hideable.Visible {
 		return hideable.Drawable.Draw()

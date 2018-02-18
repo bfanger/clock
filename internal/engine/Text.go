@@ -9,20 +9,18 @@ import (
 
 // Text provides text rendering
 type Text struct {
-	Font     *ttf.Font
-	Color    sdl.Color
-	Content  string
-	Renderer *sdl.Renderer
-	Texture  *Texture
+	Font    *ttf.Font
+	Color   sdl.Color
+	Content string
+	Texture *Texture
 }
 
 // NewText creates a ready to use
-func NewText(font *ttf.Font, color sdl.Color, content string, renderer *sdl.Renderer) (*Text, error) {
+func NewText(font *ttf.Font, color sdl.Color, content string) (*Text, error) {
 	text := Text{
-		Font:     font,
-		Color:    color,
-		Content:  content,
-		Renderer: renderer}
+		Font:    font,
+		Color:   color,
+		Content: content}
 	if err := text.Update(); err != nil {
 		return nil, err
 	}
@@ -56,7 +54,7 @@ func (text *Text) Update() error {
 		return err
 	}
 	defer surface.Free()
-	Texture, err := TextureFromSurface(text.Renderer, surface)
+	Texture, err := TextureFromSurface(surface)
 	if err != nil {
 		return err
 	}

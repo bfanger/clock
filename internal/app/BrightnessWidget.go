@@ -9,73 +9,60 @@ import (
 
 // BrightnessWidget adapts the brighness to time of day
 type BrightnessWidget struct {
-	RequestUpdate chan Widget
-	World         *engine.Container
-	Brightness    *engine.Brightness
-	disposed      chan bool
+	Parent     engine.ContainerInterface
+	Brightness *engine.Brightness
+	Timer      *time.Timer
 }
 
-// NewBrightnessWidget creates an active BrightnessWidget
-func NewBrightnessWidget(world *engine.Container, requestUpdate chan Widget) (*BrightnessWidget, error) {
+// Mount creates an active BrightnessWidget
+func (*BrightnessWidget) Mount(parent engine.ContainerInterface) error {
 
-	brightnessWidget := &BrightnessWidget{
-		RequestUpdate: requestUpdate,
-		World:         world}
+	brightnessWidget := &BrightnessWidget{}
 
 	var displayMode sdl.DisplayMode
 	if err := sdl.GetCurrentDisplayMode(0, &displayMode); err != nil {
-		return nil, err
+		return err
 	}
 
 	if displayMode.W <= 320 {
-		brightness, err := engine.NewBrightness(world.Renderer, brightnessAlphaForTime(time.Now().Local()))
+		// Only enable software brightness on the 320x240 tft panel
+		brightness, err := engine.NewBrightness(brightnessAlphaForTime(time.Now().Local()))
 		if err != nil {
-			return nil, err
-		}
-		world.Add(brightness)
-		brightnessWidget.Brightness = brightness
-		brightnessWidget.disposed = make(chan bool)
-		go brightnessWidgetLifecycle(brightnessWidget)
-	}
-
-	return brightnessWidget, nil
-}
-
-// Dispose resources
-func (brightnessWidget *BrightnessWidget) Dispose() error {
-	if brightnessWidget.Brightness != nil {
-		brightnessWidget.disposed <- true
-		close(brightnessWidget.disposed)
-		if err := brightnessWidget.World.Remove(brightnessWidget.Brightness); err != nil {
 			return err
 		}
-		return brightnessWidget.Brightness.Dispose()
+		brightnessWidget.Brightness = brightness
+		parent.Add(brightnessWidget.Brightness)
+		brightnessWidget.Parent = parent
+		brightnessWidget.tick()
 	}
 	return nil
 }
 
-// Update the brightness texture
-func (brightnessWidget *BrightnessWidget) Update() error {
-	return brightnessWidget.Brightness.Update()
+// Unmount and dispose resources
+func (brightnessWidget *BrightnessWidget) Unmount() error {
+	if brightnessWidget.Parent == nil {
+		return nil // Software brighness was disabled
+	}
+	brightnessWidget.Timer.Stop()
+	if err := brightnessWidget.Parent.Remove(brightnessWidget.Brightness); err != nil {
+		return err
+	}
+	return brightnessWidget.Brightness.Dispose()
 }
 
-func brightnessWidgetLifecycle(brightnessWidget *BrightnessWidget) {
-	for {
-		// Calculate the delay to the start of the next hour
-		started := time.Now().Local()
-		delay := (time.Duration(1) * time.Hour)
-		delay -= (time.Duration(started.Minute()) * time.Minute)
-		delay -= (time.Duration(started.Second()) * time.Second)
-
-		select {
-		case <-brightnessWidget.disposed:
-			return
-		case <-time.After(delay):
-			now := time.Now().Local()
-			brightnessWidget.Brightness.Alpha = brightnessAlphaForTime(now)
-			brightnessWidget.RequestUpdate <- brightnessWidget
-		}
+// Update the brightness texture based on the current time
+func (brightnessWidget *BrightnessWidget) tick() {
+	now := time.Now().Local()
+	brightnessWidget.Brightness.Alpha = brightnessAlphaForTime(now)
+	if err := brightnessWidget.Brightness.Update(); err != nil {
+		panic(err)
 	}
+	// Calculate the delay to the begin of the next hour
+	delay := (time.Duration(1) * time.Hour)
+	delay -= (time.Duration(now.Minute()) * time.Minute)
+	delay -= (time.Duration(now.Second()) * time.Second)
+
+	brightnessWidget.Timer = engine.Timeout(brightnessWidget.tick, delay)
 }
 
 func brightnessAlphaForTime(time time.Time) uint8 {
