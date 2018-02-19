@@ -71,7 +71,7 @@ func NewTimerWidget(backgroundPath string, hour int, minute int) (*TimerWidget, 
 		Font:              font,
 		Hour:              hour,
 		Minute:            minute,
-		Countdown:         900,  // 15 min
+		Countdown:         901,  // 15 min
 		Blink:             -120, // blink for 2 min
 		Alarm:             "0",
 		TimeLeft:          timeLeft,

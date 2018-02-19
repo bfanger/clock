@@ -43,18 +43,18 @@ func Window() *sdl.Window {
 	return world.Window
 }
 
-var eventLock sync.Mutex
+var eventMutex sync.Mutex
 
 // PushEvent execute the callback in the UI event thread
 func PushEvent(callback func()) error {
 	if world == nil {
 		return errors.New("Call engine.Init() first")
 	}
-	eventLock.Lock()
+	eventMutex.Lock()
 	world.EventAutoIncrement++
 	id := world.EventAutoIncrement
 	world.EventQueue[id] = callback
-	eventLock.Unlock()
+	eventMutex.Unlock()
 	event := sdl.UserEvent{
 		Type: sdl.USEREVENT,
 		// Timestamp: sdl.GetTicks(),

@@ -49,7 +49,7 @@ func (world *World) HandleEvents() {
 		case *sdl.KeyboardEvent:
 			redraw = false
 			if t.Type == sdl.KEYUP {
-				if t.Keysym.Sym == sdl.K_ESCAPE {
+				if t.Keysym.Sym == sdl.K_ESCAPE || t.Keysym.Sym == sdl.K_q {
 					return
 				}
 				if t.Keysym.Sym == sdl.K_4 {
@@ -61,8 +61,10 @@ func (world *World) HandleEvents() {
 				redraw = false
 			}
 		case *sdl.UserEvent:
+			eventMutex.Lock()
 			world.EventQueue[t.Code]()
 			delete(world.EventQueue, t.Code)
+			eventMutex.Unlock()
 
 		default:
 			redraw = false

@@ -21,7 +21,7 @@ func SetTimeout(callback func(), duration time.Duration) *Timeout {
 		<-timer.C
 		timeoutMutex.Lock()
 		defer timeoutMutex.Unlock()
-		if timeout.cancelled == false {
+		if timeout.cancelled {
 			return
 		}
 		if err := PushEvent(callback); err != nil {

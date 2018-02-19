@@ -65,5 +65,6 @@ func main() {
 	}
 	defer brightness.Unmount()
 
+	world.Render()
 	world.HandleEvents()
 }
