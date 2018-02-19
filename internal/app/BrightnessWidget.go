@@ -4,7 +4,6 @@ import (
 	"time"
 
 	"../../internal/engine"
-	"github.com/veandco/go-sdl2/sdl"
 )
 
 // BrightnessWidget adapts the brighness to time of day
@@ -19,22 +18,14 @@ func (*BrightnessWidget) Mount(parent engine.ContainerInterface) error {
 
 	brightnessWidget := &BrightnessWidget{}
 
-	var displayMode sdl.DisplayMode
-	if err := sdl.GetCurrentDisplayMode(0, &displayMode); err != nil {
+	brightness, err := engine.NewBrightness(brightnessAlphaForTime(time.Now().Local()))
+	if err != nil {
 		return err
 	}
-
-	if displayMode.W <= 320 {
-		// Only enable software brightness on the 320x240 tft panel
-		brightness, err := engine.NewBrightness(brightnessAlphaForTime(time.Now().Local()))
-		if err != nil {
-			return err
-		}
-		brightnessWidget.Brightness = brightness
-		parent.Add(brightnessWidget.Brightness)
-		brightnessWidget.Parent = parent
-		brightnessWidget.tick()
-	}
+	brightnessWidget.Brightness = brightness
+	parent.Add(brightnessWidget.Brightness)
+	brightnessWidget.Parent = parent
+	brightnessWidget.tick()
 	return nil
 }
 

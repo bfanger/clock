@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"runtime"
+	"time"
 
 	"../../internal/app"
 	"../../internal/engine"
@@ -21,7 +22,6 @@ func main() {
 	if err := ttf.Init(); err != nil {
 		panic(err)
 	}
-
 	window, err := app.CreateWindow()
 	if err != nil {
 		panic(err)
@@ -34,37 +34,9 @@ func main() {
 	defer renderer.Destroy()
 	world := engine.Init(window, renderer)
 
-	scene := &engine.Container{}
-	world.Add(scene)
+	engine.SetTimeout(func() {
+		app.Boot(world)
+	}, time.Second)
 
-	clock := app.ClockWidget{}
-	if err = clock.Mount(scene); err != nil {
-		panic(err)
-	}
-	defer clock.Unmount()
-
-	school, err := app.NewTimerWidget("school_background.png", 8, 15)
-	if err != nil {
-		panic(err)
-	}
-	school.Repeat = true
-	if err = school.Mount(scene); err != nil {
-		panic(err)
-	}
-	defer school.Unmount()
-
-	world.ButtonHandlers[4] = func() {
-		app.TimerWidgetButtonHandler(scene)
-	}
-
-	go app.HandleGpioButtons()
-
-	brightness := app.BrightnessWidget{}
-	if err := brightness.Mount(world); err != nil {
-		panic(err)
-	}
-	defer brightness.Unmount()
-
-	world.Render()
 	world.HandleEvents()
 }
