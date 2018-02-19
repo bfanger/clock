@@ -26,7 +26,7 @@ type TimerWidget struct {
 	BlinkingTimer     *engine.Hideable
 	Background        *engine.Texture
 	Dial              *engine.Texture
-	Timer             *time.Timer
+	Timeout           *engine.Timeout
 }
 
 // NewTimerWidget creates an active TimerWidget
@@ -98,7 +98,7 @@ func (timerWidget *TimerWidget) Mount(parent engine.ContainerInterface) error {
 
 // Unmount and dispose resources
 func (timerWidget *TimerWidget) Unmount() error {
-	timerWidget.Timer.Stop()
+	timerWidget.Timeout.Cancel()
 	timerWidget.Font.Close()
 	if err := timerWidget.Parent.Remove(timerWidget.HideableContainer); err != nil {
 		return err
@@ -174,7 +174,7 @@ func (timerWidget *TimerWidget) tick() {
 		panic(err)
 	}
 	if !completed {
-		timerWidget.Timer = engine.Timeout(timerWidget.tick, delay)
+		timerWidget.Timeout = engine.SetTimeout(timerWidget.tick, delay)
 	}
 }
 

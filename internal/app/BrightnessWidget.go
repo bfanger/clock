@@ -11,7 +11,7 @@ import (
 type BrightnessWidget struct {
 	Parent     engine.ContainerInterface
 	Brightness *engine.Brightness
-	Timer      *time.Timer
+	Timeout    *engine.Timeout
 }
 
 // Mount creates an active BrightnessWidget
@@ -43,7 +43,7 @@ func (brightnessWidget *BrightnessWidget) Unmount() error {
 	if brightnessWidget.Parent == nil {
 		return nil // Software brighness was disabled
 	}
-	brightnessWidget.Timer.Stop()
+	brightnessWidget.Timeout.Cancel()
 	if err := brightnessWidget.Parent.Remove(brightnessWidget.Brightness); err != nil {
 		return err
 	}
@@ -62,7 +62,7 @@ func (brightnessWidget *BrightnessWidget) tick() {
 	delay -= (time.Duration(now.Minute()) * time.Minute)
 	delay -= (time.Duration(now.Second()) * time.Second)
 
-	brightnessWidget.Timer = engine.Timeout(brightnessWidget.tick, delay)
+	brightnessWidget.Timeout = engine.SetTimeout(brightnessWidget.tick, delay)
 }
 
 func brightnessAlphaForTime(time time.Time) uint8 {

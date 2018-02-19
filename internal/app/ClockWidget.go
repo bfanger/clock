@@ -16,7 +16,7 @@ type ClockWidget struct {
 	Hours      *engine.Text
 	Dots       *engine.Text
 	Minutes    *engine.Text
-	Timer      *time.Timer
+	Timeout    *engine.Timeout
 }
 
 // Mount activates the clock
@@ -90,7 +90,7 @@ func (clockWidget *ClockWidget) Unmount() error {
 	if err := clockWidget.Parent.Remove(clockWidget.Container); err != nil {
 		return err
 	}
-	clockWidget.Timer.Stop()
+	clockWidget.Timeout.Cancel()
 	clockWidget.Font.Close()
 	return clockWidget.Container.DisposeItems()
 }
@@ -124,5 +124,5 @@ func (clockWidget *ClockWidget) tick() {
 	delay -= (time.Duration(started.Second()) * time.Second)
 	delay -= (time.Duration(started.Nanosecond()) * time.Nanosecond)
 
-	clockWidget.Timer = engine.Timeout(clockWidget.tick, delay)
+	clockWidget.Timeout = engine.SetTimeout(clockWidget.tick, delay)
 }
