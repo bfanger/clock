@@ -1,0 +1,10 @@
+{
+  "name": "clock",
+  "version": "3.0.0",
+  "private": true,
+  "scripts": {
+    "build": "go install github.com/bfanger/clock",
+    "dev":
+      "find . -name '*.go'|entr -rs 'go install github.com/bfanger/clock && ../../../../bin/clock'"
+  }
+}
