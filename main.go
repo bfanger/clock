@@ -5,8 +5,6 @@ import (
 	"go/build"
 	"log"
 	"os"
-	"sync"
-	"time"
 
 	"github.com/bfanger/clock/display"
 	"github.com/bfanger/clock/events"
@@ -37,50 +35,20 @@ func main() {
 	if err != nil {
 		log.Fatalf("Couldn't create renderer: %v\n", err)
 	}
+	defer r.Destroy()
 	// image := display.NewImage(asset("image.jpg"))
 	// defer image.Destroy()
 	// r.Add(0, display.NewSprite("Background", image, 0, 0))
-
-	white := sdl.Color{R: 255, G: 255, B: 255, A: 255}
-	text := display.NewText(asset("Roboto-Bold.ttf"), 90, white, "--:--")
-	defer text.Destroy()
-	r.Add(2, display.NewSprite("Time", text, 50, 70))
-	var m sync.Mutex
-	render := make(chan bool)
-	defer close(render)
-	go func() {
-		for range render {
-			m.Lock()
-			if err = r.Render(); err != nil {
-				panic(err)
-			}
-			m.Unlock()
-		}
-	}()
 
 	events.Init()
 	defer events.Quit()
 	fmt.Println(" 3.0")
 
-	go func() {
-		count := 0
-		for {
-			count++
-			m.Lock()
-			t := time.Now()
-			text.Text = t.Format("15:04")
-			events.Refresh()
-			m.Unlock()
-			delay := time.Duration(time.Minute + (time.Second / 100))
-			delay -= time.Duration(t.Second()) * time.Second
-			delay -= time.Duration(t.Nanosecond()) * time.Nanosecond
+	c := NewClock(r)
+	defer c.Destroy()
+	r.Add(1, c.Layer)
 
-			time.Sleep(delay)
-		}
-
-	}()
-
-	if err := events.EventLoop(render); err != nil {
+	if err := events.EventLoop(r); err != nil {
 		log.Fatalf("eventLoop: %v\n", err)
 	}
 
@@ -115,7 +83,7 @@ func createWindow() (*sdl.Window, error) {
 
 }
 
-// asset to a absolute path for a file in the assets folder
+// asset returns the absolute path for a file in the assets folder
 func asset(filename string) string {
 	binPath := sdl.GetBasePath() + "assets/"
 	_, err := os.Stat(binPath)

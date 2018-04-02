@@ -3,12 +3,15 @@ package display
 import (
 	"fmt"
 	"sort"
+	"sync"
 
 	"github.com/veandco/go-sdl2/sdl"
 )
 
 // Renderer simplifies the render loop
 type Renderer struct {
+	Mutex    sync.Mutex
+	C        chan bool
 	renderer *sdl.Renderer
 	layers   map[int][]Layer
 	zIndexes []int
@@ -16,16 +19,38 @@ type Renderer struct {
 
 // NewRenderer creates a renderer
 func NewRenderer(w *sdl.Window) (*Renderer, error) {
-	r, err := sdl.CreateRenderer(w, -1, sdl.RENDERER_ACCELERATED|sdl.RENDERER_PRESENTVSYNC)
+	sdlr, err := sdl.CreateRenderer(w, -1, sdl.RENDERER_ACCELERATED|sdl.RENDERER_PRESENTVSYNC)
 	if err != nil {
-		return nil, fmt.Errorf("can't create renderer: %v", err)
+		return nil, fmt.Errorf("can't create sdl renderer: %v", err)
 	}
-	layers := make(map[int][]Layer)
-	return &Renderer{renderer: r, layers: layers}, nil
+	r := &Renderer{
+		C:        make(chan bool),
+		renderer: sdlr,
+		layers:   make(map[int][]Layer)}
+
+	go r.renderLoop()
+	return r, nil
+}
+
+func (r *Renderer) renderLoop() {
+	var err error
+	for range r.C {
+		if err = r.Render(); err != nil {
+			panic(err)
+		}
+	}
+}
+
+// Destroy the render
+func (r *Renderer) Destroy() error {
+	close(r.C)
+	return r.renderer.Destroy()
 }
 
 // Render and present to the display
 func (r *Renderer) Render() error {
+	r.Mutex.Lock()
+	defer r.Mutex.Unlock()
 	if err := r.renderer.Clear(); err != nil {
 		return fmt.Errorf("renderer failed to clear: %v", err)
 	}

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"sync"
 
+	"github.com/bfanger/clock/display"
 	"github.com/veandco/go-sdl2/sdl"
 )
 
@@ -62,7 +63,7 @@ func Quit() {
 	close(events)
 }
 
-// Refresh marks the a
+// Refresh triggers a screen update
 func Refresh() {
 	refreshMutex.Lock()
 	defer refreshMutex.Unlock()
@@ -88,7 +89,7 @@ func OnWindowEvents() chan *sdl.WindowEvent {
 }
 
 // EventLoop start the main event loop and keep running until a quit event
-func EventLoop(render chan bool) error {
+func EventLoop(r *display.Renderer) error {
 	if events == nil {
 		return fmt.Errorf("events not initialized")
 	}
@@ -96,7 +97,7 @@ func EventLoop(render chan bool) error {
 	for {
 		refreshMutex.Lock()
 		if refresh {
-			render <- true
+			r.C <- true
 			refresh = false
 		}
 		refreshMutex.Unlock()
