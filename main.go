@@ -2,8 +2,9 @@ package main
 
 import (
 	"fmt"
+	"go/build"
 	"log"
-	"strconv"
+	"os"
 	"sync"
 	"time"
 
@@ -36,12 +37,12 @@ func main() {
 	if err != nil {
 		log.Fatalf("Couldn't create renderer: %v\n", err)
 	}
-	image := display.NewImage("/Sites/clock3/src/github.com/bfanger/clock/assets/image.jpg")
-	defer image.Destroy()
-	r.Add(0, display.NewSprite("Background", image, 0, 0))
+	// image := display.NewImage(asset("image.jpg"))
+	// defer image.Destroy()
+	// r.Add(0, display.NewSprite("Background", image, 0, 0))
 
 	white := sdl.Color{R: 255, G: 255, B: 255, A: 255}
-	text := display.NewText("/Sites/clock3/src/github.com/bfanger/clock/assets/Roboto-Bold.ttf", 90, white, "23:99")
+	text := display.NewText(asset("Roboto-Bold.ttf"), 90, white, "--:--")
 	defer text.Destroy()
 	r.Add(2, display.NewSprite("Time", text, 50, 70))
 	var m sync.Mutex
@@ -50,7 +51,6 @@ func main() {
 	go func() {
 		for range render {
 			m.Lock()
-			fmt.Print(".")
 			if err = r.Render(); err != nil {
 				panic(err)
 			}
@@ -67,10 +67,15 @@ func main() {
 		for {
 			count++
 			m.Lock()
-			text.Text = strconv.Itoa(count)
-			m.Unlock()
-			time.Sleep(time.Second)
+			t := time.Now()
+			text.Text = t.Format("15:04")
 			events.Refresh()
+			m.Unlock()
+			delay := time.Duration(time.Minute + (time.Second / 100))
+			delay -= time.Duration(t.Second()) * time.Second
+			delay -= time.Duration(t.Nanosecond()) * time.Nanosecond
+
+			time.Sleep(delay)
 		}
 
 	}()
@@ -108,6 +113,25 @@ func createWindow() (*sdl.Window, error) {
 
 	return sdl.CreateWindow("Clock", x, y, screenWidth, screenHeight, flags)
 
+}
+
+// asset to a absolute path for a file in the assets folder
+func asset(filename string) string {
+	binPath := sdl.GetBasePath() + "assets/"
+	_, err := os.Stat(binPath)
+	if err == nil {
+		return binPath + filename
+	}
+	gopath := os.Getenv("GOPATH")
+	if gopath == "" {
+		gopath = build.Default.GOPATH
+	}
+	packagePath := gopath + "/src/github.com/bfanger/clock/assets/"
+	_, err = os.Stat(packagePath)
+	if err == nil {
+		return packagePath + filename
+	}
+	return "./assets/" + filename
 }
 
 // isRaspberryPi checks if the display size is 320x240

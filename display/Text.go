@@ -42,6 +42,9 @@ func (t *Text) Paint(r *sdl.Renderer) (*Texture, error) {
 			}
 		}
 		texture, err := TextureFromSurface(r, surface)
+		if err != nil {
+			return nil, err
+		}
 		t.texture = texture
 	}
 	return t.texture, nil
