@@ -46,7 +46,7 @@ func main() {
 
 	c := NewClock(r)
 	defer c.Destroy()
-	r.Add(1, c.Layer)
+	r.Add(c.Layer)
 
 	if err := events.EventLoop(r); err != nil {
 		log.Fatalf("eventLoop: %v\n", err)

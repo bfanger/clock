@@ -2,7 +2,6 @@ package display
 
 import (
 	"fmt"
-	"sort"
 	"sync"
 
 	"github.com/veandco/go-sdl2/sdl"
@@ -10,11 +9,10 @@ import (
 
 // Renderer simplifies the render loop
 type Renderer struct {
+	Container
 	Mutex    sync.Mutex
 	C        chan bool
 	renderer *sdl.Renderer
-	layers   map[int][]Layer
-	zIndexes []int
 }
 
 // NewRenderer creates a renderer
@@ -24,20 +22,31 @@ func NewRenderer(w *sdl.Window) (*Renderer, error) {
 		return nil, fmt.Errorf("can't create sdl renderer: %v", err)
 	}
 	r := &Renderer{
+		Container: Container{
+			layers: make(map[int][]Layer),
+			depths: []int{0},
+		},
 		C:        make(chan bool),
 		renderer: sdlr,
-		layers:   make(map[int][]Layer)}
+	}
 
 	go r.renderLoop()
 	return r, nil
 }
 
+// Render and present to the display
 func (r *Renderer) renderLoop() {
 	var err error
 	for range r.C {
-		if err = r.Render(); err != nil {
-			panic(err)
+		r.Mutex.Lock()
+		if err = r.renderer.Clear(); err != nil {
+			panic(fmt.Errorf("renderer failed to clear: %v", err))
 		}
+		if err = r.Render(r.renderer); err != nil {
+			panic(fmt.Errorf("render failed: %v", err))
+		}
+		r.renderer.Present()
+		r.Mutex.Unlock()
 	}
 }
 
@@ -47,30 +56,12 @@ func (r *Renderer) Destroy() error {
 	return r.renderer.Destroy()
 }
 
-// Render and present to the display
-func (r *Renderer) Render() error {
-	r.Mutex.Lock()
-	defer r.Mutex.Unlock()
-	if err := r.renderer.Clear(); err != nil {
-		return fmt.Errorf("renderer failed to clear: %v", err)
-	}
-	for _, z := range r.zIndexes {
-		for _, layer := range r.layers[z] {
-			if err := layer.Render(r.renderer); err != nil {
-				return fmt.Errorf("%s failed to render: %v", layer.Name(), err)
-			}
-		}
-	}
-	r.renderer.Present()
-	return nil
-}
-
-// Add a layer
-func (r *Renderer) Add(zIndex int, l Layer) {
-	newIndex := r.layers[zIndex] == nil
-	r.layers[zIndex] = append(r.layers[zIndex], l)
-	if newIndex {
-		r.zIndexes = append(r.zIndexes, zIndex)
-		sort.Ints(r.zIndexes)
-	}
-}
+// // Add a layer
+// func (r *Renderer) Add(zIndex int, l Layer) {
+// 	newIndex := r.layers[zIndex] == nil
+// 	r.layers[zIndex] = append(r.layers[zIndex], l)
+// 	if newIndex {
+// 		r.zIndexes = append(r.zIndexes, zIndex)
+// 		sort.Ints(r.zIndexes)
+// 	}
+// }

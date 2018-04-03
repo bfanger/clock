@@ -11,10 +11,12 @@ type Sprite struct {
 	AnchorX, AnchorY float32
 }
 
+// NewSprite creates a new sprite
 func NewSprite(name string, content Painter, x, y int32) *Sprite {
 	return &Sprite{name: name, Content: content, X: x, Y: y}
 }
 
+// Name of the sprite
 func (s *Sprite) Name() string {
 	if s.name == "" {
 		return "Sprite"
