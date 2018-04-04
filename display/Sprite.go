@@ -1,19 +1,24 @@
 package display
 
-import "github.com/veandco/go-sdl2/sdl"
+import (
+	"fmt"
+
+	"github.com/veandco/go-sdl2/sdl"
+)
 
 // Sprite a thing to display on screen
 type Sprite struct {
 	name    string
 	Content Painter
 	X, Y    int32
-	// @todo Rotation, Pivot, ScaleX, ScaleY, Alpha(prevAlpha)
+	// @todo Rotation, Pivot, , Alpha(prevAlpha)
 	AnchorX, AnchorY float32
+	ScaleX, ScaleY   float32
 }
 
 // NewSprite creates a new sprite
 func NewSprite(name string, content Painter, x, y int32) *Sprite {
-	return &Sprite{name: name, Content: content, X: x, Y: y}
+	return &Sprite{name: name, Content: content, X: x, Y: y, ScaleX: 1, ScaleY: 1}
 }
 
 // Name of the sprite
@@ -30,9 +35,20 @@ func (s *Sprite) Render(r *sdl.Renderer) error {
 	if err != nil {
 		return err
 	}
+	if t == nil {
+		return fmt.Errorf("paint result was nil. %T %+v", s.Content, s.Content)
+	}
 	x := s.X - int32(s.AnchorX*float32(t.Frame.W))
 	y := s.Y - int32(s.AnchorY*float32(t.Frame.H))
-	dst := &sdl.Rect{X: x, Y: y, W: t.Frame.W, H: t.Frame.H}
+	w := int32(s.ScaleX * float32(t.Frame.W))
+	h := int32(s.ScaleY * float32(t.Frame.H))
+	dst := &sdl.Rect{X: x, Y: y, W: w, H: h}
 	r.Copy(t.texture, t.Frame, dst)
 	return nil
+}
+
+// SetScale in both X & Y direction
+func (s *Sprite) SetScale(n float32) {
+	s.ScaleX = n
+	s.ScaleY = n
 }

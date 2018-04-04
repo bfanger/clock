@@ -40,7 +40,7 @@ func main() {
 	// defer image.Destroy()
 	// r.Add(0, display.NewSprite("Background", image, 0, 0))
 
-	events.Init()
+	events.Init(r)
 	defer events.Quit()
 	fmt.Println(" 3.0")
 
@@ -51,7 +51,6 @@ func main() {
 	if err := events.EventLoop(r); err != nil {
 		log.Fatalf("eventLoop: %v\n", err)
 	}
-
 }
 
 // createWindow on the second screen, or in fullscreen mode when the windowsize matches the displaysize

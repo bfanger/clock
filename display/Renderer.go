@@ -2,7 +2,6 @@ package display
 
 import (
 	"fmt"
-	"sync"
 
 	"github.com/veandco/go-sdl2/sdl"
 )
@@ -10,7 +9,6 @@ import (
 // Renderer simplifies the render loop
 type Renderer struct {
 	Container
-	Mutex    sync.Mutex
 	C        chan bool
 	renderer *sdl.Renderer
 }
@@ -38,7 +36,6 @@ func NewRenderer(w *sdl.Window) (*Renderer, error) {
 func (r *Renderer) renderLoop() {
 	var err error
 	for range r.C {
-		r.Mutex.Lock()
 		if err = r.renderer.Clear(); err != nil {
 			panic(fmt.Errorf("renderer failed to clear: %v", err))
 		}
@@ -46,7 +43,6 @@ func (r *Renderer) renderLoop() {
 			panic(fmt.Errorf("render failed: %v", err))
 		}
 		r.renderer.Present()
-		r.Mutex.Unlock()
 	}
 }
 
@@ -55,13 +51,3 @@ func (r *Renderer) Destroy() error {
 	close(r.C)
 	return r.renderer.Destroy()
 }
-
-// // Add a layer
-// func (r *Renderer) Add(zIndex int, l Layer) {
-// 	newIndex := r.layers[zIndex] == nil
-// 	r.layers[zIndex] = append(r.layers[zIndex], l)
-// 	if newIndex {
-// 		r.zIndexes = append(r.zIndexes, zIndex)
-// 		sort.Ints(r.zIndexes)
-// 	}
-// }
