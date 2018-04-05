@@ -8,7 +8,10 @@ import (
 )
 
 // RefreshEvent triggers a Render
-const RefreshEvent int32 = 808
+const (
+	RefreshEvent int32 = iota + 808000
+	QuitEvent
+)
 
 var refreshed chan bool
 
@@ -24,6 +27,7 @@ func Quit() {
 
 // Refresh triggers a screen update
 func Refresh() {
+	// @todo Merge
 	e := sdl.UserEvent{
 		Type:      sdl.USEREVENT,
 		Timestamp: sdl.GetTicks(),
@@ -32,6 +36,17 @@ func Refresh() {
 	}
 	sdl.PushEvent(&e)
 	<-refreshed
+}
+
+// Shutdown the event handler
+func Shutdown() {
+	e := sdl.UserEvent{
+		Type:      sdl.USEREVENT,
+		Timestamp: sdl.GetTicks(),
+		WindowID:  0,
+		Code:      QuitEvent,
+	}
+	sdl.PushEvent(&e)
 }
 
 // EventLoop start the main event loop and keep running until a quit event
@@ -50,7 +65,10 @@ func EventLoop(r *display.Renderer) error {
 				r.C <- true
 			}
 		case *sdl.UserEvent:
-			if e.Code == RefreshEvent {
+			switch e.Code {
+			case QuitEvent:
+				return nil
+			case RefreshEvent:
 				r.C <- true
 				refreshed <- true
 			}

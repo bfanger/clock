@@ -21,32 +21,33 @@ type Clock struct {
 func NewClock(r *display.Renderer) *Clock {
 	layer := display.NewContainer()
 	font := asset("Roboto-Light.ttf")
-	fontSize := 115
+	fontSize := 95
 	orange := sdl.Color{R: 254, G: 110, B: 2, A: 255}
+	const y int32 = 80
 
 	hour := display.NewText(font, fontSize, orange, "--")
-	s := display.NewSprite("Clock[hour]", hour, 148, 170)
+	s := display.NewSprite("Clock[hour]", hour, 109, y)
 	s.AnchorX = 1
-	s.AnchorY = 1
+	s.AnchorY = 0
 	layer.Add(s)
 
 	dot := display.NewText(font, fontSize, orange, ":")
-	s = display.NewSprite("Clock[:]", dot, 159, 170)
+	s = display.NewSprite("Clock[:]", dot, 118, y)
 	s.AnchorX = 0.5
-	s.AnchorY = 1
+	s.AnchorY = 0
 	layer.Add(s)
 
 	minute := display.NewText(font, fontSize, orange, "--")
-	s = display.NewSprite("Clock[minute]", minute, 172, 170)
+	s = display.NewSprite("Clock[minute]", minute, 130, y)
 	s.AnchorX = 0
-	s.AnchorY = 1
+	s.AnchorY = 0
 	layer.Add(s)
 
 	gray := sdl.Color{R: 102, G: 102, B: 102, A: 255}
-	date := display.NewText(font, 55, gray, "- ---")
-	s = display.NewSprite("Clock[date]", date, 161, 195)
+	date := display.NewText(font, 50, gray, "- ---")
+	s = display.NewSprite("Clock[date]", date, 119, y+105)
 	s.AnchorX = 0.5
-	s.AnchorY = 0.5
+	s.AnchorY = 0
 	layer.Add(s)
 
 	c := &Clock{
@@ -71,7 +72,7 @@ func (c *Clock) eventLoop(r *display.Renderer) {
 	for {
 		r.Mutex.Lock()
 		t := time.Now()
-		c.hour.Text = t.Format("15")
+		c.hour.Text = "23" //t.Format("15")
 		c.minute.Text = t.Format("04")
 		c.date.Text = t.Format("02 Jan")
 		r.Mutex.Unlock()

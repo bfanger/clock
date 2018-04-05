@@ -5,6 +5,8 @@ import (
 	"go/build"
 	"log"
 	"os"
+	"os/signal"
+	"syscall"
 
 	"github.com/bfanger/clock/display"
 	"github.com/bfanger/clock/events"
@@ -12,7 +14,7 @@ import (
 	"github.com/veandco/go-sdl2/ttf"
 )
 
-var screenWidth, screenHeight int32 = 320, 240
+var screenWidth, screenHeight int32 = 240, 320
 
 func main() {
 	defer fmt.Println("bye")
@@ -47,6 +49,13 @@ func main() {
 	c := NewClock(r)
 	defer c.Destroy()
 	r.Add(c.Layer)
+
+	sig := make(chan os.Signal, 2)
+	signal.Notify(sig, os.Interrupt, syscall.SIGTERM)
+	go func() {
+		<-sig
+		events.Shutdown()
+	}()
 
 	if err := events.EventLoop(r); err != nil {
 		log.Fatalf("eventLoop: %v\n", err)
@@ -101,7 +110,7 @@ func asset(filename string) string {
 	return "./assets/" + filename
 }
 
-// isRaspberryPi checks if the display size is 320x240
+// isRaspberryPi checks if the display size is 240x320
 func isRaspberryPi() bool {
 	d, err := sdl.GetCurrentDisplayMode(0)
 	if err != nil {
