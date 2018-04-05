@@ -22,29 +22,28 @@ func NewClock(r *display.Renderer) *Clock {
 	layer := display.NewContainer()
 	font := asset("Roboto-Light.ttf")
 	fontSize := 115
-	gray := sdl.Color{R: 127, G: 126, B: 126, A: 255}
 	orange := sdl.Color{R: 254, G: 110, B: 2, A: 255}
 
-	hour := display.NewText(font, fontSize, gray, "00")
+	hour := display.NewText(font, fontSize, orange, "--")
 	s := display.NewSprite("Clock[hour]", hour, 148, 170)
 	s.AnchorX = 1
 	s.AnchorY = 1
 	layer.Add(s)
 
-	dot := display.NewText(font, fontSize, gray, ":")
+	dot := display.NewText(font, fontSize, orange, ":")
 	s = display.NewSprite("Clock[:]", dot, 159, 170)
 	s.AnchorX = 0.5
 	s.AnchorY = 1
 	layer.Add(s)
 
-	minute := display.NewText(font, fontSize, orange, "00")
+	minute := display.NewText(font, fontSize, orange, "--")
 	s = display.NewSprite("Clock[minute]", minute, 172, 170)
 	s.AnchorX = 0
 	s.AnchorY = 1
 	layer.Add(s)
 
-	darkGray := sdl.Color{R: 102, G: 102, B: 102, A: 255}
-	date := display.NewText(font, 55, darkGray, "- ---")
+	gray := sdl.Color{R: 102, G: 102, B: 102, A: 255}
+	date := display.NewText(font, 55, gray, "- ---")
 	s = display.NewSprite("Clock[date]", date, 161, 195)
 	s.AnchorX = 0.5
 	s.AnchorY = 0.5
