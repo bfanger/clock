@@ -7,9 +7,11 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
+	"github.com/bfanger/clock/clock"
 	"github.com/bfanger/clock/display"
-	"github.com/bfanger/clock/events"
+	"github.com/bfanger/clock/tween"
 	"github.com/veandco/go-sdl2/sdl"
 	"github.com/veandco/go-sdl2/ttf"
 )
@@ -42,22 +44,33 @@ func main() {
 	// defer image.Destroy()
 	// r.Add(0, display.NewSprite("Background", image, 0, 0))
 
-	events.Init(r)
-	defer events.Quit()
+	display.Init(r)
+	defer display.Quit()
 	fmt.Println(" 3.0")
 
-	c := NewClock(r)
+	c := clock.New(r, asset("Roboto-Light.ttf"))
 	defer c.Destroy()
 	r.Add(c.Layer)
+
+	c.Layer.Move(0, 320)
+	go func() {
+		display.Refresh()
+		var prev int32
+		r.Animate(tween.FromToInt32(0, -320, 2*time.Second, func(v int32) {
+			d := v - prev
+			prev = v
+			c.Layer.Move(0, d)
+		}).WithEase(tween.EaseInOut))
+	}()
 
 	sig := make(chan os.Signal, 2)
 	signal.Notify(sig, os.Interrupt, syscall.SIGTERM)
 	go func() {
 		<-sig
-		events.Shutdown()
+		display.Shutdown()
 	}()
 
-	if err := events.EventLoop(r); err != nil {
+	if err := display.EventLoop(r); err != nil {
 		log.Fatalf("eventLoop: %v\n", err)
 	}
 }
@@ -83,9 +96,8 @@ func createWindow() (*sdl.Window, error) {
 	}
 	if d.W == screenWidth {
 		flags += sdl.WINDOW_FULLSCREEN
+		sdl.ShowCursor(sdl.DISABLE)
 	}
-
-	sdl.ShowCursor(sdl.DISABLE)
 
 	return sdl.CreateWindow("Clock", x, y, screenWidth, screenHeight, flags)
 

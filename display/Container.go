@@ -61,3 +61,12 @@ func (c *Container) AddAt(l Layer, depth int) {
 		sort.Ints(c.depths)
 	}
 }
+
+// Move the contents
+func (c *Container) Move(dx, dy int32) {
+	for _, z := range c.depths {
+		for _, layer := range c.layers[z] {
+			layer.Move(dx, dy)
+		}
+	}
+}

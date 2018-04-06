@@ -48,7 +48,13 @@ func (s *Sprite) Render(r *sdl.Renderer) error {
 }
 
 // SetScale in both X & Y direction
-func (s *Sprite) SetScale(n float32) {
-	s.ScaleX = n
-	s.ScaleY = n
+func (s *Sprite) SetScale(scale float32) {
+	s.ScaleX = scale
+	s.ScaleY = scale
+}
+
+// Move the sprite
+func (s *Sprite) Move(dx, dy int32) {
+	s.X += dx
+	s.Y += dy
 }

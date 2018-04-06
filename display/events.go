@@ -1,22 +1,20 @@
-package events
+package display
 
 import (
-	"fmt"
-
-	"github.com/bfanger/clock/display"
 	"github.com/veandco/go-sdl2/sdl"
 )
 
-// RefreshEvent triggers a Render
 const (
-	RefreshEvent int32 = iota + 808000
-	QuitEvent
+	// refreshEvent triggers a Render
+	refreshEvent int32 = iota + 808000
+	// quitEvent stops the eventLoop
+	quitEvent
 )
 
 var refreshed chan bool
 
 // Init creates the event channel and starts multiplexing the events
-func Init(r *display.Renderer) {
+func Init(r *Renderer) {
 	refreshed = make(chan bool)
 }
 
@@ -27,12 +25,12 @@ func Quit() {
 
 // Refresh triggers a screen update
 func Refresh() {
-	// @todo Merge
+	// @todo prevent builing a queue of refresh events.
 	e := sdl.UserEvent{
 		Type:      sdl.USEREVENT,
 		Timestamp: sdl.GetTicks(),
 		WindowID:  0,
-		Code:      RefreshEvent,
+		Code:      refreshEvent,
 	}
 	sdl.PushEvent(&e)
 	<-refreshed
@@ -44,16 +42,13 @@ func Shutdown() {
 		Type:      sdl.USEREVENT,
 		Timestamp: sdl.GetTicks(),
 		WindowID:  0,
-		Code:      QuitEvent,
+		Code:      quitEvent,
 	}
 	sdl.PushEvent(&e)
 }
 
 // EventLoop start the main event loop and keep running until a quit event
-func EventLoop(r *display.Renderer) error {
-	if refreshed == nil {
-		return fmt.Errorf("events.Init not called")
-	}
+func EventLoop(r *Renderer) error {
 	r.C <- true
 	for {
 		event := sdl.WaitEvent()
@@ -66,9 +61,9 @@ func EventLoop(r *display.Renderer) error {
 			}
 		case *sdl.UserEvent:
 			switch e.Code {
-			case QuitEvent:
+			case quitEvent:
 				return nil
-			case RefreshEvent:
+			case refreshEvent:
 				r.C <- true
 				refreshed <- true
 			}

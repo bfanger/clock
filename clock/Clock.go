@@ -1,10 +1,10 @@
-package main
+package clock
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/bfanger/clock/display"
-	"github.com/bfanger/clock/events"
 	"github.com/veandco/go-sdl2/sdl"
 )
 
@@ -15,12 +15,12 @@ type Clock struct {
 	dot    *display.Text
 	minute *display.Text
 	date   *display.Text
+	quit   chan bool
 }
 
-// NewClock create a new clock and updates every minute
-func NewClock(r *display.Renderer) *Clock {
+// New create a new clock and updates every minute
+func New(r *display.Renderer, font string) *Clock {
 	layer := display.NewContainer()
-	font := asset("Roboto-Light.ttf")
 	fontSize := 95
 	orange := sdl.Color{R: 254, G: 110, B: 2, A: 255}
 	const y int32 = 80
@@ -56,28 +56,45 @@ func NewClock(r *display.Renderer) *Clock {
 		dot:    dot,
 		minute: minute,
 		date:   date,
+		quit:   make(chan bool),
 	}
-	go c.eventLoop(r)
+	go c.eventLoop(r, c.quit)
 	return c
 }
 
 // Destroy the clock
 func (c *Clock) Destroy() error {
-	err := c.hour.Destroy()
-	c.hour = nil
-	return err
+	c.quit <- true
+	close(c.quit)
+	if err := c.hour.Destroy(); err != nil {
+		return fmt.Errorf("could not destroy hour: %v", err)
+	}
+	if err := c.dot.Destroy(); err != nil {
+		return fmt.Errorf("could not destroy dot: %v", err)
+	}
+	if err := c.minute.Destroy(); err != nil {
+		return fmt.Errorf("could not destroy minute: %v", err)
+	}
+	if err := c.date.Destroy(); err != nil {
+		return fmt.Errorf("could not destroy date: %v", err)
+	}
+	return nil
 }
 
-func (c *Clock) eventLoop(r *display.Renderer) {
+func (c *Clock) eventLoop(r *display.Renderer, quit <-chan bool) {
 	for {
 		r.Mutex.Lock()
 		t := time.Now()
-		c.hour.Text = "23" //t.Format("15")
+		c.hour.Text = t.Format("15")
 		c.minute.Text = t.Format("04")
 		c.date.Text = t.Format("02 Jan")
 		r.Mutex.Unlock()
-		events.Refresh()
-		SleepUntilNext(time.Minute, t)
+		display.Refresh()
+		select {
+		case <-quit:
+			return
+		case <-time.After(time.Until(Next(time.Minute, t))):
+		}
 	}
 }
 
@@ -92,9 +109,4 @@ func Next(d time.Duration, since time.Time) time.Time {
 		t = t.Add(time.Duration(since.Minute())*time.Minute + time.Duration(since.Second())*time.Second + d)
 	}
 	return t
-}
-
-// SleepUntilNext whole minute or second.
-func SleepUntilNext(d time.Duration, since time.Time) {
-	time.Sleep(time.Until(Next(d, since)))
 }
