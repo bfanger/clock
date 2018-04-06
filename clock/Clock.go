@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/bfanger/clock/display"
+	"github.com/bfanger/clock/tween"
 	"github.com/veandco/go-sdl2/sdl"
 )
 
@@ -109,4 +110,19 @@ func Next(d time.Duration, since time.Time) time.Time {
 		t = t.Add(time.Duration(since.Minute())*time.Minute + time.Duration(since.Second())*time.Second + d)
 	}
 	return t
+}
+
+// Show the clock
+func (c *Clock) Show(r *display.Renderer, animated bool) {
+	r.Add(c.Layer)
+	if animated == false {
+		return
+	}
+	c.Layer.Move(0, 320)
+	var prev int32
+	r.Animate(tween.FromToInt32(0, -320, 2*time.Second, func(v int32) {
+		d := v - prev
+		prev = v
+		c.Layer.Move(0, d)
+	}).WithEase(tween.EaseInOut))
 }

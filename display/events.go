@@ -25,7 +25,6 @@ func Quit() {
 
 // Refresh triggers a screen update
 func Refresh() {
-	// @todo prevent builing a queue of refresh events.
 	e := sdl.UserEvent{
 		Type:      sdl.USEREVENT,
 		Timestamp: sdl.GetTicks(),
@@ -49,24 +48,60 @@ func Shutdown() {
 
 // EventLoop start the main event loop and keep running until a quit event
 func EventLoop(r *Renderer) error {
-	r.C <- true
+	var e sdl.Event
+	var quit, dirty, refresh, render bool
+	var refreshQueue int
 	for {
-		event := sdl.WaitEvent()
-		switch e := event.(type) {
-		case *sdl.QuitEvent:
+		e = sdl.WaitEvent()
+		quit, render, refresh = handleEvent(e)
+		if quit {
 			return nil
-		case *sdl.WindowEvent:
-			if e.Event == sdl.WINDOWEVENT_EXPOSED {
-				r.C <- true
+		}
+		if refresh {
+			refreshQueue++
+		}
+		for {
+			e = sdl.PollEvent()
+			if e == nil {
+				break
 			}
-		case *sdl.UserEvent:
-			switch e.Code {
-			case quitEvent:
+			quit, dirty, refresh = handleEvent(e)
+			if quit {
 				return nil
-			case refreshEvent:
-				r.C <- true
-				refreshed <- true
+			}
+			if refresh {
+				refreshQueue++
+			}
+			if dirty {
+				render = true
 			}
 		}
+		if render {
+			r.C <- true
+		}
+		for i := 0; i < refreshQueue; i++ {
+			refreshed <- true
+		}
+		refreshQueue = 0
 	}
+}
+func handleEvent(event sdl.Event) (quit bool, render bool, refresh bool) {
+	// log.Printf("%T %+v\n", event, event)
+	switch e := event.(type) {
+	case *sdl.QuitEvent:
+		quit = true
+	case *sdl.WindowEvent:
+		if e.Event == sdl.WINDOWEVENT_EXPOSED {
+			render = true
+		}
+	case *sdl.UserEvent:
+		switch e.Code {
+		case quitEvent:
+			quit = true
+		case refreshEvent:
+			render = true
+			refresh = true
+		}
+	}
+	return
 }
