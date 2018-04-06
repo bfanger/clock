@@ -32,7 +32,7 @@ func (t Tween) WithEase(e Easing) *Tween {
 
 // FromToInt32 creates a new Tween for an Int32
 func FromToInt32(from, to int32, d time.Duration, update func(int32)) *Tween {
-	return &Tween{Duration: d, Ease: EaseInOut, Update: func(v float32) {
+	return &Tween{Duration: d, Ease: EaseInOutQuad, Update: func(v float32) {
 		update(from + int32(float32(to-from)*v))
 	}}
 }

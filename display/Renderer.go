@@ -2,6 +2,7 @@ package display
 
 import (
 	"fmt"
+	"sync"
 	"time"
 
 	"github.com/veandco/go-sdl2/sdl"
@@ -10,10 +11,12 @@ import (
 // Renderer simplifies the render loop
 type Renderer struct {
 	Container
-	C         chan bool
-	animaters []Animater
-	renderer  *sdl.Renderer
-	quit      chan bool
+	C             chan bool
+	Mutex         sync.Mutex
+	animaters     []Animater
+	animaterMutex sync.Mutex
+	renderer      *sdl.Renderer
+	quit          chan bool
 }
 
 // NewRenderer creates a renderer
@@ -41,12 +44,15 @@ func (r *Renderer) Destroy() error {
 	r.quit <- true
 	close(r.quit)
 	close(r.C)
+	r.Mutex.Lock()
+	defer r.Mutex.Unlock()
 	return r.renderer.Destroy()
 }
 
 // Render and present to the display
 func (r *Renderer) renderLoop() {
 	var err error
+	var animating bool
 	var prevUpdate = time.Now()
 	var nextUpdate time.Time
 	var dt time.Duration
@@ -57,7 +63,10 @@ func (r *Renderer) renderLoop() {
 			return
 		case <-r.C:
 		default:
-			if len(r.animaters) == 0 {
+			r.animaterMutex.Lock()
+			animating = len(r.animaters) != 0
+			r.animaterMutex.Unlock()
+			if animating == false {
 				select {
 				case <-r.quit:
 					return
@@ -65,12 +74,13 @@ func (r *Renderer) renderLoop() {
 				}
 			}
 		}
+		r.Mutex.Lock()
 		if err = r.renderer.Clear(); err != nil {
 			panic(fmt.Errorf("renderer failed to clear: %v", err))
 		}
 		nextUpdate = time.Now()
 		dt = nextUpdate.Sub(prevUpdate)
-		r.Mutex.Lock()
+		r.animaterMutex.Lock()
 		for _, a := range r.animaters {
 			if a.Animate(dt) {
 				completed = append(completed, a)
@@ -83,20 +93,21 @@ func (r *Renderer) renderLoop() {
 				}
 			}
 		}
-		r.Mutex.Unlock()
 		completed = nil
+		r.animaterMutex.Unlock()
 		if err = r.Render(r.renderer); err != nil {
 			panic(fmt.Errorf("render failed: %v", err))
 		}
 		r.renderer.Present()
 		prevUpdate = nextUpdate
+		r.Mutex.Unlock()
 	}
 }
 
 // Animate adds the animater to the renderloop
 func (r *Renderer) Animate(a Animater) {
-	r.Mutex.Lock()
-	defer r.Mutex.Unlock()
+	r.animaterMutex.Lock()
+	defer r.animaterMutex.Unlock()
 	r.animaters = append(r.animaters, a)
 	if len(r.animaters) == 1 {
 		go Refresh()

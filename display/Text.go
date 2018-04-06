@@ -46,6 +46,10 @@ func (t *Text) Paint(r *sdl.Renderer) (*Texture, error) {
 			return nil, err
 		}
 		t.texture = texture
+		t.previous.FontFile = t.FontFile
+		t.previous.Size = t.Size
+		t.previous.Text = t.Text
+		t.previous.Color = t.Color
 	}
 	return t.texture, nil
 }

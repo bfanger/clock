@@ -49,7 +49,7 @@ func main() {
 	c := clock.New(r, asset("Roboto-Light.ttf"))
 	defer c.Destroy()
 
-	c.Show(r, false)
+	c.Show(r, true)
 
 	sig := make(chan os.Signal, 2)
 	signal.Notify(sig, os.Interrupt, syscall.SIGTERM)

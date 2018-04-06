@@ -124,5 +124,5 @@ func (c *Clock) Show(r *display.Renderer, animated bool) {
 		d := v - prev
 		prev = v
 		c.Layer.Move(0, d)
-	}).WithEase(tween.EaseInOut))
+	}))
 }

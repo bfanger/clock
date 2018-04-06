@@ -10,9 +10,9 @@ import (
 
 // Container is a layer that contains other layers.
 type Container struct {
-	Mutex  sync.Mutex
 	layers map[int][]Layer
 	depths []int
+	mu     sync.RWMutex
 }
 
 // NewContainer creates a Container
@@ -33,8 +33,8 @@ func (c *Container) Name() string {
 
 // Render all layers
 func (c *Container) Render(r *sdl.Renderer) error {
-	c.Mutex.Lock()
-	defer c.Mutex.Unlock()
+	c.mu.RLock()
+	defer c.mu.RUnlock()
 	for _, z := range c.depths {
 		for _, layer := range c.layers[z] {
 			if err := layer.Render(r); err != nil {
@@ -52,8 +52,8 @@ func (c *Container) Add(l Layer) {
 
 // AddAt a layer at specific depth
 func (c *Container) AddAt(l Layer, depth int) {
-	c.Mutex.Lock()
-	defer c.Mutex.Unlock()
+	c.mu.Lock()
+	defer c.mu.Unlock()
 	new := c.layers[depth] == nil
 	c.layers[depth] = append(c.layers[depth], l)
 	if new {
@@ -64,6 +64,8 @@ func (c *Container) AddAt(l Layer, depth int) {
 
 // Move the contents
 func (c *Container) Move(dx, dy int32) {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
 	for _, z := range c.depths {
 		for _, layer := range c.layers[z] {
 			layer.Move(dx, dy)
