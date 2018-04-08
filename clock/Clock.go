@@ -2,9 +2,11 @@ package clock
 
 import (
 	"fmt"
+	"sync"
 	"time"
 
 	"github.com/bfanger/clock/display"
+	"github.com/bfanger/clock/sprite"
 	"github.com/bfanger/clock/tween"
 	"github.com/veandco/go-sdl2/sdl"
 )
@@ -16,37 +18,38 @@ type Clock struct {
 	dot    *display.Text
 	minute *display.Text
 	date   *display.Text
+	busy   *sync.Mutex
 	quit   chan bool
 }
 
 // New create a new clock and updates every minute
-func New(r *display.Renderer, font string) *Clock {
+func New(busy *sync.Mutex, font string) *Clock {
 	layer := display.NewContainer()
 	fontSize := 95
 	orange := sdl.Color{R: 254, G: 110, B: 2, A: 255}
 	const y int32 = 80
 
 	hour := display.NewText(font, fontSize, orange, "--")
-	s := display.NewSprite("Clock[hour]", hour, 109, y)
+	s := sprite.New("Clock[hour]", hour, sprite.WithPos(109, y))
 	s.AnchorX = 1
 	s.AnchorY = 0
 	layer.Add(s)
 
 	dot := display.NewText(font, fontSize, orange, ":")
-	s = display.NewSprite("Clock[:]", dot, 118, y)
+	s = sprite.New("Clock[:]", dot, sprite.WithPos(118, y))
 	s.AnchorX = 0.5
 	s.AnchorY = 0
 	layer.Add(s)
 
 	minute := display.NewText(font, fontSize, orange, "--")
-	s = display.NewSprite("Clock[minute]", minute, 130, y)
+	s = sprite.New("Clock[minute]", minute, sprite.WithPos(130, y))
 	s.AnchorX = 0
 	s.AnchorY = 0
 	layer.Add(s)
 
 	gray := sdl.Color{R: 102, G: 102, B: 102, A: 255}
 	date := display.NewText(font, 50, gray, "- ---")
-	s = display.NewSprite("Clock[date]", date, 119, y+105)
+	s = sprite.New("Clock[date]", date, sprite.WithPos(119, y+105))
 	s.AnchorX = 0.5
 	s.AnchorY = 0
 	layer.Add(s)
@@ -57,14 +60,17 @@ func New(r *display.Renderer, font string) *Clock {
 		dot:    dot,
 		minute: minute,
 		date:   date,
+		busy:   busy,
 		quit:   make(chan bool),
 	}
-	go c.eventLoop(r, c.quit)
+	go c.eventLoop()
 	return c
 }
 
 // Destroy the clock
 func (c *Clock) Destroy() error {
+	c.busy.Lock()
+	defer c.busy.Unlock()
 	c.quit <- true
 	close(c.quit)
 	if err := c.hour.Destroy(); err != nil {
@@ -82,17 +88,17 @@ func (c *Clock) Destroy() error {
 	return nil
 }
 
-func (c *Clock) eventLoop(r *display.Renderer, quit <-chan bool) {
+func (c *Clock) eventLoop() {
 	for {
-		r.Mutex.Lock()
+		c.busy.Lock()
 		t := time.Now()
 		c.hour.Text = t.Format("15")
 		c.minute.Text = t.Format("04")
 		c.date.Text = t.Format("02 Jan")
-		r.Mutex.Unlock()
+		c.busy.Unlock()
 		display.Refresh()
 		select {
-		case <-quit:
+		case <-c.quit:
 			return
 		case <-time.After(time.Until(Next(time.Minute, t))):
 		}

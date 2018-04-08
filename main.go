@@ -40,16 +40,19 @@ func main() {
 	defer r.Destroy()
 	// image := display.NewImage(asset("image.jpg"))
 	// defer image.Destroy()
-	// r.Add(0, display.NewSprite("Background", image, 0, 0))
+	// r.AddAt(sprite.New("Background", image), -1)
 
 	display.Init(r)
 	defer display.Quit()
 	fmt.Println(" 3.0")
 
-	c := clock.New(r, asset("Roboto-Light.ttf"))
+	c := clock.New(&r.Mutex, asset("Roboto-Light.ttf"))
 	defer c.Destroy()
-
 	c.Show(r, true)
+
+	// fps := NewFps(r, asset("Roboto-Light.ttf"), sprite.WithPos(screenWidth-5, 5), sprite.WithAnchor(1, 0))
+	// defer fps.Destroy()
+	// r.Add(fps.Layer)
 
 	sig := make(chan os.Signal, 2)
 	signal.Notify(sig, os.Interrupt, syscall.SIGTERM)
