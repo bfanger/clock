@@ -6,8 +6,8 @@ import (
 
 // Texture is the result of a paint and the base ingredient for the Compose()
 type Texture struct {
-	*sdl.Texture
-	Frame *sdl.Rect
+	Texture *sdl.Texture
+	Frame   *sdl.Rect
 }
 
 // NewTexture create a texture
@@ -16,20 +16,20 @@ func NewTexture(texture *sdl.Texture, frame *sdl.Rect) *Texture {
 }
 
 // Paint returns the current texture
-func (t *Texture) Paint(r *sdl.Renderer) (*Texture, error) {
-	return t, nil
+func (t *Texture) Paint(r *sdl.Renderer) (*sdl.Texture, *sdl.Rect, error) {
+	return t.Texture, t.Frame, nil
 }
 
-// // Destroy the texture
-// func (t *Texture) Destroy() error {
-// 	return t.texture.Destroy()
-// }
+// Destroy the texture
+func (t *Texture) Destroy() error {
+	return t.Texture.Destroy()
+}
 
 // TextureFromSurface create a texture from a surface
 func TextureFromSurface(r *sdl.Renderer, s *sdl.Surface) (*Texture, error) {
-	texture, err := r.CreateTextureFromSurface(s)
+	t, err := r.CreateTextureFromSurface(s)
 	if err != nil {
 		return nil, err
 	}
-	return &Texture{Texture: texture, Frame: &sdl.Rect{W: s.W, H: s.H}}, nil
+	return NewTexture(t, &sdl.Rect{W: s.W, H: s.H}), nil
 }

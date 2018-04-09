@@ -1,43 +1,31 @@
-package main
+package display
 
 import (
 	"math"
 	"strconv"
 	"time"
 
-	"github.com/bfanger/clock/display"
-	"github.com/bfanger/clock/sprite"
 	"github.com/veandco/go-sdl2/sdl"
 )
 
-// Fps displays the average framerate over the last 10 frames
+// Fps displays the average framerate over the last 10 frames (when added as an animation)
 type Fps struct {
-	Layer display.Layer
-	text  *display.Text
-	avg   []time.Duration
-	r     *display.Renderer
+	text *Text
+	avg  []time.Duration
 }
 
 // NewFps create a new Fps and updates every minute
-func NewFps(r *display.Renderer, font string, opts ...sprite.Option) *Fps {
+func NewFps(r *Renderer, font string, fontSize int) *Fps {
 	white := sdl.Color{R: 255, G: 255, B: 255, A: 255}
-	text := display.NewText(font, 16, white, "-")
-	l := sprite.New("Fps", text, opts...)
-	f := &Fps{
-		Layer: l,
-		text:  text,
-		r:     r,
+	text := NewText(font, fontSize, white, "-")
+	return &Fps{
+		text: text,
 	}
-	r.Animate(f)
-	return f
 }
 
 // Destroy the Fps
 func (f *Fps) Destroy() error {
-	f.r.Mutex.Lock()
-	defer f.r.Mutex.Unlock()
-	err := f.text.Destroy()
-	return err
+	return f.text.Destroy()
 }
 
 // Animate the fps
@@ -53,11 +41,13 @@ func (f *Fps) Animate(dt time.Duration) bool {
 		total += float64(t)
 	}
 	ps := float64(len(f.avg)) * float64(time.Second)
-
-	// f.text.Text = strconv.Itoa(int((n * time.Second) / total))
-
 	v := math.Round(ps / total)
 	f.text.Text = strconv.Itoa(int(v))
 
 	return false
+}
+
+// Paint the FPS
+func (f *Fps) Paint(r *sdl.Renderer) (*Texture, error) {
+	return f.text.Paint(r)
 }

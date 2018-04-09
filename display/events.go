@@ -77,7 +77,7 @@ func EventLoop(r *Renderer) error {
 			}
 		}
 		if render {
-			r.C <- true
+			r.refresh <- true
 		}
 		for i := 0; i < refreshQueue; i++ {
 			refreshed <- true
@@ -85,6 +85,7 @@ func EventLoop(r *Renderer) error {
 		refreshQueue = 0
 	}
 }
+
 func handleEvent(event sdl.Event) (quit bool, render bool, refresh bool) {
 	// log.Printf("%T %+v\n", event, event)
 	switch e := event.(type) {

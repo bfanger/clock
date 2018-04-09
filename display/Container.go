@@ -62,6 +62,34 @@ func (c *Container) AddAt(l Layer, depth int) {
 	}
 }
 
+// Remove a layer
+func (c *Container) Remove(l Layer) bool {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	for _, z := range c.depths {
+		for i, layer := range c.layers[z] {
+			if layer == l {
+				c.layers[z] = append(c.layers[z][:i], c.layers[z][i+1:]...)
+				return true
+			}
+		}
+	}
+	return false
+}
+
+// RemoveAt removes a layer at a specific depth
+func (c *Container) RemoveAt(l Layer, depth int) bool {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	for i, layer := range c.layers[depth] {
+		if layer == l {
+			c.layers[depth] = append(c.layers[depth][:i], c.layers[depth][i+1:]...)
+			return true
+		}
+	}
+	return false
+}
+
 // Move the contents
 func (c *Container) Move(dx, dy int32) {
 	c.mu.RLock()

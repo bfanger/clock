@@ -11,12 +11,12 @@ import (
 // Renderer simplifies the render loop
 type Renderer struct {
 	Container
-	C             chan bool
 	Mutex         sync.Mutex
+	refresh       chan bool
 	animaters     []Animater
 	animaterMutex sync.Mutex
 	renderer      *sdl.Renderer
-	quit          chan bool
+	running       bool
 }
 
 // NewRenderer creates a renderer
@@ -30,8 +30,8 @@ func NewRenderer(w *sdl.Window) (*Renderer, error) {
 			layers: make(map[int][]Layer),
 			depths: []int{0},
 		},
-		C:        make(chan bool),
-		quit:     make(chan bool),
+		refresh:  make(chan bool),
+		running:  true,
 		renderer: sdlr,
 	}
 
@@ -41,11 +41,10 @@ func NewRenderer(w *sdl.Window) (*Renderer, error) {
 
 // Destroy the render
 func (r *Renderer) Destroy() error {
-	r.quit <- true
-	close(r.quit)
-	close(r.C)
 	r.Mutex.Lock()
 	defer r.Mutex.Unlock()
+	r.running = false
+	close(r.refresh)
 	return r.renderer.Destroy()
 }
 
@@ -59,22 +58,20 @@ func (r *Renderer) renderLoop() {
 	var completed []Animater
 	for {
 		select {
-		case <-r.quit:
-			return
-		case <-r.C:
+		case <-r.refresh:
 		default:
 			r.animaterMutex.Lock()
 			animating = len(r.animaters) != 0
 			r.animaterMutex.Unlock()
 			if animating == false {
-				select {
-				case <-r.quit:
-					return
-				case <-r.C: // Wait for refresh event
-				}
+				<-r.refresh // Wait for refresh event
 			}
 		}
 		r.Mutex.Lock()
+		if r.running == false {
+			r.Mutex.Unlock()
+			return
+		}
 		if err = r.renderer.Clear(); err != nil {
 			panic(fmt.Errorf("renderer failed to clear: %v", err))
 		}
@@ -115,14 +112,14 @@ func (r *Renderer) Animate(a Animater) {
 }
 
 // StopAnimation removes the animater from the renderLoop
-func (r *Renderer) StopAnimation(a Animater) error {
-	r.Mutex.Lock()
-	defer r.Mutex.Unlock()
+func (r *Renderer) StopAnimation(a Animater) bool {
+	r.animaterMutex.Lock()
+	defer r.animaterMutex.Unlock()
 	for i, existing := range r.animaters {
 		if a == existing {
 			r.animaters = append(r.animaters[:i], r.animaters[i+1:]...)
-			return nil
+			return true
 		}
 	}
-	return fmt.Errorf("couldn't find animator: %+v", a)
+	return false
 }

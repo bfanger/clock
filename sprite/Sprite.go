@@ -42,7 +42,7 @@ func (s *Sprite) Render(r *sdl.Renderer) error {
 		return err
 	}
 	if t == nil {
-		return fmt.Errorf("paint result was nil. %T %+v", s.Painter, s.Painter)
+		return fmt.Errorf("Paint() returned nil. %T %+v", s.Painter, s.Painter)
 	}
 	x := s.X - int32(s.AnchorX*float32(t.Frame.W))
 	y := s.Y - int32(s.AnchorY*float32(t.Frame.H))

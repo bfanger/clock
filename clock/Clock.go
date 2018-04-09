@@ -22,7 +22,7 @@ type Clock struct {
 	quit   chan bool
 }
 
-// New create a new clock and updates every minute
+// New creates a clock and updates every minute
 func New(busy *sync.Mutex, font string) *Clock {
 	layer := display.NewContainer()
 	fontSize := 95
@@ -131,4 +131,12 @@ func (c *Clock) Show(r *display.Renderer, animated bool) {
 		prev = v
 		c.Layer.Move(0, d)
 	}))
+}
+
+// Hide the clock
+func (c *Clock) Hide(r *display.Renderer, animated bool) {
+	if animated == false {
+		return
+	}
+	r.Remove(c.Layer) // for now...
 }

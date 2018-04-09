@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"go/build"
 	"log"
@@ -10,6 +11,7 @@ import (
 
 	"github.com/bfanger/clock/clock"
 	"github.com/bfanger/clock/display"
+	"github.com/bfanger/clock/sprite"
 	"github.com/veandco/go-sdl2/sdl"
 	"github.com/veandco/go-sdl2/ttf"
 )
@@ -18,6 +20,10 @@ var screenWidth, screenHeight int32 = 240, 320
 
 func main() {
 	defer fmt.Println("bye")
+
+	showFps := flag.Bool("fps", false, "Show FPS counter")
+	flag.Parse()
+
 	fmt.Print("Clock")
 
 	if err := sdl.Init(sdl.INIT_VIDEO); err != nil {
@@ -38,6 +44,7 @@ func main() {
 		log.Fatalf("Couldn't create renderer: %v\n", err)
 	}
 	defer r.Destroy()
+
 	// image := display.NewImage(asset("image.jpg"))
 	// defer image.Destroy()
 	// r.AddAt(sprite.New("Background", image), -1)
@@ -49,10 +56,21 @@ func main() {
 	c := clock.New(&r.Mutex, asset("Roboto-Light.ttf"))
 	defer c.Destroy()
 	c.Show(r, true)
+	defer c.Hide(r, false)
 
-	// fps := NewFps(r, asset("Roboto-Light.ttf"), sprite.WithPos(screenWidth-5, 5), sprite.WithAnchor(1, 0))
-	// defer fps.Destroy()
-	// r.Add(fps.Layer)
+	if *showFps {
+		fps := display.NewFps(r, asset("Roboto-Light.ttf"), 14)
+		f := sprite.New("FPS-counter", fps, sprite.WithPos(screenWidth-5, 5), sprite.WithAnchor(1, 0))
+		r.Animate(fps)
+		r.AddAt(f, 100)
+		defer func() {
+			r.StopAnimation(fps)
+			r.Remove(f)
+			r.Mutex.Lock()
+			defer r.Mutex.Unlock()
+			fps.Destroy()
+		}()
+	}
 
 	sig := make(chan os.Signal, 2)
 	signal.Notify(sig, os.Interrupt, syscall.SIGTERM)
@@ -91,7 +109,6 @@ func createWindow() (*sdl.Window, error) {
 	}
 
 	return sdl.CreateWindow("Clock", x, y, screenWidth, screenHeight, flags)
-
 }
 
 // asset returns the absolute path for a file in the assets folder

@@ -18,19 +18,19 @@ func NewImage(filename string) *Image {
 }
 
 // Paint the image
-func (im *Image) Paint(r *sdl.Renderer) (*Texture, error) {
-	if im.previous == nil {
-		im.previous = &Image{}
+func (i *Image) Paint(r *sdl.Renderer) (*Texture, error) {
+	if i.previous == nil {
+		i.previous = &Image{}
 	}
-	if im.texture == nil || im.Filename != im.previous.Filename {
-		surface, err := img.Load(im.Filename)
+	if i.texture == nil || i.Filename != i.previous.Filename {
+		surface, err := img.Load(i.Filename)
 		if err != nil {
 			return nil, err
 		}
 		defer surface.Free()
-		im.previous.Filename = im.Filename
-		if im.texture != nil {
-			if err = im.texture.Destroy(); err != nil {
+		i.previous.Filename = i.Filename
+		if i.texture != nil {
+			if err = i.texture.Destroy(); err != nil {
 				return nil, err
 			}
 		}
@@ -38,15 +38,15 @@ func (im *Image) Paint(r *sdl.Renderer) (*Texture, error) {
 		if err != nil {
 			return nil, err
 		}
-		im.texture = texture
+		i.texture = texture
 	}
-	return im.texture, nil
+	return i.texture, nil
 }
 
 // Destroy the loaded texture
-func (im *Image) Destroy() error {
-	if im.texture != nil {
-		return im.texture.Destroy()
+func (i *Image) Destroy() error {
+	if i.texture != nil {
+		return i.texture.Destroy()
 	}
 	return nil
 }
