@@ -10,6 +10,7 @@ import (
 	"os/signal"
 	"syscall"
 
+	"github.com/bfanger/clock/button"
 	"github.com/bfanger/clock/clock"
 	"github.com/bfanger/clock/display"
 	"github.com/bfanger/clock/sprite"
@@ -91,6 +92,28 @@ func main() {
 		}
 		w.Write(switchColor)
 	})
+
+	go func() {
+		// Change color with the button
+		defer log.Println("stopped listening for presses")
+		colors := []sdl.Color{clock.Orange, clock.Pink, clock.Green, clock.Blue}
+		i := 0
+		presses, err := button.Combi(49, 25) // key: "1", button :4
+		if err != nil {
+			log.Fatal(err)
+		}
+		for err := range presses {
+			if err != nil {
+				log.Fatal(err)
+			}
+			i++
+			if i == len(colors) {
+				i = 0
+			}
+			c.Color(colors[i])
+			display.Refresh()
+		}
+	}()
 
 	if *showFps {
 		fps := display.NewFps(r, asset("Roboto-Light.ttf"), 14)
