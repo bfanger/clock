@@ -25,5 +25,5 @@ func EaseInQuad(t float32) float32 {
 
 // EaseOutQuad ends slow
 func EaseOutQuad(t float32) float32 {
-	return t * (2 - t)
+	return 1 - EaseInQuad(1-t)
 }

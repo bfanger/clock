@@ -59,17 +59,37 @@ func main() {
 	r.Add(c.Layer)
 	defer r.Remove(c.Layer)
 	r.Animate(c.Mode(clock.Fullscreen))
-	http.HandleFunc("/top", func(w http.ResponseWriter, req *http.Request) {
-		r.Animate(c.Mode(clock.Top))
-		w.Write([]byte("<a href=\"fullscreen\">goto fullscreen</a>"))
+
+	modes := map[string]clock.Mode{
+		"fullscreen": clock.Fullscreen,
+		"top":        clock.Top,
+		"hidden":     clock.Hidden,
+	}
+
+	switchMode := []byte(`<a href="?mode=hidden">hidden</a><br><a href="?mode=fullscreen">fullscreen</a><br><a href="?mode=top">top</a><br>`)
+	http.HandleFunc("/mode", func(w http.ResponseWriter, req *http.Request) {
+		if len(req.URL.Query()["mode"]) > 0 {
+			key := req.URL.Query()["mode"][0]
+			r.Animate(c.Mode(modes[key]))
+		}
+		w.Write([]byte(switchMode))
 	})
-	http.HandleFunc("/fullscreen", func(w http.ResponseWriter, req *http.Request) {
-		r.Animate(c.Mode(clock.Fullscreen))
-		w.Write([]byte("<a href=\"top\">goto top</a><br><a href=\"hidden\">hide</a>"))
-	})
-	http.HandleFunc("/hidden", func(w http.ResponseWriter, req *http.Request) {
-		r.Animate(c.Mode(clock.Hidden))
-		w.Write([]byte("<a href=\"fullscreen\">goto fullscreen</a>"))
+	switchColor := []byte(`<a href="?color=orange">Orange</a><br><a href="?color=green">Green</a><br><a href="?color=pink">Pink</a><br><a href="?color=blue">Blue</a><br>`)
+	colors := map[string]*sdl.Color{
+		"orange": &clock.Orange,
+		"pink":   &clock.Pink,
+		"green":  &clock.Green,
+		"blue":   &clock.Blue,
+	}
+	http.HandleFunc("/color", func(w http.ResponseWriter, req *http.Request) {
+		if len(req.URL.Query()["color"]) > 0 {
+			key := req.URL.Query()["color"][0]
+			if colors[key] != nil {
+				c.Color(*colors[key])
+			}
+			display.Refresh()
+		}
+		w.Write(switchColor)
 	})
 
 	if *showFps {
@@ -94,7 +114,9 @@ func main() {
 	}()
 
 	go func() {
-		http.ListenAndServe(":8000", nil)
+		if err := http.ListenAndServe(":8000", nil); err != nil {
+			log.Fatalf("server stopeed: %v", err)
+		}
 	}()
 
 	if err := display.EventLoop(r); err != nil {
