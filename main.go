@@ -58,7 +58,6 @@ func main() {
 	defer c.Destroy()
 	r.Add(c.Layer)
 	defer r.Remove(c.Layer)
-	c.Mode(clock.Top)
 	r.Animate(c.Mode(clock.Fullscreen))
 	http.HandleFunc("/top", func(w http.ResponseWriter, req *http.Request) {
 		r.Animate(c.Mode(clock.Top))
@@ -66,7 +65,7 @@ func main() {
 	})
 	http.HandleFunc("/fullscreen", func(w http.ResponseWriter, req *http.Request) {
 		r.Animate(c.Mode(clock.Fullscreen))
-		w.Write([]byte("<a href=\"top\">goto top</a>"))
+		w.Write([]byte("<a href=\"top\">goto top</a><br><a href=\"hidden\">hide</a>"))
 	})
 	http.HandleFunc("/hidden", func(w http.ResponseWriter, req *http.Request) {
 		r.Animate(c.Mode(clock.Hidden))

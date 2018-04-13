@@ -53,7 +53,7 @@ func New(busy *sync.Mutex, font string) *Clock {
 	minute.AnchorY = 0
 	time.Add(hour, dot, minute)
 
-	gray := sdl.Color{R: 102, G: 102, B: 102, A: 255}
+	gray := sdl.Color{R: 127, G: 126, B: 126, A: 255}
 	date := sprite.New("Clock[date]", display.NewText(font, 50, gray, "- ---"))
 	date.AnchorX = 0.5
 	date.AnchorY = 0
