@@ -44,10 +44,10 @@ func (s *Sprite) Render(r *sdl.Renderer) error {
 	if t == nil {
 		return fmt.Errorf("Paint() returned nil. %T %+v", s.Painter, s.Painter)
 	}
-	x := s.X - int32(s.AnchorX*float32(t.Frame.W))
-	y := s.Y - int32(s.AnchorY*float32(t.Frame.H))
 	w := int32(s.ScaleX * float32(t.Frame.W))
 	h := int32(s.ScaleY * float32(t.Frame.H))
+	x := s.X - int32(s.AnchorX*float32(w))
+	y := s.Y - int32(s.AnchorY*float32(h))
 	dst := &sdl.Rect{X: x, Y: y, W: w, H: h}
 	r.Copy(t.Texture, t.Frame, dst)
 	return nil

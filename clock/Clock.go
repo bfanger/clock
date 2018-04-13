@@ -2,6 +2,7 @@ package clock
 
 import (
 	"fmt"
+	"log"
 	"sync"
 	"time"
 
@@ -11,55 +12,60 @@ import (
 	"github.com/veandco/go-sdl2/sdl"
 )
 
+type mode int
+
+const (
+	Hidden mode = iota
+	Fullscreen
+	Top
+)
+
 // Clock displays the current time
 type Clock struct {
-	Layer  display.Layer
-	hour   *display.Text
-	dot    *display.Text
-	minute *display.Text
-	date   *display.Text
-	busy   *sync.Mutex
-	quit   chan bool
+	Layer      *display.Container
+	hour       *sprite.Sprite
+	dot        *sprite.Sprite
+	minute     *sprite.Sprite
+	time       *display.Container
+	date       *sprite.Sprite
+	busy       *sync.Mutex
+	quit       chan bool
+	mode       mode
+	transition display.Animater
 }
 
 // New creates a clock and updates every minute
 func New(busy *sync.Mutex, font string) *Clock {
-	layer := display.NewContainer()
 	fontSize := 95
 	orange := sdl.Color{R: 254, G: 110, B: 2, A: 255}
-	const y int32 = 80
+	time := display.NewContainer()
 
-	hour := display.NewText(font, fontSize, orange, "--")
-	s := sprite.New("Clock[hour]", hour, sprite.WithPos(109, y))
-	s.AnchorX = 1
-	s.AnchorY = 0
-	layer.Add(s)
+	hour := sprite.New("Clock[hour]", display.NewText(font, fontSize, orange, "99"))
+	hour.AnchorX = 1
+	hour.AnchorY = 0
 
-	dot := display.NewText(font, fontSize, orange, ":")
-	s = sprite.New("Clock[:]", dot, sprite.WithPos(118, y))
-	s.AnchorX = 0.5
-	s.AnchorY = 0
-	layer.Add(s)
+	dot := sprite.New("Clock[:]", display.NewText(font, fontSize, orange, ":"))
+	dot.AnchorX = 0.5
+	dot.AnchorY = 0
 
-	minute := display.NewText(font, fontSize, orange, "--")
-	s = sprite.New("Clock[minute]", minute, sprite.WithPos(130, y))
-	s.AnchorX = 0
-	s.AnchorY = 0
-	layer.Add(s)
+	minute := sprite.New("Clock[minute]", display.NewText(font, fontSize, orange, "99"))
+	minute.AnchorX = 0
+	minute.AnchorY = 0
+	time.Add(hour, dot, minute)
 
 	gray := sdl.Color{R: 102, G: 102, B: 102, A: 255}
-	date := display.NewText(font, 50, gray, "- ---")
-	s = sprite.New("Clock[date]", date, sprite.WithPos(119, y+105))
-	s.AnchorX = 0.5
-	s.AnchorY = 0
-	layer.Add(s)
+	date := sprite.New("Clock[date]", display.NewText(font, 50, gray, "- ---"))
+	date.AnchorX = 0.5
+	date.AnchorY = 0
 
 	c := &Clock{
-		Layer:  layer,
+		Layer:  display.NewContainer(),
 		hour:   hour,
 		dot:    dot,
 		minute: minute,
+		time:   time,
 		date:   date,
+		mode:   Hidden,
 		busy:   busy,
 		quit:   make(chan bool),
 	}
@@ -73,36 +79,19 @@ func (c *Clock) Destroy() error {
 	defer c.busy.Unlock()
 	c.quit <- true
 	close(c.quit)
-	if err := c.hour.Destroy(); err != nil {
+	if err := c.hour.Painter.Destroy(); err != nil {
 		return fmt.Errorf("could not destroy hour: %v", err)
 	}
-	if err := c.dot.Destroy(); err != nil {
+	if err := c.dot.Painter.Destroy(); err != nil {
 		return fmt.Errorf("could not destroy dot: %v", err)
 	}
-	if err := c.minute.Destroy(); err != nil {
+	if err := c.minute.Painter.Destroy(); err != nil {
 		return fmt.Errorf("could not destroy minute: %v", err)
 	}
-	if err := c.date.Destroy(); err != nil {
+	if err := c.date.Painter.Destroy(); err != nil {
 		return fmt.Errorf("could not destroy date: %v", err)
 	}
 	return nil
-}
-
-func (c *Clock) eventLoop() {
-	for {
-		c.busy.Lock()
-		t := time.Now()
-		c.hour.Text = t.Format("15")
-		c.minute.Text = t.Format("04")
-		c.date.Text = t.Format("02 Jan")
-		c.busy.Unlock()
-		display.Refresh()
-		select {
-		case <-c.quit:
-			return
-		case <-time.After(time.Until(Next(time.Minute, t))):
-		}
-	}
 }
 
 // Next creates the next rounded date based on the step
@@ -118,25 +107,120 @@ func Next(d time.Duration, since time.Time) time.Time {
 	return t
 }
 
-// Show the clock
-func (c *Clock) Show(r *display.Renderer, animated bool) {
-	r.Add(c.Layer)
-	if animated == false {
-		return
+// Mode set the mode
+func (c *Clock) Mode(m mode) display.Animater {
+	prev := c.mode
+	c.mode = m
+	c.Layer.Remove(c.time)
+	c.Layer.Remove(c.date)
+	hour := c.hour.Painter.(*display.Text)
+	dot := c.dot.Painter.(*display.Text)
+	minute := c.minute.Painter.(*display.Text)
+	var yFullscreen int32 = 80
+	sizeFullscreen := 95
+	var yTop int32 = 5
+	sizeTop := 60
+
+	switch m {
+	case Hidden:
+	case Fullscreen:
+		hour.Size = sizeFullscreen
+		dot.Size = sizeFullscreen
+		minute.Size = sizeFullscreen
+		c.hour.X, c.hour.Y = 109, yFullscreen
+		c.dot.X, c.dot.Y = 118, yFullscreen
+		c.minute.X, c.minute.Y = 130, yFullscreen
+		c.date.X, c.date.Y = 119, yFullscreen+105
+		c.Layer.Add(c.time, c.date)
+		if prev == Hidden {
+			var once sync.Once
+			setup := func() {
+				c.time.Move(0, 230)
+				c.date.Move(0, 130)
+			}
+			tl := &tween.Timeline{}
+			tl.Add(tween.FromToInt32Delta(230, 0, time.Second, tween.EaseInOutQuad, func(d int32) {
+				once.Do(setup)
+				c.time.Move(0, d)
+			}))
+			tl.AddAt(400*time.Millisecond, tween.FromToInt32Delta(130, 0, 700*time.Millisecond, tween.EaseInOutQuad, func(d int32) {
+				c.date.Move(0, d)
+			}))
+			return tl
+		}
+		if prev == Top {
+			var once sync.Once
+			scale := float32(sizeTop) / float32(sizeFullscreen)
+			distance := yTop - yFullscreen
+			setup := func() {
+				c.time.Move(0, distance)
+			}
+			return tween.New(700*time.Millisecond, tween.EaseInOutQuad, func(d float32) {
+				once.Do(setup)
+				s := 1 + (scale-1)*(1-d)
+				c.hour.SetScale(s)
+				c.dot.SetScale(s)
+				c.minute.SetScale(s)
+				y := int32(float32(yFullscreen) + (float32(distance) * (1 - d)))
+				c.hour.Y, c.dot.Y, c.minute.Y = y, y, y
+			})
+		}
+	case Top:
+		hour.Size = sizeTop
+		dot.Size = sizeTop
+		minute.Size = sizeTop
+		c.hour.X, c.hour.Y = 109, yTop
+		c.dot.X, c.dot.Y = 118, yTop
+		c.minute.X, c.minute.Y = 130, yTop
+		c.date.X, c.date.Y = 119, yTop+105
+		c.Layer.Add(c.time)
+		if prev == Fullscreen {
+			var once sync.Once
+			scale := float32(sizeFullscreen) / float32(sizeTop)
+			distance := yFullscreen - yTop
+			setup := func() {
+				c.time.Move(0, distance)
+			}
+			return tween.New(700*time.Millisecond, tween.EaseInOutQuad, func(d float32) {
+				once.Do(setup)
+				s := 1 + (scale-1)*(1-d)
+				c.hour.SetScale(s)
+				c.dot.SetScale(s)
+				c.minute.SetScale(s)
+				y := int32(float32(yTop) + (float32(distance) * (1 - d)))
+				c.hour.Y, c.dot.Y, c.minute.Y = y, y, y
+			})
+		}
+
+	default:
+		log.Panicf("Could not set clock mode to: %v", m)
 	}
-	c.Layer.Move(0, 320)
-	var prev int32
-	r.Animate(tween.FromToInt32(0, -320, 2*time.Second, func(v int32) {
-		d := v - prev
-		prev = v
-		c.Layer.Move(0, d)
-	}))
+	return tween.Empty()
+}
+
+// Show the clock
+func (c *Clock) Show() display.Animater {
+	return c.Mode(Fullscreen)
 }
 
 // Hide the clock
-func (c *Clock) Hide(r *display.Renderer, animated bool) {
-	if animated == false {
-		return
+func (c *Clock) Hide() display.Animater {
+	return c.Mode(Hidden)
+}
+
+func (c *Clock) eventLoop() {
+	for {
+		c.busy.Lock()
+		t := time.Now()
+		c.hour.Painter.(*display.Text).Text = t.Format("15")
+		c.minute.Painter.(*display.Text).Text = t.Format("04")
+		c.date.Painter.(*display.Text).Text = t.Format("02 Jan")
+		c.busy.Unlock()
+		display.Refresh()
+		select {
+		case <-c.quit:
+			return
+		case <-time.After(time.Until(Next(time.Minute, t))):
+		}
 	}
-	r.Remove(c.Layer) // for now...
 }

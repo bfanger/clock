@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"go/build"
 	"log"
+	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
@@ -55,14 +56,28 @@ func main() {
 
 	c := clock.New(&r.Mutex, asset("Roboto-Light.ttf"))
 	defer c.Destroy()
-	c.Show(r, true)
-	defer c.Hide(r, false)
+	r.Add(c.Layer)
+	defer r.Remove(c.Layer)
+	c.Mode(clock.Top)
+	r.Animate(c.Mode(clock.Fullscreen))
+	http.HandleFunc("/top", func(w http.ResponseWriter, req *http.Request) {
+		r.Animate(c.Mode(clock.Top))
+		w.Write([]byte("<a href=\"fullscreen\">goto fullscreen</a>"))
+	})
+	http.HandleFunc("/fullscreen", func(w http.ResponseWriter, req *http.Request) {
+		r.Animate(c.Mode(clock.Fullscreen))
+		w.Write([]byte("<a href=\"top\">goto top</a>"))
+	})
+	http.HandleFunc("/hidden", func(w http.ResponseWriter, req *http.Request) {
+		r.Animate(c.Mode(clock.Hidden))
+		w.Write([]byte("<a href=\"fullscreen\">goto fullscreen</a>"))
+	})
 
 	if *showFps {
 		fps := display.NewFps(r, asset("Roboto-Light.ttf"), 14)
 		f := sprite.New("FPS-counter", fps, sprite.WithPos(screenWidth-5, 5), sprite.WithAnchor(1, 0))
 		r.Animate(fps)
-		r.AddAt(f, 100)
+		r.AddAt(100, f)
 		defer func() {
 			r.StopAnimation(fps)
 			r.Remove(f)
@@ -77,6 +92,10 @@ func main() {
 	go func() {
 		<-sig
 		display.Shutdown()
+	}()
+
+	go func() {
+		http.ListenAndServe(":8000", nil)
 	}()
 
 	if err := display.EventLoop(r); err != nil {

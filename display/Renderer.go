@@ -65,6 +65,7 @@ func (r *Renderer) renderLoop() {
 			r.animaterMutex.Unlock()
 			if animating == false {
 				<-r.refresh // Wait for refresh event
+				prevUpdate = time.Now()
 			}
 		}
 		r.Mutex.Lock()

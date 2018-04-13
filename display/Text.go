@@ -29,7 +29,7 @@ func (t *Text) Paint(r *sdl.Renderer) (*Texture, error) {
 	if err != nil {
 		return nil, err
 	}
-	if t.texture == nil || t.FontFile != t.previous.FontFile || t.Size != t.previous.Size || t.Text != t.previous.Text || t.Color.Uint32() != t.previous.Color.Uint32() {
+	if t.texture == nil || t.font != t.previous.font || t.Text != t.previous.Text || t.Color.Uint32() != t.previous.Color.Uint32() {
 		surface, err := font.RenderUTF8Blended(t.Text, t.Color)
 		// surface, err := font.RenderUTF8Solid(t.Text, t.Color)
 		if err != nil {
@@ -46,8 +46,7 @@ func (t *Text) Paint(r *sdl.Renderer) (*Texture, error) {
 			return nil, err
 		}
 		t.texture = texture
-		t.previous.FontFile = t.FontFile
-		t.previous.Size = t.Size
+		t.previous.font = t.font
 		t.previous.Text = t.Text
 		t.previous.Color = t.Color
 	}

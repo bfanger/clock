@@ -46,16 +46,16 @@ func (c *Container) Render(r *sdl.Renderer) error {
 }
 
 // Add a layer
-func (c *Container) Add(l Layer) {
-	c.AddAt(l, 0)
+func (c *Container) Add(l ...Layer) {
+	c.AddAt(0, l...)
 }
 
 // AddAt a layer at specific depth
-func (c *Container) AddAt(l Layer, depth int) {
+func (c *Container) AddAt(depth int, l ...Layer) {
 	c.mu.Lock()
 	defer c.mu.Unlock()
 	new := c.layers[depth] == nil
-	c.layers[depth] = append(c.layers[depth], l)
+	c.layers[depth] = append(c.layers[depth], l...)
 	if new {
 		c.depths = append(c.depths, depth)
 		sort.Ints(c.depths)
