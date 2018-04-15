@@ -6,5 +6,5 @@ import "github.com/veandco/go-sdl2/sdl"
 type Layer interface {
 	Name() string
 	Render(*sdl.Renderer) error
-	Move(dx, dy int32)
+	Move(dx int32, dy int32)
 }

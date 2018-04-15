@@ -3,6 +3,7 @@ package clock
 import (
 	"fmt"
 	"log"
+	"net/http"
 	"sync"
 	"time"
 
@@ -12,6 +13,7 @@ import (
 	"github.com/veandco/go-sdl2/sdl"
 )
 
+// Mode of the clock
 type Mode int
 
 const (
@@ -39,17 +41,16 @@ type Clock struct {
 	minute     *sprite.Sprite
 	time       *display.Container
 	date       *sprite.Sprite
-	busy       *sync.Mutex
-	quit       chan bool
+	engine     *display.Engine
 	mode       Mode
 	transition display.Animater
 }
 
 // New creates a clock and updates every minute
-func New(busy *sync.Mutex, font string) *Clock {
+func New(engine *display.Engine, font string) *Clock {
 	fontSize := 95
 
-	time := display.NewContainer()
+	container := display.NewContainer()
 
 	hour := sprite.New("Clock[hour]", display.NewText(font, fontSize, Orange, "99"))
 	hour.AnchorX = 1
@@ -62,10 +63,10 @@ func New(busy *sync.Mutex, font string) *Clock {
 	minute := sprite.New("Clock[minute]", display.NewText(font, fontSize, Orange, "99"))
 	minute.AnchorX = 0
 	minute.AnchorY = 0
-	time.Add(hour, dot, minute)
+	container.Add(hour, dot, minute)
 
 	gray := sdl.Color{R: 127, G: 126, B: 126, A: 255}
-	date := sprite.New("Clock[date]", display.NewOpacity(display.NewText(font, 50, gray, "-"), 255))
+	date := sprite.New("Clock[date]", display.NewText(font, 50, gray, "-"))
 	date.AnchorX = 0.5
 	date.AnchorY = 0
 
@@ -74,22 +75,30 @@ func New(busy *sync.Mutex, font string) *Clock {
 		hour:   hour,
 		dot:    dot,
 		minute: minute,
-		time:   time,
+		time:   container,
 		date:   date,
 		mode:   Hidden,
-		busy:   busy,
-		quit:   make(chan bool),
+		engine: engine,
 	}
-	go c.eventLoop()
+	go func() {
+		for {
+			t := time.Now()
+			err := c.engine.Do(func() {
+				c.hour.Painter.(*display.Text).Text = t.Format("15")
+				c.minute.Painter.(*display.Text).Text = t.Format("04")
+				c.date.Painter.(*display.Text).Text = t.Format("02 Jan")
+			})
+			if err != nil {
+				log.Fatalf("clock update failed: %v", err)
+			}
+			time.Sleep(time.Until(Next(time.Minute, t)))
+		}
+	}()
 	return c
 }
 
 // Destroy the clock
 func (c *Clock) Destroy() error {
-	c.busy.Lock()
-	defer c.busy.Unlock()
-	c.quit <- true
-	close(c.quit)
 	if err := c.hour.Painter.Destroy(); err != nil {
 		return fmt.Errorf("could not destroy hour: %v", err)
 	}
@@ -99,7 +108,7 @@ func (c *Clock) Destroy() error {
 	if err := c.minute.Painter.Destroy(); err != nil {
 		return fmt.Errorf("could not destroy minute: %v", err)
 	}
-	if err := c.date.Painter.(*display.Opacity).Painter.Destroy(); err != nil {
+	if err := c.date.Painter.Destroy(); err != nil {
 		return fmt.Errorf("could not destroy date: %v", err)
 	}
 	return nil
@@ -119,10 +128,11 @@ func Next(d time.Duration, since time.Time) time.Time {
 }
 
 // Color sets the color
-func (c *Clock) Color(color sdl.Color) {
+func (c *Clock) Color(color sdl.Color) error {
 	c.hour.Painter.(*display.Text).Color = color
 	c.dot.Painter.(*display.Text).Color = color
 	c.minute.Painter.(*display.Text).Color = color
+	return c.engine.Refresh()
 }
 
 // Mode set the mode
@@ -134,7 +144,7 @@ func (c *Clock) Mode(m Mode) display.Animater {
 	hour := c.hour.Painter.(*display.Text)
 	dot := c.dot.Painter.(*display.Text)
 	minute := c.minute.Painter.(*display.Text)
-	date := c.date.Painter.(*display.Opacity)
+
 	var yFullscreen int32 = 80
 	sizeFullscreen := 95
 	var yTop int32 = 5
@@ -150,7 +160,7 @@ func (c *Clock) Mode(m Mode) display.Animater {
 		c.dot.X, c.dot.Y = 118, yFullscreen
 		c.minute.X, c.minute.Y = 130, yFullscreen
 		c.date.X, c.date.Y = 119, yFullscreen+105
-		date.Alpha = 255
+		c.date.Alpha = 255
 		c.Layer.Add(c.time, c.date)
 		if prev == Hidden {
 			var once sync.Once
@@ -184,7 +194,7 @@ func (c *Clock) Mode(m Mode) display.Animater {
 				c.minute.SetScale(s)
 				y := int32(float32(yFullscreen) + (float32(distance) * (1 - d)))
 				c.hour.Y, c.dot.Y, c.minute.Y = y, y, y
-				date.Alpha = uint8(d * 255)
+				c.date.Alpha = uint8(d * 255)
 			})
 		}
 	case Top:
@@ -210,7 +220,7 @@ func (c *Clock) Mode(m Mode) display.Animater {
 				c.minute.SetScale(s)
 				y := int32(float32(yTop) + (float32(distance) * (1 - d)))
 				c.hour.Y, c.dot.Y, c.minute.Y = y, y, y
-				date.Alpha = 255 - uint8(d*255)
+				c.date.Alpha = 255 - uint8(d*255)
 			})
 		}
 
@@ -230,19 +240,42 @@ func (c *Clock) Hide() display.Animater {
 	return c.Mode(Hidden)
 }
 
-func (c *Clock) eventLoop() {
-	for {
-		c.busy.Lock()
-		t := time.Now()
-		c.hour.Painter.(*display.Text).Text = t.Format("15")
-		c.minute.Painter.(*display.Text).Text = t.Format("04")
-		c.date.Painter.(*display.Opacity).Painter.(*display.Text).Text = t.Format("02 Jan")
-		c.busy.Unlock()
-		display.Refresh()
-		select {
-		case <-c.quit:
-			return
-		case <-time.After(time.Until(Next(time.Minute, t))):
-		}
+func (c *Clock) HttpHandler() http.Handler {
+	mux := http.NewServeMux()
+
+	modes := map[string]Mode{
+		"fullscreen": Fullscreen,
+		"top":        Top,
+		"hidden":     Hidden,
 	}
+
+	switchMode := []byte(`<a href="?mode=hidden">hidden</a><br><a href="?mode=fullscreen">fullscreen</a><br><a href="?mode=top">top</a><br>`)
+	http.HandleFunc("/mode", func(w http.ResponseWriter, req *http.Request) {
+		if len(req.URL.Query()["mode"]) > 0 {
+			key := req.URL.Query()["mode"][0]
+			c.engine.Animate(c.Mode(modes[key]))
+		}
+		w.Write([]byte(switchMode))
+	})
+	switchColor := []byte(`<a href="?color=orange">Orange</a><br><a href="?color=green">Green</a><br><a href="?color=pink">Pink</a><br><a href="?color=blue">Blue</a><br>`)
+	colors := map[string]*sdl.Color{
+		"orange": &Orange,
+		"pink":   &Pink,
+		"green":  &Green,
+		"blue":   &Blue,
+	}
+	http.HandleFunc("/color", func(w http.ResponseWriter, req *http.Request) {
+		if len(req.URL.Query()["color"]) > 0 {
+			key := req.URL.Query()["color"][0]
+			if colors[key] != nil {
+				c.Color(*colors[key])
+			}
+			if err := c.engine.Refresh(); err != nil {
+				log.Fatal(err)
+			}
+		}
+		w.Write(switchColor)
+	})
+
+	return mux
 }

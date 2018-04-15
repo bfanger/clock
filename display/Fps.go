@@ -15,7 +15,7 @@ type Fps struct {
 }
 
 // NewFps create a new Fps and updates every minute
-func NewFps(r *Renderer, font string, fontSize int) *Fps {
+func NewFps(font string, fontSize int) *Fps {
 	white := sdl.Color{R: 255, G: 255, B: 255, A: 255}
 	text := NewText(font, fontSize, white, "-")
 	return &Fps{

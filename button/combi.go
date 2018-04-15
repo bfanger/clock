@@ -2,13 +2,11 @@ package button
 
 import (
 	"runtime"
-
-	"github.com/bfanger/button/button"
 )
 
 func Combi(char rune, gpio int) (<-chan error, error) {
 	var presses chan error
-	keyboard, err := button.Keyboard(char)
+	keyboard, err := Keyboard(char)
 	if err != nil {
 		return nil, err
 	}
@@ -16,7 +14,7 @@ func Combi(char rune, gpio int) (<-chan error, error) {
 		presses = keyboard
 	} else {
 		presses = make(chan error)
-		button, err := button.Gpio(gpio)
+		button, err := Gpio(gpio)
 		if err != nil {
 			return nil, err
 		}

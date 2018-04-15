@@ -7,8 +7,7 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"os/signal"
-	"syscall"
+	"runtime"
 
 	"github.com/bfanger/clock/button"
 	"github.com/bfanger/clock/clock"
@@ -21,12 +20,12 @@ import (
 var screenWidth, screenHeight int32 = 240, 320
 
 func main() {
-	defer fmt.Println("bye")
 
 	showFps := flag.Bool("fps", false, "Show FPS counter")
 	flag.Parse()
 
 	fmt.Print("Clock")
+	defer fmt.Println("bye")
 
 	if err := sdl.Init(sdl.INIT_VIDEO); err != nil {
 		log.Fatalf("Couldn't initialize sdl: %v\n", err)
@@ -36,114 +35,80 @@ func main() {
 		log.Fatalf("Couldn't initialize sdl_ttf: %v\n", err)
 	}
 	defer ttf.Quit()
-	window, err := createWindow()
+	w, err := createWindow()
 	if err != nil {
 		log.Fatalf("Couldn't create window: %v\n", err)
 	}
-	defer window.Destroy()
-	r, err := display.NewRenderer(window)
+	defer w.Destroy()
+	r, err := sdl.CreateRenderer(w, -1, sdl.RENDERER_ACCELERATED|sdl.RENDERER_PRESENTVSYNC)
 	if err != nil {
-		log.Fatalf("Couldn't create renderer: %v\n", err)
+		log.Fatalf("could not create renderer: %v", err)
 	}
 	defer r.Destroy()
 
-	// image := display.NewImage(asset("image.jpg"))
-	// defer image.Destroy()
-	// r.AddAt(sprite.New("Background", image), -1)
+	scene := display.NewContainer()
+	engine := display.NewEngine(r, scene)
+	defer engine.Destroy()
 
-	display.Init(r)
-	defer display.Quit()
-	fmt.Println(" 3.0")
+	// background := sprite.New("Background", display.NewImage(asset("bedtime.png")), sprite.WithPos(120, 160), sprite.WithAnchor(0.5, 0.5))
+	// defer background.Painter.Destroy()
+	// scene.AddAt(-1, background)
 
-	c := clock.New(&r.Mutex, asset("Roboto-Light.ttf"))
+	c := clock.New(engine, asset("Roboto-Light.ttf"))
 	defer c.Destroy()
-	r.Add(c.Layer)
-	defer r.Remove(c.Layer)
-	r.Animate(c.Mode(clock.Fullscreen))
+	scene.Add(c.Layer)
+	defer scene.Remove(c.Layer)
+	http.Handle("/clock/", c.HttpHandler())
 
-	modes := map[string]clock.Mode{
-		"fullscreen": clock.Fullscreen,
-		"top":        clock.Top,
-		"hidden":     clock.Hidden,
+	if runtime.GOOS != "darwin" {
+		go handleButtons(c)
 	}
-
-	switchMode := []byte(`<a href="?mode=hidden">hidden</a><br><a href="?mode=fullscreen">fullscreen</a><br><a href="?mode=top">top</a><br>`)
-	http.HandleFunc("/mode", func(w http.ResponseWriter, req *http.Request) {
-		if len(req.URL.Query()["mode"]) > 0 {
-			key := req.URL.Query()["mode"][0]
-			r.Animate(c.Mode(modes[key]))
-		}
-		w.Write([]byte(switchMode))
-	})
-	switchColor := []byte(`<a href="?color=orange">Orange</a><br><a href="?color=green">Green</a><br><a href="?color=pink">Pink</a><br><a href="?color=blue">Blue</a><br>`)
-	colors := map[string]*sdl.Color{
-		"orange": &clock.Orange,
-		"pink":   &clock.Pink,
-		"green":  &clock.Green,
-		"blue":   &clock.Blue,
-	}
-	http.HandleFunc("/color", func(w http.ResponseWriter, req *http.Request) {
-		if len(req.URL.Query()["color"]) > 0 {
-			key := req.URL.Query()["color"][0]
-			if colors[key] != nil {
-				c.Color(*colors[key])
-			}
-			display.Refresh()
-		}
-		w.Write(switchColor)
-	})
-
-	go func() {
-		// Change color with the button
-		defer log.Println("stopped listening for presses")
-		colors := []sdl.Color{clock.Orange, clock.Pink, clock.Green, clock.Blue}
-		i := 0
-		presses, err := button.Combi(49, 25) // key: "1", button :4
-		if err != nil {
-			log.Fatal(err)
-		}
-		for err := range presses {
-			if err != nil {
-				log.Fatal(err)
-			}
-			i++
-			if i == len(colors) {
-				i = 0
-			}
-			c.Color(colors[i])
-			display.Refresh()
-		}
-	}()
 
 	if *showFps {
-		fps := display.NewFps(r, asset("Roboto-Light.ttf"), 14)
+		fps := display.NewFps(asset("Roboto-Light.ttf"), 14)
+		defer fps.Destroy()
 		f := sprite.New("FPS-counter", fps, sprite.WithPos(screenWidth-5, 5), sprite.WithAnchor(1, 0))
-		r.Animate(fps)
-		r.AddAt(100, f)
-		defer func() {
-			r.StopAnimation(fps)
-			r.Remove(f)
-			r.Mutex.Lock()
-			defer r.Mutex.Unlock()
-			fps.Destroy()
-		}()
+		engine.Animate(fps)
+		defer engine.StopAnimation(fps)
+		scene.AddAt(100, f)
+		defer scene.Remove(f)
 	}
 
-	sig := make(chan os.Signal, 2)
-	signal.Notify(sig, os.Interrupt, syscall.SIGTERM)
-	go func() {
-		<-sig
-		display.Shutdown()
-	}()
+	// sig := make(chan os.Signal, 2)
+	// signal.Notify(sig, os.Interrupt, syscall.SIGTERM)
+	// go func() {
+	// 	<-sig
+	// 	display.Shutdown()
+	// }()
 
 	go func() {
 		if err := http.ListenAndServe(":8000", nil); err != nil {
-			log.Fatalf("server stopeed: %v", err)
+			log.Fatalf("server stopped: %v", err)
 		}
 	}()
 
-	if err := display.EventLoop(r); err != nil {
-		log.Fatalf("eventLoop: %v\n", err)
+	fmt.Print(" 3")
+	engine.Refresh()
+	engine.Animate(c.Mode(clock.Fullscreen))
+	fmt.Println(".0")
+
+	for {
+		event := sdl.WaitEvent()
+		switch e := event.(type) {
+		case *sdl.QuitEvent:
+			return
+		case *sdl.WindowEvent:
+			if e.Event == sdl.WINDOWEVENT_EXPOSED {
+				go func() {
+					// start := time.Now()
+					// log.Println("exposed refresh")
+					if err := engine.Refresh(); err != nil {
+						log.Fatal(err)
+					}
+					// log.Printf("refreshed in %v\n", time.Now().Sub(start))
+				}()
+			}
+		}
 	}
 }
 
@@ -193,11 +158,26 @@ func asset(filename string) string {
 	return "./assets/" + filename
 }
 
-// isRaspberryPi checks if the display size is 240x320
-func isRaspberryPi() bool {
-	d, err := sdl.GetCurrentDisplayMode(0)
+func handleButtons(c *clock.Clock) {
+	// Change color with the button
+	defer log.Println("stopped listening for presses")
+	colors := []sdl.Color{clock.Orange, clock.Pink, clock.Green, clock.Blue}
+	i := 0
+	presses, err := button.Gpio(25) // key: "1", button :4
 	if err != nil {
-		log.Fatalf("can't read display mode: %v\n", err)
+		log.Fatal(err)
 	}
-	return d.W == screenWidth && d.H == screenHeight
+	for err := range presses {
+		if err != nil {
+			log.Fatal(err)
+		}
+		i++
+		if i == len(colors) {
+			i = 0
+		}
+
+		if err := c.Color(colors[i]); err != nil {
+			log.Fatal(err)
+		}
+	}
 }

@@ -12,14 +12,16 @@ type Sprite struct {
 	name    string
 	Painter display.Painter
 	X, Y    int32
-	// @todo Rotation, Pivot, , Alpha(prevAlpha)
+	Alpha   uint8
+	// @todo Rotation, Pivot
 	AnchorX, AnchorY float32
 	ScaleX, ScaleY   float32
+	prevAlpha        *sdl.Texture
 }
 
 // New creates a new sprite
 func New(name string, painter display.Painter, opts ...Option) *Sprite {
-	s := &Sprite{name: name, Painter: painter, ScaleX: 1, ScaleY: 1}
+	s := &Sprite{name: name, Painter: painter, ScaleX: 1, ScaleY: 1, Alpha: 255, prevAlpha: nil}
 	for _, opt := range opts {
 		opt(s)
 	}
@@ -44,6 +46,7 @@ func (s *Sprite) Render(r *sdl.Renderer) error {
 	if t == nil {
 		return fmt.Errorf("Paint() returned nil. %T %+v", s.Painter, s.Painter)
 	}
+	t.Texture.SetAlphaMod(s.Alpha)
 	w := int32(s.ScaleX * float32(t.Frame.W))
 	h := int32(s.ScaleY * float32(t.Frame.H))
 	x := s.X - int32(s.AnchorX*float32(w))
@@ -81,5 +84,20 @@ func WithAnchor(x, y float32) Option {
 	return func(s *Sprite) {
 		s.AnchorX = x
 		s.AnchorY = y
+	}
+}
+
+// WithScale sets the scale of the sprite
+func WithScale(x, y float32) Option {
+	return func(s *Sprite) {
+		s.ScaleX = x
+		s.ScaleY = y
+	}
+}
+
+// WithAlpha sets the opacity of the sprite
+func WithAlpha(a uint8) Option {
+	return func(s *Sprite) {
+		s.Alpha = a
 	}
 }
