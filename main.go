@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"os/signal"
 	"runtime"
 
 	"github.com/bfanger/clock/button"
@@ -58,7 +59,8 @@ func main() {
 	defer c.Destroy()
 	scene.Add(c.Layer)
 	defer scene.Remove(c.Layer)
-	http.Handle("/clock/", c.HttpHandler())
+	srv := &http.Server{Addr: ":1200"}
+	srv.Handler = c.HTTPHandler()
 
 	if runtime.GOOS != "darwin" {
 		go handleButtons(c)
@@ -74,21 +76,35 @@ func main() {
 		defer scene.Remove(f)
 	}
 
-	// sig := make(chan os.Signal, 2)
-	// signal.Notify(sig, os.Interrupt, syscall.SIGTERM)
-	// go func() {
-	// 	<-sig
-	// 	display.Shutdown()
-	// }()
-
+	sig := make(chan os.Signal)
+	signal.Notify(sig, os.Interrupt)
 	go func() {
-		if err := http.ListenAndServe(":8000", nil); err != nil {
+		<-sig
+		_, err := sdl.PushEvent(&sdl.QuitEvent{
+			Type:      sdl.QUIT,
+			Timestamp: sdl.GetTicks(),
+		})
+		if err != nil {
+			log.Fatalf("could not push quit event: %v", err)
+		}
+	}()
+	graceful := false
+	go func() {
+		if err := srv.ListenAndServe(); err != nil && graceful == false {
 			log.Fatalf("server stopped: %v", err)
+		}
+	}()
+	defer func() {
+		graceful = true
+		if err := srv.Shutdown(nil); err != nil {
+			log.Printf("shutdown failed: %v", err)
 		}
 	}()
 
 	fmt.Print(" 3")
-	engine.Refresh()
+	if err := engine.Refresh(); err != nil {
+		log.Fatal(err)
+	}
 	engine.Animate(c.Mode(clock.Fullscreen))
 	fmt.Println(".0")
 
@@ -100,16 +116,18 @@ func main() {
 		case *sdl.WindowEvent:
 			if e.Event == sdl.WINDOWEVENT_EXPOSED {
 				go func() {
-					// start := time.Now()
-					// log.Println("exposed refresh")
 					if err := engine.Refresh(); err != nil {
 						log.Fatal(err)
 					}
-					// log.Printf("refreshed in %v\n", time.Now().Sub(start))
 				}()
+			}
+		case *sdl.KeyboardEvent:
+			if e.State == sdl.RELEASED {
+				// @todo Implement generic gpio 1 - 4
 			}
 		}
 	}
+
 }
 
 // createWindow on the second screen, or in fullscreen mode when the windowsize matches the displaysize
@@ -133,7 +151,9 @@ func createWindow() (*sdl.Window, error) {
 	}
 	if d.W == screenWidth {
 		flags += sdl.WINDOW_FULLSCREEN
-		sdl.ShowCursor(sdl.DISABLE)
+		if _, err := sdl.ShowCursor(sdl.DISABLE); err != nil {
+			return nil, err
+		}
 	}
 
 	return sdl.CreateWindow("Clock", x, y, screenWidth, screenHeight, flags)

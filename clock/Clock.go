@@ -240,7 +240,7 @@ func (c *Clock) Hide() display.Animater {
 	return c.Mode(Hidden)
 }
 
-func (c *Clock) HttpHandler() http.Handler {
+func (c *Clock) HTTPHandler() http.Handler {
 	mux := http.NewServeMux()
 
 	modes := map[string]Mode{
@@ -255,7 +255,10 @@ func (c *Clock) HttpHandler() http.Handler {
 			key := req.URL.Query()["mode"][0]
 			c.engine.Animate(c.Mode(modes[key]))
 		}
-		w.Write([]byte(switchMode))
+		_, err := w.Write([]byte(switchMode))
+		if err != nil {
+			log.Printf("write failed :%v", err)
+		}
 	})
 	switchColor := []byte(`<a href="?color=orange">Orange</a><br><a href="?color=green">Green</a><br><a href="?color=pink">Pink</a><br><a href="?color=blue">Blue</a><br>`)
 	colors := map[string]*sdl.Color{
@@ -268,13 +271,17 @@ func (c *Clock) HttpHandler() http.Handler {
 		if len(req.URL.Query()["color"]) > 0 {
 			key := req.URL.Query()["color"][0]
 			if colors[key] != nil {
-				c.Color(*colors[key])
+				if err := c.Color(*colors[key]); err != nil {
+					log.Fatal(err)
+				}
 			}
 			if err := c.engine.Refresh(); err != nil {
 				log.Fatal(err)
 			}
 		}
-		w.Write(switchColor)
+		if _, err := w.Write(switchColor); err != nil {
+			log.Printf("count not write response: %v", err)
+		}
 	})
 
 	return mux

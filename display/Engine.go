@@ -187,7 +187,11 @@ func (e *Engine) Animate(a Animater) {
 	defer e.animatersMutex.Unlock()
 	e.animaters = append(e.animaters, a)
 	if len(e.animaters) == 1 {
-		go e.Refresh()
+		go func() {
+			if err := e.Refresh(); err != nil {
+				e.err = err
+			}
+		}()
 	}
 }
 

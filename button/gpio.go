@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"strconv"
+	"time"
 
 	"periph.io/x/periph/conn/gpio"
 	"periph.io/x/periph/conn/gpio/gpioreg"
@@ -24,7 +25,7 @@ func Gpio(bcm int) (chan error, error) {
 	if p == nil {
 		return nil, errors.New("could not register pin")
 	}
-	if err := p.In(gpio.PullUp, gpio.FallingEdge); err != nil {
+	if err := p.In(gpio.PullUp, gpio.RisingEdge); err != nil {
 		return nil, fmt.Errorf("could not setup pin: %v", err)
 	}
 	c := make(chan error)
@@ -32,6 +33,7 @@ func Gpio(bcm int) (chan error, error) {
 		for {
 			p.WaitForEdge(-1)
 			c <- nil
+			time.Sleep(100 * time.Millisecond)
 		}
 	}()
 	return c, nil
