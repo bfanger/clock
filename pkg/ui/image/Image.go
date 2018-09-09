@@ -1,18 +1,18 @@
-package ui
+package image
 
 import (
 	"github.com/veandco/go-sdl2/sdl"
 )
 
-// Imager provide access to underling image/texture
-type Imager interface {
-	Image(*sdl.Renderer) (*Image, error)
-}
-
 // Image is the result of a paint and the base ingredient for the Compose()
 type Image struct {
 	Texture *sdl.Texture
 	Frame   sdl.Rect
+}
+
+// New creates an Image from a texture
+func New(t *sdl.Texture, frame sdl.Rect) *Image {
+	return &Image{Texture: t, Frame: frame}
 }
 
 // Close frees the texture memory used by the image
@@ -25,16 +25,11 @@ func (i *Image) Compose(r *sdl.Renderer) error {
 	return r.Copy(i.Texture, &i.Frame, &i.Frame)
 }
 
-// ImageFromTexture creates an Image from a texture
-func ImageFromTexture(t *sdl.Texture, frame sdl.Rect) *Image {
-	return &Image{Texture: t, Frame: frame}
-}
-
-// ImageFromSurface creates an Image from a surface
-func ImageFromSurface(r *sdl.Renderer, s *sdl.Surface) (*Image, error) {
+// FromSurface creates an Image from a surface
+func FromSurface(r *sdl.Renderer, s *sdl.Surface) (*Image, error) {
 	t, err := r.CreateTextureFromSurface(s)
 	if err != nil {
 		return nil, err
 	}
-	return &Image{Texture: t, Frame: sdl.Rect{W: s.W, H: s.H}}, nil
+	return New(t, sdl.Rect{W: s.W, H: s.H}), nil
 }

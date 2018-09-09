@@ -4,6 +4,7 @@ import (
 	"sync"
 	"sync/atomic"
 
+	"github.com/bfanger/clock/pkg/tween"
 	"github.com/veandco/go-sdl2/sdl"
 )
 
@@ -75,6 +76,26 @@ func (e *Engine) EventLoop(handle func(sdl.Event)) error {
 	}
 }
 
+// Animate the tween
+func (e *Engine) Animate(t *tween.Tween) {
+	t.Start()
+	wg := sync.WaitGroup{}
+	done := false
+	update := func() error {
+		done = t.Animate()
+		wg.Done()
+		return nil
+	}
+	for {
+		wg.Add(1)
+		e.Go(update)
+		wg.Wait()
+		if done {
+			break
+		}
+	}
+}
+
 // Append a composer
 func (e *Engine) Append(c Composer) {
 	e.Composers = append(e.Composers, c)
@@ -107,6 +128,7 @@ func (e *Engine) update() error {
 	copy(tmp, e.updates)
 	e.updates = nil
 	e.mutex.Unlock()
+	// log.Printf("updates: %d", len(tmp))
 	for _, update := range tmp {
 		if err := update(); err != nil {
 			return err

@@ -1,8 +1,9 @@
-package ui
+package text
 
 import (
 	"errors"
 
+	"github.com/bfanger/clock/pkg/ui/image"
 	"github.com/veandco/go-sdl2/sdl"
 	"github.com/veandco/go-sdl2/ttf"
 )
@@ -13,12 +14,18 @@ type Text struct {
 	text  string
 	color sdl.Color
 	font  *ttf.Font
-	image *Image
+	image *image.Image
 }
 
-// NewText creates new Text layer
-func NewText(text string, c sdl.Color, f *ttf.Font, x, y int32) *Text {
-	return &Text{text: text, font: f, color: c, X: x, Y: y}
+var white = sdl.Color{R: 255, G: 255, B: 255, A: 255}
+
+// New creates new Text layer
+func New(text string, f *ttf.Font, opts ...Option) *Text {
+	t := &Text{text: text, font: f, color: white}
+	for _, option := range opts {
+		option(t)
+	}
+	return t
 }
 
 // Close free the texture memory
@@ -57,7 +64,7 @@ func (t *Text) SetFont(f *ttf.Font) error {
 }
 
 // Image convert the text into an image (and caches the result)
-func (t *Text) Image(r *sdl.Renderer) (*Image, error) {
+func (t *Text) Image(r *sdl.Renderer) (*image.Image, error) {
 	if t.text == "" {
 		return nil, nil
 	}
@@ -70,7 +77,7 @@ func (t *Text) Image(r *sdl.Renderer) (*Image, error) {
 			return nil, err
 		}
 		defer surface.Free()
-		t.image, err = ImageFromSurface(r, surface)
+		t.image, err = image.FromSurface(r, surface)
 		if err != nil {
 			return nil, err
 		}
@@ -89,4 +96,14 @@ func (t *Text) Compose(r *sdl.Renderer) error {
 	}
 	frame := &image.Frame
 	return r.Copy(image.Texture, frame, &sdl.Rect{X: t.X, Y: t.Y, W: frame.W, H: frame.H})
+}
+
+// Option for the constructor
+type Option func(*Text)
+
+// WithColor sets the color
+func WithColor(c sdl.Color) Option {
+	return func(t *Text) {
+		t.color = c
+	}
 }

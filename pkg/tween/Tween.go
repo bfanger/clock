@@ -9,23 +9,37 @@ type Tween struct {
 	Duration time.Duration
 	Ease     Ease
 	Update   func(float32)
-	elapsed  time.Duration
+	StartAt  time.Time
 }
 
 // New creates a Tween
-func New(d time.Duration, ease Ease, update func(float32)) *Tween {
-	return &Tween{Duration: d, Update: update, Ease: ease}
+func New(d time.Duration, e Ease, update func(float32)) *Tween {
+	return &Tween{Duration: d, Update: update, Ease: e, StartAt: time.Now()}
 }
 
-// Animate the tween
-func (t *Tween) Animate(dt time.Duration) bool {
-	t.elapsed += dt
-	if t.elapsed > t.Duration {
+// Start restart the tween
+func (t *Tween) Start() {
+	t.StartAt = time.Now()
+}
+func (t *Tween) Seek(d time.Duration) {
+	t.StartAt = time.Now().Add(-d)
+	t.Animate()
+}
+
+// Animate call the update unction based on the elapsed time
+func (t *Tween) Animate() bool {
+	now := time.Now()
+	if now.Before(t.StartAt) {
+		// t.Update(0)
+		return false
+	}
+	dt := now.Sub(t.StartAt)
+	if dt > t.Duration {
 		t.Update(1)
 		return true
 	}
-	d := float32(t.elapsed) / float32(t.Duration)
-	t.Update(t.Ease(d))
+	v := float32(dt) / float32(t.Duration)
+	t.Update(t.Ease(v))
 	return false
 }
 

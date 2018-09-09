@@ -51,4 +51,4 @@ The Composer is responsible for rendering the texture(s) onto the screen
 
 Composers are added to the Engine and are rendered automaticly.
 All UI operation should be wrapped in a `engine.Go()` closure which are batched and executed in the main/ui thread.
-A side effect of calling the Go is that it will trigger a rerender.
+A useful side-effect of calling engine.Go is that it will trigger a re-render.
