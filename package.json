@@ -1,12 +1,10 @@
 {
   "name": "clock",
-  "version": "3.0.0",
+  "version": "4.0.0",
   "private": true,
   "scripts": {
-    "build": "go install github.com/bfanger/clock",
-    "dev":
-      "find . -name '*.go'|entr -rs 'go install github.com/bfanger/clock && ../../../../bin/clock'",
-    "test": "go test github.com/bfanger/clock/tween",
-    "watch": "watcher -run github.com/bfanger/clock"
+    "build": "go install github.com/bfanger/clock/cmd/clock",
+    "dev": "find . -name '*.go'|entr -rs 'go install github.com/bfanger/clock/cmd/clock && ../../../../bin/clock'",
+    "test": "go test github.com/bfanger/clock/pkg/tween"
   }
 }

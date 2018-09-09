@@ -4,9 +4,9 @@ A "smart" clock written in [Go](https://golang.org) which runs on a [2.8inch scr
 
 ## Goal
 
-* Show time
-* Alarm (for School)
-* Show train delayes
+- Show time
+- Alarm (for School)
+- Show train delayes
 
 ## Setup
 
@@ -18,38 +18,37 @@ go get -v github.com/bfanger/clock
 
 ## Architecture / Design
 
-An abstraction on top of SDL to make an efficient ui without input.
+An abstraction on top of SDL to make an efficient event-based ui.
 
-### Laxy execution
+### Lazy execution
 
-Work is deferred until the result is needed.
+Work is deferred until the result is needed. This allows us to freely change individual properties of a layer without causing an updated texture per change.
 
-The properties are just data, only when a Paint(\*sdl.Renderer) is called actual work is performed.
-From loading images and fonts to rendering text.
-
-The result of that work is cached so if no properties are changed drawing the next frame wil be fast.
+The actual work is performed when a `Image(\*sdl.Renderer)` or `Compose(\*sdl.Renderer)` is called.
+The result of that work is cached, so drawing the next frame will be even faster.
 
 ### Concepts
 
 ```go
-type Painter interface {
-  Paint(r *sdl.Renderer) (*Texure, error)
-  Destroy() error
+type Imager interface {
+  Image(r *sdl.Renderer) (*Image, error)
 }
 ```
 
-A painter type can generate a texture based on it's properties.
+An `Imager` can generate a image/texture based on it's properties.
 It doesn't have a position and can't be displayed on its own.
 
 ```go
-type Layer  {
-  Name() string
-  Render(*sdl.Renderer) error
+type Composer interface {
+  Compose(*sdl.Renderer) error
 }
 ```
 
-To display something in the renderer you'll need a Layer.
-The layer is responsible for rendering the texture(s)
+To display something in the renderer you'll need a Composer.
+The Composer is responsible for rendering the texture(s) onto the screen
 
-When you add a layer to the Renderer, you'll also provide a zIndex which determines the ordering of the layers.
-layers with the same zIndex are rendered in the order they are added.
+#### Engine
+
+Composers are added to the Engine and are rendered automaticly.
+All UI operation should be wrapped in a `engine.Go()` closure which are batched and executed in the main/ui thread.
+A side effect of calling the Go is that it will trigger a rerender.
