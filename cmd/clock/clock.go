@@ -19,7 +19,7 @@ func init() {
 func main() {
 	fmt.Println("Clock 4.0")
 
-	d, err := app.NewDisplay(240, 320)
+	d, err := app.NewDisplay(320, 240)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -27,7 +27,7 @@ func main() {
 
 	engine := ui.NewEngine(d.Renderer)
 
-	font, err := ttf.OpenFont(asset("Roboto-Light.ttf"), 95)
+	font, err := ttf.OpenFont(asset("Roboto-Light.ttf"), 110)
 	if err != nil {
 		log.Fatalf("unable to open font: %v", err)
 	}

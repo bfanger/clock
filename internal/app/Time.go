@@ -17,6 +17,7 @@ var orange = sdl.Color{R: 254, G: 110, B: 2, A: 255}
 // Time display the current time
 func Time(engine *ui.Engine, font *ttf.Font) {
 	text := text.New(time.Now().Format("15:04"), font, text.WithColor(orange))
+	var textHeight int32
 	wg := sync.WaitGroup{}
 	wg.Add(1)
 	engine.Go(func() error {
@@ -25,24 +26,20 @@ func Time(engine *ui.Engine, font *ttf.Font) {
 			return err
 		}
 		if image != nil {
-			text.X = (240 / 2) - (image.Frame.W / 2)
+			text.X = (320 / 2) - (image.Frame.W / 2)
+			text.Y = 240
+			textHeight = image.Frame.H
 		}
 		engine.Append(text)
 		wg.Done()
 		return nil
 	})
-	wg.Wait() //
-	// (320/2)-(image.Frame.H/2)
-	t1 := tween.FromToInt32(320, 100, 1*time.Second, tween.EaseInOutQuad, func(y int32) {
+	wg.Wait()
+	time.Sleep(200 * time.Millisecond)
+	t := tween.FromToInt32(240, (240/2)-(textHeight/2), 1*time.Second, tween.EaseInOutQuad, func(y int32) {
 		text.Y = y
 	})
-	engine.Animate(t1)
-	time.Sleep(1 * time.Second)
-	t2 := tween.FromToInt32(100, 320, 1*time.Second, tween.EaseInOutQuad, func(y int32) {
-		text.Y = y
-	})
-	engine.Animate(t2)
-	engine.Animate(t1)
+	engine.Animate(t)
 
 	for {
 		engine.Go(func() error {
@@ -54,7 +51,7 @@ func Time(engine *ui.Engine, font *ttf.Font) {
 				return err
 			}
 			if image != nil {
-				text.X = (240 / 2) - (image.Frame.W / 2)
+				text.X = (320 / 2) - (image.Frame.W / 2)
 			}
 			return nil
 		})
