@@ -46,15 +46,27 @@ func (t *Tween) Animate(d time.Duration) bool {
 
 // FromToFloat32 creates a new Tween for an float32
 func FromToFloat32(from, to float32, d time.Duration, e Ease, update func(float32)) *Tween {
+	distance := to - from
 	return New(d, e, func(v float32) {
-		update(from + float32(to-from)*v)
+		update(from + (distance * v))
 	})
 }
 
 // FromToInt32 creates a new Tween for an Int32
 func FromToInt32(from, to int32, d time.Duration, e Ease, update func(int32)) *Tween {
+	f := float32(from)
+	distance := float32(to) - f
 	return New(d, e, func(v float32) {
-		update(from + int32(float32(to-from)*v))
+		update(int32(f + (distance * v)))
+	})
+}
+
+// FromToUint8 creates a new Tween for an Int8
+func FromToUint8(from, to uint8, d time.Duration, e Ease, update func(uint8)) *Tween {
+	f := float32(from)
+	distance := float32(to) - f
+	return New(d, e, func(v float32) {
+		update(uint8(f + (distance * v)))
 	})
 }
 

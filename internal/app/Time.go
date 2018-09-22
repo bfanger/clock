@@ -67,8 +67,8 @@ func (t *Time) Close() error {
 // Minimize time to make room for notifications
 func (t *Time) Minimize() {
 	tl := &tween.Timeline{}
-	tl.Add(tween.FromToFloat32(1, 0.5, 1*time.Second, tween.EaseInOutQuad, t.sprite.SetScale))
-	tl.AddAt(150*time.Millisecond, tween.FromToInt32(screenHeight/2, 30, 850*time.Millisecond, tween.EaseInOutQuad, func(v int32) {
+	tl.Add(tween.FromToFloat32(1, 0.6, 1*time.Second, tween.EaseInOutQuad, t.sprite.SetScale))
+	tl.AddAt(150*time.Millisecond, tween.FromToInt32(screenHeight/2, 36, 850*time.Millisecond, tween.EaseInOutQuad, func(v int32) {
 		t.sprite.Y = v
 	}))
 	go t.engine.Animate(tl)
@@ -77,8 +77,8 @@ func (t *Time) Minimize() {
 // Maximize time
 func (t *Time) Maximize() {
 	tl := &tween.Timeline{}
-	tl.Add(tween.FromToFloat32(0.5, 1, 1*time.Second, tween.EaseInOutQuad, t.sprite.SetScale))
-	tl.AddAt(150*time.Millisecond, tween.FromToInt32(30, screenHeight/2, 850*time.Millisecond, tween.EaseInOutQuad, func(v int32) {
+	tl.Add(tween.FromToFloat32(0.6, 1, 1*time.Second, tween.EaseInOutQuad, t.sprite.SetScale))
+	tl.AddAt(150*time.Millisecond, tween.FromToInt32(36, screenHeight/2, 850*time.Millisecond, tween.EaseInOutQuad, func(v int32) {
 		t.sprite.Y = v
 	}))
 	go t.engine.Animate(tl)

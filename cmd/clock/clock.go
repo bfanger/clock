@@ -20,6 +20,18 @@ func main() {
 
 	engine := ui.NewEngine(display.Renderer)
 
+	bg, err := app.NewBackground(engine)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer bg.Close()
+
+	notification, err := app.NewNotification(engine)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer notification.Close()
+
 	time, err := app.NewTime(engine)
 	if err != nil {
 		log.Fatal(err)
@@ -29,12 +41,16 @@ func main() {
 	toggle := func() {
 		if maximized {
 			time.Minimize()
+			bg.Maximize()
+			notification.Show()
 		} else {
 			time.Maximize()
+			bg.Minimize()
+			notification.Hide()
 		}
 		maximized = !maximized
 	}
-
+	toggle()
 	err = engine.EventLoop(func(event sdl.Event) {
 		switch e := event.(type) {
 		case *sdl.MouseButtonEvent:

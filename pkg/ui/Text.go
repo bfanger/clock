@@ -66,7 +66,7 @@ func (t *Text) Image(r *sdl.Renderer) (*Image, error) {
 			return nil, err
 		}
 		defer surface.Free()
-		t.image, err = ImageFromSurface(r, surface)
+		t.image, err = ImageFromSurface(surface, r)
 		if err != nil {
 			return nil, err
 		}

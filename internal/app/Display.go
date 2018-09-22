@@ -3,6 +3,7 @@ package app
 import (
 	"fmt"
 
+	"github.com/veandco/go-sdl2/img"
 	"github.com/veandco/go-sdl2/sdl"
 	"github.com/veandco/go-sdl2/ttf"
 )
@@ -23,6 +24,9 @@ func NewDisplay() (*Display, error) {
 	}
 	if err := ttf.Init(); err != nil {
 		return nil, fmt.Errorf("couldn't initialize sdl_ttf: %v", err)
+	}
+	if err := img.Init(img.INIT_PNG); err != img.INIT_PNG {
+		return nil, fmt.Errorf("couldn't initialize sdl_img: %v", err)
 	}
 	w, err := createWindow(screenWidth, screenHeight)
 	if err != nil {
@@ -46,6 +50,7 @@ func (d *Display) Close() error {
 		return err
 	}
 	ttf.Quit()
+	img.Quit()
 	sdl.Quit()
 	return nil
 }
