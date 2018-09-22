@@ -19,47 +19,22 @@ func main() {
 	defer display.Close()
 
 	engine := ui.NewEngine(display.Renderer)
-
-	bg, err := app.NewBackground(engine)
+	server, err := app.NewServer(engine)
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer bg.Close()
+	defer server.Close()
+	go server.ListenAndServe()
 
-	notification, err := app.NewNotification(engine)
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer notification.Close()
-
-	time, err := app.NewTime(engine)
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer time.Close()
-	maximized := true
-	toggle := func() {
-		if maximized {
-			time.Minimize()
-			bg.Maximize()
-			notification.Show()
-		} else {
-			time.Maximize()
-			bg.Minimize()
-			notification.Hide()
-		}
-		maximized = !maximized
-	}
-	toggle()
 	err = engine.EventLoop(func(event sdl.Event) {
 		switch e := event.(type) {
 		case *sdl.MouseButtonEvent:
 			if e.Type == sdl.MOUSEBUTTONUP {
-				toggle()
+				server.Toggle()
 			}
 		case *sdl.KeyboardEvent:
 			if e.Type == sdl.KEYDOWN {
-				toggle()
+				server.Toggle()
 			}
 		default:
 			// log.Printf("%T %v\n", event, event)

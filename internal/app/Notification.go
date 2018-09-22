@@ -21,9 +21,9 @@ func NewNotification(engine *ui.Engine) (*Notification, error) {
 		return nil, err
 	}
 	sprite := ui.NewSprite(image)
-	sprite.X = screenWidth / 2
-	sprite.AnchorX = 0.5
-	sprite.Y = 80
+	sprite.X = 15
+	sprite.Y = 120
+	sprite.SetAlpha(0)
 	engine.Append(sprite)
 
 	return &Notification{
@@ -39,10 +39,10 @@ func (n *Notification) Close() error {
 
 // Show notification
 func (n *Notification) Show() {
-	go n.engine.Animate(tween.FromToUint8(0, 255, 1500*time.Millisecond, tween.EaseOutQuad, n.sprite.SetAlpha))
+	go n.engine.Animate(tween.FromToUint8(0, 255, 1000*time.Millisecond, tween.EaseOutQuad, n.sprite.SetAlpha))
 }
 
 // Hide notification
 func (n *Notification) Hide() {
-	go n.engine.Animate(tween.FromToUint8(255, 0, 1000*time.Millisecond, tween.EaseOutQuad, n.sprite.SetAlpha))
+	go n.engine.Animate(tween.FromToUint8(255, 0, 300*time.Millisecond, tween.EaseOutQuad, n.sprite.SetAlpha))
 }

@@ -24,7 +24,7 @@ type Time struct {
 
 // NewTime creats a new time widget
 func NewTime(engine *ui.Engine) (*Time, error) {
-	font, err := ttf.OpenFont(asset("Roboto-Light.ttf"), 110)
+	font, err := ttf.OpenFont(asset("Roboto-Light.ttf"), 114)
 	if err != nil {
 		return nil, fmt.Errorf("unable to open font: %v", err)
 	}
@@ -67,8 +67,8 @@ func (t *Time) Close() error {
 // Minimize time to make room for notifications
 func (t *Time) Minimize() {
 	tl := &tween.Timeline{}
-	tl.Add(tween.FromToFloat32(1, 0.6, 1*time.Second, tween.EaseInOutQuad, t.sprite.SetScale))
-	tl.AddAt(150*time.Millisecond, tween.FromToInt32(screenHeight/2, 36, 850*time.Millisecond, tween.EaseInOutQuad, func(v int32) {
+	tl.Add(tween.FromToFloat32(1, 0.8, 1*time.Second, tween.EaseInOutQuad, t.sprite.SetScale))
+	tl.AddAt(150*time.Millisecond, tween.FromToInt32(screenHeight/2, 47, 850*time.Millisecond, tween.EaseInOutQuad, func(v int32) {
 		t.sprite.Y = v
 	}))
 	go t.engine.Animate(tl)
@@ -77,8 +77,8 @@ func (t *Time) Minimize() {
 // Maximize time
 func (t *Time) Maximize() {
 	tl := &tween.Timeline{}
-	tl.Add(tween.FromToFloat32(0.6, 1, 1*time.Second, tween.EaseInOutQuad, t.sprite.SetScale))
-	tl.AddAt(150*time.Millisecond, tween.FromToInt32(36, screenHeight/2, 850*time.Millisecond, tween.EaseInOutQuad, func(v int32) {
+	tl.Add(tween.FromToFloat32(0.8, 1, 1*time.Second, tween.EaseInOutQuad, t.sprite.SetScale))
+	tl.AddAt(150*time.Millisecond, tween.FromToInt32(47, screenHeight/2, 850*time.Millisecond, tween.EaseInOutQuad, func(v int32) {
 		t.sprite.Y = v
 	}))
 	go t.engine.Animate(tl)
