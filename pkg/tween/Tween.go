@@ -6,41 +6,52 @@ import (
 
 // Tween is a transition between 0.0 to 1.0
 type Tween struct {
-	Duration time.Duration
-	Ease     Ease
-	Update   func(float32)
-	StartAt  time.Time
+	Duration  time.Duration
+	Ease      Ease
+	Update    func(float32)
+	StartedAt time.Time
 }
 
 // New creates a Tween
 func New(d time.Duration, e Ease, update func(float32)) *Tween {
-	return &Tween{Duration: d, Update: update, Ease: e, StartAt: time.Now()}
+	return &Tween{Duration: d, Update: update, Ease: e, StartedAt: time.Now()}
 }
 
-// Start restart the tween
+// Start the tween
 func (t *Tween) Start() {
-	t.StartAt = time.Now()
+	t.StartedAt = time.Now()
+	t.Update(0)
 }
+
+// Seek to specific
 func (t *Tween) Seek(d time.Duration) {
-	t.StartAt = time.Now().Add(-d)
-	t.Animate()
+	now := time.Now()
+	t.StartedAt = now.Add(-d)
+	t.Update(t.Value(now))
+}
+
+// Value calculated the eased value based on the current time
+func (t *Tween) Value(now time.Time) float32 {
+	return t.Ease(t.Progress(now))
+}
+
+// Progress calculate the progress based on the current time
+func (t *Tween) Progress(now time.Time) float32 {
+	if now.Before(t.StartedAt) {
+		return 0
+	}
+	dt := now.Sub(t.StartedAt)
+	if dt > t.Duration {
+		return 1
+	}
+	return float32(dt) / float32(t.Duration)
 }
 
 // Animate call the update unction based on the elapsed time
-func (t *Tween) Animate() bool {
-	now := time.Now()
-	if now.Before(t.StartAt) {
-		// t.Update(0)
-		return false
-	}
-	dt := now.Sub(t.StartAt)
-	if dt > t.Duration {
-		t.Update(1)
-		return true
-	}
-	v := float32(dt) / float32(t.Duration)
-	t.Update(t.Ease(v))
-	return false
+func (t *Tween) Animate(now time.Time) bool {
+	v := t.Value(now)
+	t.Update(v)
+	return v == 1
 }
 
 // FromToInt32 creates a new Tween for an Int32

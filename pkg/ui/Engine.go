@@ -3,6 +3,7 @@ package ui
 import (
 	"sync"
 	"sync/atomic"
+	"time"
 
 	"github.com/bfanger/clock/pkg/tween"
 	"github.com/veandco/go-sdl2/sdl"
@@ -82,7 +83,7 @@ func (e *Engine) Animate(t *tween.Tween) {
 	wg := sync.WaitGroup{}
 	done := false
 	update := func() error {
-		done = t.Animate()
+		done = t.Animate(time.Now())
 		wg.Done()
 		return nil
 	}
@@ -99,7 +100,7 @@ func (e *Engine) Animate(t *tween.Tween) {
 // Append a composer
 func (e *Engine) Append(c Composer) {
 	e.Composers = append(e.Composers, c)
-	e.Go(noop)
+	e.forceUpdate()
 }
 
 // Remove a composer
@@ -107,13 +108,10 @@ func (e *Engine) Remove(layer Composer) {
 	for i, l := range e.Composers {
 		if l == layer {
 			e.Composers = append(e.Composers[:i], e.Composers[i+1:]...)
-			e.Go(noop)
+			e.forceUpdate()
 			return
 		}
 	}
-}
-func noop() error {
-	return nil
 }
 
 func (e *Engine) needsUpdate() bool {
@@ -128,7 +126,6 @@ func (e *Engine) update() error {
 	copy(tmp, e.updates)
 	e.updates = nil
 	e.mutex.Unlock()
-	// log.Printf("updates: %d", len(tmp))
 	for _, update := range tmp {
 		if err := update(); err != nil {
 			return err
@@ -147,5 +144,13 @@ func (e *Engine) render() error {
 		}
 	}
 	e.Renderer.Present()
+	return nil
+}
+
+func (e *Engine) forceUpdate() {
+	e.Go(noop)
+}
+
+func noop() error {
 	return nil
 }

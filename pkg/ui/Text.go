@@ -1,9 +1,8 @@
-package text
+package ui
 
 import (
 	"errors"
 
-	"github.com/bfanger/clock/pkg/ui/image"
 	"github.com/veandco/go-sdl2/sdl"
 	"github.com/veandco/go-sdl2/ttf"
 )
@@ -14,29 +13,19 @@ type Text struct {
 	text  string
 	color sdl.Color
 	font  *ttf.Font
-	image *image.Image
+	image *Image
 }
 
 var white = sdl.Color{R: 255, G: 255, B: 255, A: 255}
 
-// New creates new Text layer
-func New(text string, f *ttf.Font, opts ...Option) *Text {
-	t := &Text{text: text, font: f, color: white}
-	for _, option := range opts {
-		option(t)
-	}
-	return t
+// NewText creates new Text layer
+func NewText(text string, f *ttf.Font, c sdl.Color) *Text {
+	return &Text{text: text, font: f, color: c}
 }
 
 // Close free the texture memory
 func (t *Text) Close() error {
-	if t.image != nil {
-		if err := t.image.Close(); err != nil {
-			return err
-		}
-		t.image = nil
-	}
-	return nil
+	return t.needsUpdate()
 }
 
 // SetText update the contents
@@ -45,7 +34,7 @@ func (t *Text) SetText(text string) error {
 		return nil
 	}
 	t.text = text
-	return t.Close()
+	return t.needsUpdate()
 }
 
 // SetColor changes the color
@@ -54,17 +43,17 @@ func (t *Text) SetColor(c sdl.Color) error {
 		return nil
 	}
 	t.color = c
-	return t.Close()
+	return t.needsUpdate()
 }
 
 // SetFont changes the font
 func (t *Text) SetFont(f *ttf.Font) error {
 	t.font = f
-	return t.Close()
+	return t.needsUpdate()
 }
 
 // Image convert the text into an image (and caches the result)
-func (t *Text) Image(r *sdl.Renderer) (*image.Image, error) {
+func (t *Text) Image(r *sdl.Renderer) (*Image, error) {
 	if t.text == "" {
 		return nil, nil
 	}
@@ -77,7 +66,7 @@ func (t *Text) Image(r *sdl.Renderer) (*image.Image, error) {
 			return nil, err
 		}
 		defer surface.Free()
-		t.image, err = image.FromSurface(r, surface)
+		t.image, err = ImageFromSurface(r, surface)
 		if err != nil {
 			return nil, err
 		}
@@ -98,12 +87,31 @@ func (t *Text) Compose(r *sdl.Renderer) error {
 	return r.Copy(image.Texture, frame, &sdl.Rect{X: t.X, Y: t.Y, W: frame.W, H: frame.H})
 }
 
-// Option for the constructor
-type Option func(*Text)
-
-// WithColor sets the color
-func WithColor(c sdl.Color) Option {
-	return func(t *Text) {
-		t.color = c
+// Width of the text
+func (t *Text) Width(r *sdl.Renderer) (int32, error) {
+	image, err := t.Image(r)
+	if err != nil {
+		return 0, err
 	}
+	return image.Frame.W, nil
+}
+
+// Height of the text
+func (t *Text) Height(r *sdl.Renderer) (int32, error) {
+	image, err := t.Image(r)
+	if err != nil {
+		return 0, err
+	}
+	return image.Frame.H, nil
+}
+
+// needsUpdate destroys the texture so the next call to Image() will generate a new image.
+func (t *Text) needsUpdate() error {
+	if t.image != nil {
+		if err := t.image.Close(); err != nil {
+			return err
+		}
+		t.image = nil
+	}
+	return nil
 }

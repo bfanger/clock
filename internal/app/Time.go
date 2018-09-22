@@ -1,12 +1,11 @@
 package app
 
 import (
-	"sync"
+	"fmt"
 	"time"
 
 	"github.com/bfanger/clock/pkg/tween"
 	"github.com/bfanger/clock/pkg/ui"
-	"github.com/bfanger/clock/pkg/ui/text"
 	"github.com/veandco/go-sdl2/sdl"
 	"github.com/veandco/go-sdl2/ttf"
 )
@@ -15,51 +14,88 @@ var white = sdl.Color{R: 255, G: 255, B: 255}
 var orange = sdl.Color{R: 254, G: 110, B: 2, A: 255}
 
 // Time display the current time
-func Time(engine *ui.Engine, font *ttf.Font) {
-	text := text.New(time.Now().Format("15:04"), font, text.WithColor(orange))
-	var textHeight int32
-	wg := sync.WaitGroup{}
-	wg.Add(1)
-	engine.Go(func() error {
-		image, err := text.Image(engine.Renderer)
-		if err != nil {
-			return err
-		}
-		if image != nil {
-			text.X = (320 / 2) - (image.Frame.W / 2)
-			text.Y = 240
-			textHeight = image.Frame.H
-		}
-		engine.Append(text)
-		wg.Done()
-		return nil
-	})
-	wg.Wait()
-	time.Sleep(200 * time.Millisecond)
-	t := tween.FromToInt32(240, (240/2)-(textHeight/2), 1*time.Second, tween.EaseInOutQuad, func(y int32) {
-		text.Y = y
-	})
-	engine.Animate(t)
+type Time struct {
+	engine *ui.Engine
+	font   *ttf.Font
+	text   *ui.Text
+	done   chan bool
+}
 
+// NewTime creats a new time widget
+func NewTime(engine *ui.Engine) (*Time, error) {
+	font, err := ttf.OpenFont(asset("Roboto-Light.ttf"), 110)
+	if err != nil {
+		return nil, fmt.Errorf("unable to open font: %v", err)
+	}
+	text := ui.NewText("", font, orange)
+	text.Y = screenHeight
+	t := &Time{
+		engine: engine,
+		text:   text,
+		font:   font,
+		done:   make(chan bool)}
+
+	if err := t.updateTime(); err != nil {
+		return nil, err
+	}
+	engine.Append(text)
+	t.intro()
+	go t.tick()
+
+	return t, nil
+}
+
+// Close free resources
+func (t *Time) Close() error {
+	t.engine.Remove(t.text)
+	if err := t.text.Close(); err != nil {
+		return err
+	}
+	close(t.done)
+	t.font.Close()
+	return nil
+}
+
+func (t *Time) updateTime() error {
+	now := time.Now()
+	time := fmt.Sprintf("%d%s", now.Hour(), now.Format(":04"))
+	if err := t.text.SetText(time); err != nil {
+		return err
+	}
+	image, err := t.text.Image(t.engine.Renderer)
+	if err != nil {
+		return err
+	}
+	if image != nil {
+		t.text.X = (320 / 2) - (image.Frame.W / 2)
+	}
+	return nil
+}
+
+func (t *Time) intro() error {
+	height, err := t.text.Height(t.engine.Renderer)
+	if err != nil {
+		return err
+	}
+	tween := tween.FromToInt32(screenHeight, screenHeight/2-(height/2), 1*time.Second, tween.EaseInOutQuad, func(y int32) {
+		t.text.Y = y
+	})
+	go t.engine.Animate(tween)
+	return nil
+}
+
+func (t *Time) tick() {
 	for {
-		engine.Go(func() error {
-			if err := text.SetText(time.Now().Format("15:04")); err != nil {
-				return err
-			}
-			image, err := text.Image(engine.Renderer)
-			if err != nil {
-				return err
-			}
-			if image != nil {
-				text.X = (320 / 2) - (image.Frame.W / 2)
-			}
-			return nil
-		})
-		time.Sleep(time.Until(next(time.Minute, time.Now())))
+		select {
+		case <-t.done:
+			return
+		case <-time.After(time.Until(next(time.Minute, time.Now()))):
+			t.engine.Go(t.updateTime)
+		}
 	}
 }
 
-// Next creates the next rounded date based on the step
+// next calculates the time at which on the next d (Minute/Second) starts
 func next(d time.Duration, since time.Time) time.Time {
 	t := time.Date(since.Year(), since.Month(), since.Day(), since.Hour(), 0, 0, 10000000, since.Location())
 	if d >= 60*time.Minute {

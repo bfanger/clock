@@ -7,21 +7,24 @@ import (
 	"github.com/veandco/go-sdl2/ttf"
 )
 
+const screenWidth, screenHeight int32 = 320, 240
+
 // Display encapsulate setting up and cleaning up a SDL renderer
 type Display struct {
-	Renderer *sdl.Renderer
-	window   *sdl.Window
+	Renderer   *sdl.Renderer
+	window     *sdl.Window
+	Fullscreen bool
 }
 
 // NewDisplay initializes SDL and creates a window
-func NewDisplay(width, height int32) (*Display, error) {
+func NewDisplay() (*Display, error) {
 	if err := sdl.Init(sdl.INIT_VIDEO); err != nil {
 		return nil, fmt.Errorf("couldn't initialize sdl: %v", err)
 	}
 	if err := ttf.Init(); err != nil {
 		return nil, fmt.Errorf("couldn't initialize sdl_ttf: %v", err)
 	}
-	w, err := createWindow(width, height)
+	w, err := createWindow(screenWidth, screenHeight)
 	if err != nil {
 		return nil, fmt.Errorf("couldn't create window: %v", err)
 	}
