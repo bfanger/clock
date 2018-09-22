@@ -18,6 +18,7 @@ type Time struct {
 	engine *ui.Engine
 	font   *ttf.Font
 	text   *ui.Text
+	sprite *ui.Sprite
 	done   chan bool
 }
 
@@ -28,18 +29,25 @@ func NewTime(engine *ui.Engine) (*Time, error) {
 		return nil, fmt.Errorf("unable to open font: %v", err)
 	}
 	text := ui.NewText("", font, orange)
-	text.Y = screenHeight
+	sprite := ui.NewSprite(text)
+	sprite.X = screenWidth / 2
+	sprite.Y = screenHeight / 2
+	sprite.AnchorX = 0.5
+	sprite.AnchorY = 0.5
+
+	// sprite.SetScale(0.2)
+
 	t := &Time{
 		engine: engine,
 		text:   text,
 		font:   font,
+		sprite: sprite,
 		done:   make(chan bool)}
 
 	if err := t.updateTime(); err != nil {
 		return nil, err
 	}
-	engine.Append(text)
-	t.intro()
+	engine.Append(t.sprite)
 	go t.tick()
 
 	return t, nil
@@ -56,31 +64,32 @@ func (t *Time) Close() error {
 	return nil
 }
 
+// Minimize time to make room for notifications
+func (t *Time) Minimize() {
+	tl := &tween.Timeline{}
+	tl.Add(tween.FromToFloat32(1, 0.5, 1*time.Second, tween.EaseInOutQuad, t.sprite.SetScale))
+	tl.AddAt(150*time.Millisecond, tween.FromToInt32(screenHeight/2, 30, 850*time.Millisecond, tween.EaseInOutQuad, func(v int32) {
+		t.sprite.Y = v
+	}))
+	go t.engine.Animate(tl)
+}
+
+// Maximize time
+func (t *Time) Maximize() {
+	tl := &tween.Timeline{}
+	tl.Add(tween.FromToFloat32(0.5, 1, 1*time.Second, tween.EaseInOutQuad, t.sprite.SetScale))
+	tl.AddAt(150*time.Millisecond, tween.FromToInt32(30, screenHeight/2, 850*time.Millisecond, tween.EaseInOutQuad, func(v int32) {
+		t.sprite.Y = v
+	}))
+	go t.engine.Animate(tl)
+}
+
 func (t *Time) updateTime() error {
 	now := time.Now()
 	time := fmt.Sprintf("%d%s", now.Hour(), now.Format(":04"))
 	if err := t.text.SetText(time); err != nil {
 		return err
 	}
-	image, err := t.text.Image(t.engine.Renderer)
-	if err != nil {
-		return err
-	}
-	if image != nil {
-		t.text.X = (320 / 2) - (image.Frame.W / 2)
-	}
-	return nil
-}
-
-func (t *Time) intro() error {
-	height, err := t.text.Height(t.engine.Renderer)
-	if err != nil {
-		return err
-	}
-	tween := tween.FromToInt32(screenHeight, screenHeight/2-(height/2), 1*time.Second, tween.EaseInOutQuad, func(y int32) {
-		t.text.Y = y
-	})
-	go t.engine.Animate(tween)
 	return nil
 }
 

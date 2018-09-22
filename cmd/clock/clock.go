@@ -25,12 +25,25 @@ func main() {
 		log.Fatal(err)
 	}
 	defer time.Close()
+	maximized := true
+	toggle := func() {
+		if maximized {
+			time.Minimize()
+		} else {
+			time.Maximize()
+		}
+		maximized = !maximized
+	}
 
 	err = engine.EventLoop(func(event sdl.Event) {
 		switch e := event.(type) {
 		case *sdl.MouseButtonEvent:
 			if e.Type == sdl.MOUSEBUTTONUP {
-				// tap
+				toggle()
+			}
+		case *sdl.KeyboardEvent:
+			if e.Type == sdl.KEYDOWN {
+				toggle()
 			}
 		default:
 			// log.Printf("%T %v\n", event, event)

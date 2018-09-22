@@ -6,68 +6,55 @@ import (
 
 // Tween is a transition between 0.0 to 1.0
 type Tween struct {
-	Duration  time.Duration
-	Ease      Ease
-	Update    func(float32)
-	StartedAt time.Time
+	Duration time.Duration
+	Ease     Ease
+	Update   func(float32)
 }
 
 // New creates a Tween
 func New(d time.Duration, e Ease, update func(float32)) *Tween {
-	return &Tween{Duration: d, Update: update, Ease: e, StartedAt: time.Now()}
-}
-
-// Start the tween
-func (t *Tween) Start() {
-	t.StartedAt = time.Now()
-	t.Update(0)
+	return &Tween{Duration: d, Update: update, Ease: e}
 }
 
 // Seek to specific
 func (t *Tween) Seek(d time.Duration) {
-	now := time.Now()
-	t.StartedAt = now.Add(-d)
-	t.Update(t.Value(now))
+	t.Update(t.Value(d))
 }
 
-// Value calculated the eased value based on the current time
-func (t *Tween) Value(now time.Time) float32 {
-	return t.Ease(t.Progress(now))
+// Value calculates the eased value based on the progress
+func (t *Tween) Value(d time.Duration) float32 {
+	return t.Ease(t.Progress(d))
 }
 
-// Progress calculate the progress based on the current time
-func (t *Tween) Progress(now time.Time) float32 {
-	if now.Before(t.StartedAt) {
+// Progress calculate the progress based on the duration
+func (t *Tween) Progress(d time.Duration) float32 {
+	if d < 0 {
 		return 0
 	}
-	dt := now.Sub(t.StartedAt)
-	if dt > t.Duration {
+	if d > t.Duration {
 		return 1
 	}
-	return float32(dt) / float32(t.Duration)
+	return float32(d) / float32(t.Duration)
 }
 
-// Animate call the update unction based on the elapsed time
-func (t *Tween) Animate(now time.Time) bool {
-	v := t.Value(now)
+// Animate returns true when the tween completed
+func (t *Tween) Animate(d time.Duration) bool {
+	v := t.Value(d)
 	t.Update(v)
 	return v == 1
+}
+
+// FromToFloat32 creates a new Tween for an float32
+func FromToFloat32(from, to float32, d time.Duration, e Ease, update func(float32)) *Tween {
+	return New(d, e, func(v float32) {
+		update(from + float32(to-from)*v)
+	})
 }
 
 // FromToInt32 creates a new Tween for an Int32
 func FromToInt32(from, to int32, d time.Duration, e Ease, update func(int32)) *Tween {
 	return New(d, e, func(v float32) {
 		update(from + int32(float32(to-from)*v))
-	})
-}
-
-// FromToInt32Delta is similar to FromToInt32 but the update method receives the delta
-func FromToInt32Delta(from, to int32, d time.Duration, e Ease, update func(int32)) *Tween {
-	prev := from
-	return FromToInt32(from, to, d, e, func(v int32) {
-		d := v - prev
-		prev = v
-		update(d)
 	})
 }
 

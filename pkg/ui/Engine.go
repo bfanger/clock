@@ -5,7 +5,6 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/bfanger/clock/pkg/tween"
 	"github.com/veandco/go-sdl2/sdl"
 )
 
@@ -78,12 +77,12 @@ func (e *Engine) EventLoop(handle func(sdl.Event)) error {
 }
 
 // Animate the tween
-func (e *Engine) Animate(t *tween.Tween) {
-	t.Start()
+func (e *Engine) Animate(a Animator) {
+	start := time.Now()
 	wg := sync.WaitGroup{}
 	done := false
 	update := func() error {
-		done = t.Animate(time.Now())
+		done = a.Animate(time.Now().Sub(start))
 		wg.Done()
 		return nil
 	}

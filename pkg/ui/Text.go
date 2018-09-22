@@ -87,24 +87,6 @@ func (t *Text) Compose(r *sdl.Renderer) error {
 	return r.Copy(image.Texture, frame, &sdl.Rect{X: t.X, Y: t.Y, W: frame.W, H: frame.H})
 }
 
-// Width of the text
-func (t *Text) Width(r *sdl.Renderer) (int32, error) {
-	image, err := t.Image(r)
-	if err != nil {
-		return 0, err
-	}
-	return image.Frame.W, nil
-}
-
-// Height of the text
-func (t *Text) Height(r *sdl.Renderer) (int32, error) {
-	image, err := t.Image(r)
-	if err != nil {
-		return 0, err
-	}
-	return image.Frame.H, nil
-}
-
 // needsUpdate destroys the texture so the next call to Image() will generate a new image.
 func (t *Text) needsUpdate() error {
 	if t.image != nil {
