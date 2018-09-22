@@ -39,7 +39,7 @@ func NewTime(engine *ui.Engine) (*Time, error) {
 		return nil, err
 	}
 	engine.Append(text)
-	t.intro()
+
 	go t.tick()
 
 	return t, nil
@@ -72,7 +72,7 @@ func (t *Time) updateTime() error {
 	return nil
 }
 
-func (t *Time) intro() error {
+func (t *Time) Intro() error {
 	height, err := t.text.Height(t.engine.Renderer)
 	if err != nil {
 		return err
