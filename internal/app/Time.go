@@ -65,23 +65,23 @@ func (t *Time) Close() error {
 }
 
 // Minimize time to make room for notifications
-func (t *Time) Minimize() {
+func (t *Time) Minimize() tween.Tween {
 	tl := &tween.Timeline{}
 	tl.Add(tween.FromToFloat32(1, 0.8, 1*time.Second, tween.EaseInOutQuad, t.sprite.SetScale))
 	tl.AddAt(150*time.Millisecond, tween.FromToInt32(screenHeight/2, 47, 850*time.Millisecond, tween.EaseInOutQuad, func(v int32) {
 		t.sprite.Y = v
 	}))
-	go t.engine.Animate(tl)
+	return tl
 }
 
 // Maximize time
-func (t *Time) Maximize() {
+func (t *Time) Maximize() tween.Tween {
 	tl := &tween.Timeline{}
 	tl.Add(tween.FromToFloat32(0.8, 1, 1*time.Second, tween.EaseInOutQuad, t.sprite.SetScale))
 	tl.AddAt(150*time.Millisecond, tween.FromToInt32(47, screenHeight/2, 850*time.Millisecond, tween.EaseInOutQuad, func(v int32) {
 		t.sprite.Y = v
 	}))
-	go t.engine.Animate(tl)
+	return tl
 }
 
 func (t *Time) updateTime() error {

@@ -14,19 +14,19 @@ type Timeline struct {
 
 type entry struct {
 	start time.Duration
-	t     *Tween
+	t     Tween
 }
 
 // Add a tween to the timeline
-func (tl *Timeline) Add(t *Tween) {
+func (tl *Timeline) Add(t Tween) {
 	tl.entries = append(tl.entries, entry{start: tl.duration, t: t})
-	tl.duration += t.Duration
+	tl.duration += t.Duration()
 }
 
 // AddAt adds tween to a timeline at a specific moment
-func (tl *Timeline) AddAt(start time.Duration, t *Tween) {
+func (tl *Timeline) AddAt(start time.Duration, t Tween) {
 	tl.entries = append(tl.entries, entry{start: start, t: t})
-	end := start + t.Duration
+	end := start + t.Duration()
 	if end > tl.duration {
 		tl.duration = end
 	}
@@ -36,17 +36,17 @@ func (tl *Timeline) AddAt(start time.Duration, t *Tween) {
 func (tl *Timeline) Duration() time.Duration {
 	var max time.Duration
 	for _, e := range tl.entries {
-		if max < e.start+e.t.Duration {
-			max = e.start + e.t.Duration
+		if max < e.start+e.t.Duration() {
+			max = e.start + e.t.Duration()
 		}
 	}
 	return max
 }
 
-// Animate the timeline
-func (tl *Timeline) Animate(d time.Duration) bool {
+// Seek the timeline
+func (tl *Timeline) Seek(d time.Duration) bool {
 	for _, e := range tl.entries {
-		if d >= e.start && d < e.start+e.t.Duration {
+		if d >= e.start && d < e.start+e.t.Duration() {
 			// Tween is active
 			e.t.Seek(d - e.start)
 		} else if d < e.start {
@@ -56,7 +56,7 @@ func (tl *Timeline) Animate(d time.Duration) bool {
 		} else {
 			// Forward to ending tween
 			// @todo check if tween should update
-			e.t.Update(1)
+			e.t.Seek(e.t.Duration())
 		}
 	}
 	tl.cursor = d

@@ -1,8 +1,12 @@
 package app
 
 import (
+	"html/template"
 	"net/http"
+	"sync"
+	"time"
 
+	"github.com/bfanger/clock/pkg/tween"
 	"github.com/bfanger/clock/pkg/ui"
 )
 
@@ -10,26 +14,16 @@ type Server struct {
 	Background   *Background
 	Clock        *Time
 	Notification *Notification
-	maximized    bool
+	engine       *ui.Engine
+	serialize    sync.Mutex
 }
 
-func NewServer(engine *ui.Engine) (*Server, error) {
-	s := &Server{maximized: true}
-	var err error
-	s.Background, err = NewBackground(engine)
-	if err != nil {
-		return nil, err
-	}
-	s.Notification, err = NewNotification(engine)
-	if err != nil {
-		return nil, err
-	}
-	s.Clock, err = NewTime(engine)
-	if err != nil {
-		return nil, err
-	}
-	return s, nil
+// NewServer creates a new webserver and creates the widgets controlled by the endpoints
+func NewServer(engine *ui.Engine) *Server {
+	return &Server{engine: engine}
 }
+
+// ListenAndServe start listening to requests and serving responses
 func (s *Server) ListenAndServe() {
 	http.HandleFunc("/", s.handleToggle)
 	if err := http.ListenAndServe(":8080", nil); err != nil {
@@ -37,32 +31,48 @@ func (s *Server) ListenAndServe() {
 	}
 }
 
-func (s *Server) Toggle() {
-	if s.maximized {
-		s.Clock.Minimize()
-		s.Background.Maximize()
-		s.Notification.Show()
-	} else {
-		s.Clock.Maximize()
-		s.Background.Minimize()
-		s.Notification.Hide()
-	}
-	s.maximized = !s.maximized
+type toggleRequest struct {
+	Show bool
 }
 
-func (s *Server) Close() {
-	defer s.Background.Close()
-	defer s.Clock.Close()
-	defer s.Notification.Close()
-}
 func (s *Server) handleToggle(w http.ResponseWriter, r *http.Request) {
-	// message := r.URL.Path
-	// message = strings.TrimPrefix(message, "/")
-	// message = "Hello " + message
-	s.Toggle()
-	if s.maximized {
-		w.Write([]byte("maximized"))
-	} else {
-		w.Write([]byte("minimized"))
+	s.serialize.Lock()
+	defer s.serialize.Unlock()
+	data := toggleRequest{}
+	if r.Method == "POST" {
+		if err := r.ParseForm(); err != nil {
+			panic(err)
+		}
+		data.Show = r.PostForm.Get("action") == "Show"
+		if data.Show {
+			s.showNotification()
+		} else {
+			s.hideNotification()
+		}
 	}
+
+	t, err := template.ParseFiles(asset("form.html"))
+	if err != nil {
+		panic(err)
+	}
+	w.Header().Add("Content-Type", "text/html")
+	if err := t.Execute(w, data); err != nil {
+		panic(err)
+	}
+}
+
+func (s *Server) showNotification() {
+	tl := &tween.Timeline{}
+	tl.Add(s.Clock.Minimize())
+	tl.AddAt(200*time.Millisecond, s.Background.Maximize())
+	tl.AddAt(800*time.Millisecond, s.Notification.Show())
+	s.engine.Animate(tl)
+}
+
+func (s *Server) hideNotification() {
+	tl := &tween.Timeline{}
+	tl.Add(s.Notification.Hide())
+	tl.AddAt(100*time.Millisecond, s.Clock.Maximize())
+	tl.AddAt(100*time.Millisecond, s.Background.Minimize())
+	s.engine.Animate(tl)
 }

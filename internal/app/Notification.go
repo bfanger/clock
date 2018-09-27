@@ -38,11 +38,11 @@ func (n *Notification) Close() error {
 }
 
 // Show notification
-func (n *Notification) Show() {
-	go n.engine.Animate(tween.FromToUint8(0, 255, 1000*time.Millisecond, tween.EaseOutQuad, n.sprite.SetAlpha))
+func (n *Notification) Show() tween.Tween {
+	return tween.FromToUint8(0, 255, 1000*time.Millisecond, tween.EaseOutQuad, n.sprite.SetAlpha)
 }
 
 // Hide notification
-func (n *Notification) Hide() {
-	go n.engine.Animate(tween.FromToUint8(255, 0, 300*time.Millisecond, tween.EaseOutQuad, n.sprite.SetAlpha))
+func (n *Notification) Hide() tween.Tween {
+	return tween.FromToUint8(255, 0, 500*time.Millisecond, tween.EaseOutQuad, n.sprite.SetAlpha)
 }

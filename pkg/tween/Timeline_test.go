@@ -17,7 +17,7 @@ func TestDuration(t *testing.T) {
 
 	t.Run("timeline with Add()", func(t *testing.T) {
 		tl := Timeline{}
-		tween := New(time.Second, Linear, noop)
+		tween := FromToFloat32(0, 1, time.Second, Linear, noop)
 		tl.Add(tween)
 		d := tl.Duration()
 		assert.Equal(t, time.Second, d)

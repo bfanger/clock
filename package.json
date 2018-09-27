@@ -5,6 +5,7 @@
   "scripts": {
     "build": "go install github.com/bfanger/clock/cmd/clock",
     "dev": "find . -name '*.go'|entr -rs 'go install github.com/bfanger/clock/cmd/clock && ../../../../bin/clock'",
+    "afval": "find . -name '*.go'|entr -rs 'go install github.com/bfanger/clock/cmd/afval-kalender && ../../../../bin/afval-kalender'",
     "test": "go test github.com/bfanger/clock/pkg/tween"
   }
 }
