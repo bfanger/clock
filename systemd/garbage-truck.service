@@ -1,0 +1,15 @@
+[Unit]
+Description=Garbage truck notification
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=pi
+WorkingDirectory=/home/pi
+ExecStart=/home/pi/go/bin/garbage-truck
+Restart=on-failure
+RestartSec=60s
+
+[Install]
+WantedBy=multi-user.target
