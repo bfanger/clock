@@ -43,6 +43,7 @@ func main() {
 		switch e := event.(type) {
 		case *sdl.MouseButtonEvent:
 			if e.Type == sdl.MOUSEBUTTONUP {
+
 			}
 		case *sdl.KeyboardEvent:
 			if e.Type == sdl.KEYDOWN {

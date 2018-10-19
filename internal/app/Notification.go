@@ -16,13 +16,14 @@ type Notification struct {
 
 // NewNotification creates a new Notification
 func NewNotification(engine *ui.Engine) (*Notification, error) {
-	image, err := ui.ImageFromFile(asset("kliko.png"), engine.Renderer)
+	image, err := ui.ImageFromFile(asset("restafval.png"), engine.Renderer)
 	if err != nil {
 		return nil, err
 	}
 	sprite := ui.NewSprite(image)
-	sprite.X = 15
-	sprite.Y = 120
+	sprite.X = screenWidth / 2
+	sprite.AnchorX = 0.5
+	sprite.Y = 130
 	sprite.SetAlpha(0)
 	engine.Append(sprite)
 

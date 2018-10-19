@@ -45,9 +45,9 @@ func (s *Server) handleToggle(w http.ResponseWriter, r *http.Request) {
 		}
 		data.Show = r.PostForm.Get("action") == "Show"
 		if data.Show {
-			s.showNotification()
+			s.ShowNotification()
 		} else {
-			s.hideNotification()
+			s.HideNotification()
 		}
 	}
 
@@ -61,7 +61,7 @@ func (s *Server) handleToggle(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (s *Server) showNotification() {
+func (s *Server) ShowNotification() {
 	tl := &tween.Timeline{}
 	tl.Add(s.Clock.Minimize())
 	tl.AddAt(200*time.Millisecond, s.Background.Maximize())
@@ -69,7 +69,7 @@ func (s *Server) showNotification() {
 	s.engine.Animate(tl)
 }
 
-func (s *Server) hideNotification() {
+func (s *Server) HideNotification() {
 	tl := &tween.Timeline{}
 	tl.Add(s.Notification.Hide())
 	tl.AddAt(100*time.Millisecond, s.Clock.Maximize())
