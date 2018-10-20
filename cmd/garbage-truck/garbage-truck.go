@@ -26,12 +26,13 @@ func main() {
 	var previous bool
 	var wait time.Duration
 	for {
-		d, err := nextGarbageTruck()
+		t, err := nextGarbageTruck()
 		if err != nil {
 			log.Fatal(err)
 		}
+		d := time.Until(t.Arrival)
 		hours := d.Hours()
-		log.Printf("Next garbage truck in %.1f hours\n", hours)
+		log.Printf("Next %s in %.1f hours\n", t.Type, hours)
 		active := hours < hoursBefore
 
 		if first || previous != active {
@@ -43,10 +44,9 @@ func main() {
 			} else {
 				log.Println("Hide notification")
 			}
-			if err := notify(active); err != nil {
+			if err := notify(active, t.Type); err != nil {
 				log.Printf("Failed to send notfication: %v", err)
 			}
-
 		}
 		if !active {
 			wait = d - (hoursBefore * time.Hour) + time.Minute
@@ -56,27 +56,40 @@ func main() {
 		log.Printf("Sleeping for %.1f hours\n", wait.Hours())
 		time.Sleep(wait)
 	}
-
 }
-func nextGarbageTruck() (time.Duration, error) {
-	events, err := garbageCalender()
+
+type garbageTruck struct {
+	Type    string
+	Arrival time.Time
+}
+
+func nextGarbageTruck() (*garbageTruck, error) {
+	events, err := garbageCalendar()
 	if err != nil {
-		return 0, fmt.Errorf("failed to load events: %v", err)
+		return nil, fmt.Errorf("failed to load events: %v", err)
 	}
+	t := garbageTruck{}
 	for _, e := range events {
-		if e.Summary != "Restafval" {
-			continue
-		}
 		d := time.Until(e.Start)
 		if d.Hours() < -1*hoursAfter {
 			continue // Skip old entries
 		}
-		return d, nil
+
+		switch e.Summary {
+		case "Restafval":
+			t.Type = "restafval"
+		case "Papier en karton":
+			t.Type = "restafval"
+		}
+		if t.Type != "" {
+			t.Arrival = e.Start
+			return &t, nil
+		}
 	}
-	return 0, errors.New("No Restafval entries found")
+	return nil, errors.New("no valid entries found")
 }
 
-func garbageCalender() ([]*event, error) {
+func garbageCalendar() ([]*event, error) {
 	const eventMode = "VEVENT"
 
 	r, err := http.Get("https://inzamelkalender.hvcgroep.nl/ical/0479200000012088")
@@ -124,13 +137,14 @@ func garbageCalender() ([]*event, error) {
 	return events, nil
 }
 
-func notify(toggle bool) error {
+func notify(toggle bool, icon string) error {
 	data := url.Values{}
 	if toggle {
-		data.Set("action", "Show")
+		data.Set("action", "show")
 	} else {
-		data.Set("action", "Hide")
+		data.Set("action", "hide")
 	}
+	data.Set("icon", icon)
 	if _, err := http.PostForm("http://localhost:8080/", data); err != nil {
 		return err
 	}

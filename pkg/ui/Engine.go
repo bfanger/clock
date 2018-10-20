@@ -27,6 +27,7 @@ func NewEngine(r *sdl.Renderer) *Engine {
 
 // Go shedules work that needs to be done in the ui thread
 // When calling Go inside a update, that work will be shedules for the next frame.
+// The error wil be propagated to the EventLoop()
 func (e *Engine) Go(update func() error) error {
 	e.mutex.Lock()
 	defer e.mutex.Unlock()
@@ -39,6 +40,21 @@ func (e *Engine) Go(update func() error) error {
 		}
 	}
 	return nil
+}
+
+// Do run the code on the ui thread. Engine.Do() is the synchronisch variant of Engine.Go()
+// Is also returns the error that occured in the callback instead of ending the EventLoop.
+func (e *Engine) Do(fn func() error) error {
+	wg := sync.WaitGroup{}
+	wg.Add(1)
+	var err error
+	e.Go(func() error {
+		err = fn()
+		wg.Done()
+		return nil
+	})
+	wg.Wait()
+	return err
 }
 
 // EventLoop runs the evenloop

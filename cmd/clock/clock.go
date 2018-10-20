@@ -14,26 +14,21 @@ func main() {
 
 	display, err := app.NewDisplay()
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("failed to create display: %v", err)
 	}
 	defer display.Close()
 
 	engine := ui.NewEngine(display.Renderer)
 	server := app.NewServer(engine)
 	server.Background, err = app.NewBackground(engine)
+	if err != nil {
+		log.Fatalf("failed to create background: %v", err)
+	}
 	defer server.Background.Close()
 
-	if err != nil {
-		log.Fatal(err)
-	}
-	server.Notification, err = app.NewNotification(engine)
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer server.Notification.Close()
 	server.Clock, err = app.NewTime(engine)
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("failed to create clock: %v", err)
 	}
 	defer server.Clock.Close()
 
@@ -53,7 +48,7 @@ func main() {
 		}
 	})
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("eventloop exit: %v", err)
 	}
 
 }

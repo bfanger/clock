@@ -1,7 +1,16 @@
 <form method="POST">
-  <select name="action">
-    <option>Show</option>
-    <option {{if .Show}} selected{{end}}>Hide</option>
+  {{if .Show}}
+  <input type="hidden" name="action" value="hide">
+  <input type="submit" value="Hide">
+  {{else}}
+  <select name="icon">
+    <option>gym</option>
+    <option>papier</option>
+    <option>restafval</option>
+    <option>school</option>
+    <option>zwembad</option>
   </select>
-  <input type="submit">
+  <input type="hidden" name="action" value="show">
+  <input type="submit" value="Show">
+  {{end}}
 </form>

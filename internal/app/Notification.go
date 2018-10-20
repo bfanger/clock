@@ -15,8 +15,8 @@ type Notification struct {
 }
 
 // NewNotification creates a new Notification
-func NewNotification(engine *ui.Engine) (*Notification, error) {
-	image, err := ui.ImageFromFile(asset("restafval.png"), engine.Renderer)
+func NewNotification(engine *ui.Engine, icon string) (*Notification, error) {
+	image, err := ui.ImageFromFile(asset("notifications/"+icon+".png"), engine.Renderer)
 	if err != nil {
 		return nil, err
 	}
@@ -35,6 +35,7 @@ func NewNotification(engine *ui.Engine) (*Notification, error) {
 
 // Close free memory used by the Notification
 func (n *Notification) Close() error {
+	n.engine.Remove(n.sprite)
 	return n.image.Close()
 }
 
