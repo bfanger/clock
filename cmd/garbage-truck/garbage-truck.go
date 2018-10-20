@@ -8,9 +8,10 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"net/url"
 	"strings"
 	"time"
+
+	"github.com/bfanger/clock/internal/app"
 )
 
 type event struct {
@@ -41,11 +42,14 @@ func main() {
 
 			if active {
 				log.Println("Show notification")
+				if err := app.ShowNotification(t.Type); err != nil {
+					log.Printf("Failed to show notfication: %v", err)
+				}
 			} else {
 				log.Println("Hide notification")
-			}
-			if err := notify(active, t.Type); err != nil {
-				log.Printf("Failed to send notfication: %v", err)
+				if err := app.HideNotification(); err != nil {
+					log.Printf("Failed to hide notfication: %v", err)
+				}
 			}
 		}
 		if !active {
@@ -91,7 +95,6 @@ func nextGarbageTruck() (*garbageTruck, error) {
 
 func garbageCalendar() ([]*event, error) {
 	const eventMode = "VEVENT"
-
 	r, err := http.Get("https://inzamelkalender.hvcgroep.nl/ical/0479200000012088")
 	if err != nil {
 		return nil, err
@@ -135,18 +138,4 @@ func garbageCalendar() ([]*event, error) {
 		return nil, err
 	}
 	return events, nil
-}
-
-func notify(toggle bool, icon string) error {
-	data := url.Values{}
-	if toggle {
-		data.Set("action", "show")
-	} else {
-		data.Set("action", "hide")
-	}
-	data.Set("icon", icon)
-	if _, err := http.PostForm("http://localhost:8080/", data); err != nil {
-		return err
-	}
-	return nil
 }

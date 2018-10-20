@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"html/template"
 	"net/http"
+	"net/url"
 	"sync"
 	"time"
 
@@ -108,6 +109,27 @@ func (s *Server) HideNotification() error {
 	s.engine.Animate(tl)
 	if err := s.engine.Do(n.Close); err != nil {
 		return fmt.Errorf("failed to close notification: %v", err)
+	}
+	return nil
+}
+
+const endpoint = "http://localhost:8080/"
+
+func ShowNotification(icon string) error {
+	data := url.Values{}
+	data.Set("action", "show")
+	data.Set("icon", icon)
+	if _, err := http.PostForm(endpoint, data); err != nil {
+		return err
+	}
+	return nil
+}
+
+func HideNotification() error {
+	data := url.Values{}
+	data.Set("action", "hide")
+	if _, err := http.PostForm(endpoint, data); err != nil {
+		return err
 	}
 	return nil
 }
