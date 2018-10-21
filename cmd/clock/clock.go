@@ -33,6 +33,7 @@ func main() {
 	defer server.Clock.Close()
 
 	go server.ListenAndServe()
+	// go app.ShowNotification("vis")
 
 	err = engine.EventLoop(func(event sdl.Event) {
 		switch e := event.(type) {

@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"html/template"
 	"net/http"
-	"net/url"
 	"sync"
 	"time"
 
@@ -17,7 +16,7 @@ import (
 type Server struct {
 	Background   *Background
 	Clock        *Time
-	Notification *Notification
+	Notification Notification
 	engine       *ui.Engine
 	serialize    sync.Mutex
 }
@@ -56,11 +55,15 @@ func (s *Server) handleToggle(w http.ResponseWriter, r *http.Request) {
 						return fmt.Errorf("failed to close notification: %v", err)
 					}
 				}
-				n, err := NewNotification(s.engine, icon)
+				var err error
+				if icon == "vis" {
+					s.Notification, err = NewFeedFishNotification(s.engine)
+				} else {
+					s.Notification, err = NewBasicNotification(s.engine, icon)
+				}
 				if err != nil {
 					return err
 				}
-				s.Notification = n
 				return nil
 			})
 			if err != nil {
@@ -87,7 +90,7 @@ func (s *Server) handleToggle(w http.ResponseWriter, r *http.Request) {
 }
 
 // ShowNotification display a new notification
-func (s *Server) ShowNotification(n *Notification) {
+func (s *Server) ShowNotification(n Notification) {
 	tl := &tween.Timeline{}
 	tl.Add(s.Clock.Minimize())
 	tl.AddAt(200*time.Millisecond, s.Background.Maximize())
@@ -109,27 +112,6 @@ func (s *Server) HideNotification() error {
 	s.engine.Animate(tl)
 	if err := s.engine.Do(n.Close); err != nil {
 		return fmt.Errorf("failed to close notification: %v", err)
-	}
-	return nil
-}
-
-const endpoint = "http://localhost:8080/"
-
-func ShowNotification(icon string) error {
-	data := url.Values{}
-	data.Set("action", "show")
-	data.Set("icon", icon)
-	if _, err := http.PostForm(endpoint, data); err != nil {
-		return err
-	}
-	return nil
-}
-
-func HideNotification() error {
-	data := url.Values{}
-	data.Set("action", "hide")
-	if _, err := http.PostForm(endpoint, data); err != nil {
-		return err
 	}
 	return nil
 }

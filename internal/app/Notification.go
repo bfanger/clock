@@ -1,50 +1,35 @@
 package app
 
 import (
-	"time"
+	"net/http"
+	"net/url"
 
 	"github.com/bfanger/clock/pkg/tween"
-	"github.com/bfanger/clock/pkg/ui"
 )
 
-// Notification for notifications
-type Notification struct {
-	image  *ui.Image
-	sprite *ui.Sprite
-	engine *ui.Engine
+type Notification interface {
+	Show() tween.Tween
+	Hide() tween.Tween
+	Close() error
 }
 
-// NewNotification creates a new Notification
-func NewNotification(engine *ui.Engine, icon string) (*Notification, error) {
-	image, err := ui.ImageFromFile(asset("notifications/"+icon+".png"), engine.Renderer)
-	if err != nil {
-		return nil, err
+const endpoint = "http://localhost:8080/"
+
+func ShowNotification(icon string) error {
+	data := url.Values{}
+	data.Set("action", "show")
+	data.Set("icon", icon)
+	if _, err := http.PostForm(endpoint, data); err != nil {
+		return err
 	}
-	sprite := ui.NewSprite(image)
-	sprite.X = screenWidth / 2
-	sprite.AnchorX = 0.5
-	sprite.Y = 130
-	sprite.SetAlpha(0)
-	engine.Append(sprite)
-
-	return &Notification{
-		image:  image,
-		sprite: sprite,
-		engine: engine}, nil
+	return nil
 }
 
-// Close free memory used by the Notification
-func (n *Notification) Close() error {
-	n.engine.Remove(n.sprite)
-	return n.image.Close()
-}
-
-// Show notification
-func (n *Notification) Show() tween.Tween {
-	return tween.FromToUint8(0, 255, 1000*time.Millisecond, tween.EaseOutQuad, n.sprite.SetAlpha)
-}
-
-// Hide notification
-func (n *Notification) Hide() tween.Tween {
-	return tween.FromToUint8(255, 0, 500*time.Millisecond, tween.EaseOutQuad, n.sprite.SetAlpha)
+func HideNotification() error {
+	data := url.Values{}
+	data.Set("action", "hide")
+	if _, err := http.PostForm(endpoint, data); err != nil {
+		return err
+	}
+	return nil
 }

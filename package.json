@@ -6,6 +6,7 @@
     "build": "go install github.com/bfanger/clock/cmd/clock",
     "dev": "find . -name '*.go'|entr -rs 'go install github.com/bfanger/clock/cmd/clock && ../../../../bin/clock'",
     "garbage-truck": "find . -name '*.go'|entr -rs 'go install github.com/bfanger/clock/cmd/garbage-truck && ../../../../bin/garbage-truck'",
+    "reminders": "find . -name '*.go'|entr -rs 'go install github.com/bfanger/clock/cmd/reminders && ../../../../bin/reminders'",
     "test": "go test github.com/bfanger/clock/pkg/tween"
   }
 }
