@@ -54,6 +54,15 @@ func FromToFloat32(from, to float32, d time.Duration, e Ease, update func(float3
 	}}
 }
 
+// FromToInt creates a new Tween for an Int
+func FromToInt(from, to int, d time.Duration, e Ease, update func(int)) Tween {
+	f := float32(from)
+	distance := float32(to) - f
+	return &tween{D: d, Ease: e, Update: func(v float32) {
+		update(int(f + (distance * v)))
+	}}
+}
+
 // FromToInt32 creates a new Tween for an Int32
 func FromToInt32(from, to int32, d time.Duration, e Ease, update func(int32)) Tween {
 	f := float32(from)

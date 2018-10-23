@@ -28,29 +28,10 @@ func NewFeedFishNotification(engine *ui.Engine) (*FeedFishNotification, error) {
 }
 func (n *FeedFishNotification) Show() tween.Tween {
 	tl := &tween.Timeline{}
-	step := 1
-	// for i := 0; i < 20; i++ {
-	tl.Add(tween.FromToInt32(-90, 365, 8000*time.Millisecond, tween.Linear, func(x int32) {
-		if step == 1 {
+	for i := 0; i < 20; i++ {
+		tl.Add(tween.FromToInt32(-90, 365, 8000*time.Millisecond, tween.Linear, func(x int32) {
 			n.sprite.X = x
-		}
-		if x == 365 {
-			step = 2
-		}
-	}))
-	tl.Add(tween.FromToInt32(-90, 366, 20000*time.Millisecond, tween.Linear, func(x int32) {
-		if step == 2 {
-			n.sprite.X = x
-			if x == 366 {
-				step = 3
-			}
-		}
-	}))
-	tl.Add(tween.FromToInt32(0, 1, 4000*time.Millisecond, tween.Linear, func(x int32) {
-		if step == 3 {
-			n.sprite.X = 160
-		}
-	}))
-	// }
+		}))
+	}
 	return tl
 }

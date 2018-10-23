@@ -50,13 +50,15 @@ func (tl *Timeline) Seek(d time.Duration) bool {
 			// Tween is active
 			e.t.Seek(d - e.start)
 		} else if d < e.start {
-			// Rewind tween
-			// @todo check if tween should update
-			e.t.Seek(0)
+			if tl.cursor > e.start {
+				// Rewind tween
+				e.t.Seek(0)
+			}
 		} else {
-			// Forward to ending tween
-			// @todo check if tween should update
-			e.t.Seek(e.t.Duration())
+			if tl.cursor < e.start+e.t.Duration() {
+				// Forward to ending tween
+				e.t.Seek(e.t.Duration())
+			}
 		}
 	}
 	tl.cursor = d
