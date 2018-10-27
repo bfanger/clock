@@ -8,18 +8,24 @@ import (
 
 // Sprite a thing to display on screen
 type Sprite struct {
-	Imager Imager
-	X, Y   int32
-	// @todo Rotation, Pivot
+	Imager           Imager
+	X, Y             int32
 	AnchorX, AnchorY float32
 	ScaleX, ScaleY   float32
-	alpha            uint8
+	Rotation         float64
 	image            *Image
+	alpha            uint8
+	dst              *sdl.Rect
 }
 
 // NewSprite creates a new sprite
 func NewSprite(imager Imager) *Sprite {
-	return &Sprite{Imager: imager, ScaleX: 1, ScaleY: 1, alpha: 255}
+	return &Sprite{
+		Imager: imager,
+		ScaleX: 1,
+		ScaleY: 1,
+		alpha:  255,
+		dst:    &sdl.Rect{}}
 }
 
 // Compose the sprite
@@ -38,12 +44,30 @@ func (s *Sprite) Compose(r *sdl.Renderer) error {
 		}
 		s.image = img
 	}
-	w := int32(s.ScaleX * float32(img.Frame.W))
-	h := int32(s.ScaleY * float32(img.Frame.H))
-	x := s.X - int32(s.AnchorX*float32(w))
-	y := s.Y - int32(s.AnchorY*float32(h))
-	dst := &sdl.Rect{X: x, Y: y, W: w, H: h}
-	return r.Copy(img.Texture, &img.Frame, dst)
+	flip := sdl.FLIP_NONE
+	scaleX, scaleY := s.ScaleX, s.ScaleY
+	if scaleX < 0 {
+		scaleX *= -1
+		flip = sdl.FLIP_HORIZONTAL
+	}
+	if scaleY < 0 {
+		scaleY *= -1
+		if flip == sdl.FLIP_HORIZONTAL {
+			flip |= sdl.FLIP_VERTICAL
+		} else {
+			flip = sdl.FLIP_VERTICAL
+		}
+	}
+
+	s.dst.W = int32(scaleX * float32(img.Frame.W))
+	s.dst.H = int32(scaleY * float32(img.Frame.H))
+	s.dst.X = s.X - int32(s.AnchorX*float32(s.dst.W))
+	s.dst.Y = s.Y - int32(s.AnchorY*float32(s.dst.H))
+	if flip == sdl.FLIP_NONE && s.Rotation == 0 {
+		return r.Copy(img.Texture, &img.Frame, s.dst)
+	}
+	// @todo Pivot
+	return r.CopyEx(img.Texture, &img.Frame, s.dst, s.Rotation, nil, flip)
 }
 
 // SetScale in both X & Y direction
@@ -59,43 +83,3 @@ func (s *Sprite) SetAlpha(a uint8) {
 		s.image = nil
 	}
 }
-
-// Move the sprite
-// func (s *Sprite) Move(dx, dy int32) {
-// 	s.X += dx
-// 	s.Y += dy
-// }
-
-// // Option of sprite.New
-// type Option func(*Sprite)
-
-// // WithPos sets the postion of the sprite
-// func WithPos(x, y int32) Option {
-// 	return func(s *Sprite) {
-// 		s.X = x
-// 		s.Y = y
-// 	}
-// }
-
-// // WithAnchor sets the anchor of the sprite
-// func WithAnchor(x, y float32) Option {
-// 	return func(s *Sprite) {
-// 		s.AnchorX = x
-// 		s.AnchorY = y
-// 	}
-// }
-
-// // WithScale sets the scale of the sprite
-// func WithScale(x, y float32) Option {
-// 	return func(s *Sprite) {
-// 		s.ScaleX = x
-// 		s.ScaleY = y
-// 	}
-// }
-
-// // WithAlpha sets the opacity of the sprite
-// func WithAlpha(a uint8) Option {
-// 	return func(s *Sprite) {
-// 		s.Alpha = a
-// 	}
-// }

@@ -33,12 +33,6 @@ func (a *Activity) Time() time.Time {
 	return time.Date(now.Year(), now.Month(), now.Day()+dayOffset, a.Hour, a.Minute, 0, 0, now.Location())
 }
 
-func (a *Activity) NotificationStart() time.Time {
-	return a.Time().Add(-10 * time.Minute)
-}
-func (a *Activity) NotificationEnd() time.Time {
-	return a.Time().Add(20 * time.Minute)
-}
 func (a *Activity) String() string {
 	return fmt.Sprintf("%s, %.0f hours", a.Type, time.Until(a.Time()).Hours())
 

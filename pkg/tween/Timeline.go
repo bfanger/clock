@@ -45,22 +45,30 @@ func (tl *Timeline) Duration() time.Duration {
 
 // Seek the timeline
 func (tl *Timeline) Seek(d time.Duration) bool {
+	done := d > tl.duration
 	for _, e := range tl.entries {
-		if d >= e.start && d < e.start+e.t.Duration() {
+		start, duration := e.start, e.t.Duration()
+		if d >= start && d <= start+duration {
 			// Tween is active
-			e.t.Seek(d - e.start)
-		} else if d < e.start {
-			if tl.cursor > e.start {
+			if e.t.Seek(d-start) == false {
+				done = false
+			}
+		} else if d < start {
+			if tl.cursor > start {
 				// Rewind tween
-				e.t.Seek(0)
+				if e.t.Seek(0) == false {
+					done = false
+				}
 			}
 		} else {
-			if tl.cursor < e.start+e.t.Duration() {
+			if tl.cursor <= start+duration {
 				// Forward to ending tween
-				e.t.Seek(e.t.Duration())
+				if e.t.Seek(e.t.Duration()) == false {
+					done = false
+				}
 			}
 		}
 	}
 	tl.cursor = d
-	return d > tl.duration
+	return done
 }

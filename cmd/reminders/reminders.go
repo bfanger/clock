@@ -11,7 +11,7 @@ func main() {
 	schedule := []*app.Activity{
 		// WeeklyActivity(time.Saturday, "zwemmen", 15, 50),
 		// WeeklyActivity(time.Monday, "school", 8, 15)),
-		app.DailyActivity("vis", 20, 10)}
+		app.DailyActivity("vis", 20, 0)}
 
 	// schedule = append(schedule, app.DailyActivity("vis", time.Now().Hour(), time.Now().Minute()+1))
 
@@ -24,7 +24,7 @@ func main() {
 		time.Sleep(d)
 		log.Printf("Showing notification %s\n", a.Type)
 		app.ShowNotification(a.Type)
-		time.Sleep(20 * time.Minute)
+		time.Sleep(10 * time.Minute)
 		log.Println("Hiding notification")
 		app.HideNotification()
 	}

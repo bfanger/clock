@@ -28,7 +28,7 @@ func NewEngine(r *sdl.Renderer) *Engine {
 // Go shedules work that needs to be done in the ui thread
 // When calling Go inside a update, that work will be shedules for the next frame.
 // The error wil be propagated to the EventLoop()
-func (e *Engine) Go(update func() error) error {
+func (e *Engine) Go(update func() error) {
 	e.mutex.Lock()
 	defer e.mutex.Unlock()
 	// @todo Set a max for queued updates?
@@ -36,10 +36,9 @@ func (e *Engine) Go(update func() error) error {
 	if e.waiting.Load().(bool) {
 		event := &sdl.UserEvent{Type: sdl.USEREVENT, Timestamp: sdl.GetTicks(), Code: 808}
 		if _, err := sdl.PushEvent(event); err != nil {
-			return err
+			panic(err) // @todo propogate to EventLoop
 		}
 	}
-	return nil
 }
 
 // Do run the code on the ui thread. Engine.Do() is the synchronisch variant of Engine.Go()

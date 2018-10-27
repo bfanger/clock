@@ -7,6 +7,7 @@ import (
 	"github.com/bfanger/clock/pkg/tween"
 )
 
+// Notification widget
 type Notification interface {
 	Show() tween.Tween
 	Hide() tween.Tween
@@ -15,6 +16,7 @@ type Notification interface {
 
 const endpoint = "http://localhost:8080/"
 
+// ShowNotification is a helper for clock related services
 func ShowNotification(icon string) error {
 	data := url.Values{}
 	data.Set("action", "show")
@@ -25,6 +27,7 @@ func ShowNotification(icon string) error {
 	return nil
 }
 
+// HideNotification is a helper for clock related services
 func HideNotification() error {
 	data := url.Values{}
 	data.Set("action", "hide")
