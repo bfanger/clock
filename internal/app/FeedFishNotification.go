@@ -11,6 +11,7 @@ import (
 // FeedFishNotification is a animated swimming fish notification
 type FeedFishNotification struct {
 	*BasicNotification
+	animation *tween.Cancelable
 }
 
 // NewFeedFishNotification create a Notification
@@ -22,10 +23,23 @@ func NewFeedFishNotification(engine *ui.Engine) (*FeedFishNotification, error) {
 	return &FeedFishNotification{BasicNotification: n}, nil
 }
 
-// Show the fish
+// Show the notification and start the swimming animation.
 func (n *FeedFishNotification) Show() tween.Tween {
-	tl := &tween.Timeline{}
+	return tween.Func(func() {
+		go n.Swim()
+	})
+}
+
+// Close the notification and stop the animation
+func (n *FeedFishNotification) Close() error {
+	n.animation.Cancel()
+	return n.BasicNotification.Close()
+}
+
+// Swim the fish
+func (n *FeedFishNotification) Swim() {
 	y := n.sprite.Y
+	tl := &tween.Timeline{}
 	tl.Add(tween.Func(func() {
 		n.sprite.SetAlpha(255)
 	}))
@@ -34,5 +48,6 @@ func (n *FeedFishNotification) Show() tween.Tween {
 		n.sprite.Rotation = math.Sin(float64(x)/20) * 7
 		n.sprite.Y = y + int32(math.Sin(float64(x)/20-math.Pi/2)*10)
 	})))
-	return tl
+	n.animation = tween.NewCancelable(tl)
+	n.engine.Animate(n.animation)
 }

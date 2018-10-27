@@ -19,7 +19,6 @@ type Server struct {
 	Notification Notification
 	engine       *ui.Engine
 	serialize    sync.Mutex
-	tween        *tween.Cancelable
 }
 
 // NewServer creates a new webserver and creates the widgets controlled by the endpoints
@@ -96,8 +95,7 @@ func (s *Server) ShowNotification(n Notification) {
 	tl.Add(s.Clock.Minimize())
 	tl.AddAt(200*time.Millisecond, s.Background.Maximize())
 	tl.AddAt(800*time.Millisecond, n.Show())
-	s.tween = tween.NewCancelable(tl)
-	go s.engine.Animate(tl)
+	s.engine.Animate(tl)
 }
 
 // HideNotification hides the active notification
@@ -111,8 +109,6 @@ func (s *Server) HideNotification() error {
 	tl.Add(n.Hide())
 	tl.AddAt(100*time.Millisecond, s.Clock.Maximize())
 	tl.AddAt(100*time.Millisecond, s.Background.Minimize())
-	s.tween.Cancel()
-	s.tween = nil
 	s.engine.Animate(tl)
 	if err := s.engine.Do(n.Close); err != nil {
 		return fmt.Errorf("failed to close notification: %v", err)

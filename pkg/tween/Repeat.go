@@ -8,7 +8,6 @@ type repeat struct {
 	duration time.Duration
 	infinite bool
 	t        Tween
-	cursor   time.Duration
 }
 
 // Repeat a Tween x times, 0 for "infinite"
@@ -24,12 +23,7 @@ func (r *repeat) Duration() time.Duration {
 }
 
 func (r *repeat) Seek(d time.Duration) bool {
-	tweenDuration := r.t.Duration()
-	if int(d/tweenDuration) != int(r.cursor/tweenDuration) {
-		r.t.Seek(0) // new repeat cycle, rewind tween
-	}
-	r.cursor = d
-	r.t.Seek(d % tweenDuration)
+	r.t.Seek(d % r.t.Duration())
 	if r.infinite {
 		r.duration = d + time.Minute // the duration grows dynamicly
 		return false
