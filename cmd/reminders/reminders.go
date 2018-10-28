@@ -9,19 +9,19 @@ import (
 
 func main() {
 	schedule := []*app.Activity{
-		// WeeklyActivity(time.Saturday, "zwemmen", 15, 50),
-		// WeeklyActivity(time.Monday, "school", 8, 15)),
+		app.WeeklyActivity(time.Saturday, "zwemmen", 15, 45),
+		app.WeeklyActivity(time.Monday, "school", 8, 05),
+		app.WeeklyActivity(time.Tuesday, "gym", 8, 10),
+		app.WeeklyActivity(time.Wednesday, "school", 8, 10),
+		app.WeeklyActivity(time.Thursday, "gym", 8, 05),
+		app.WeeklyActivity(time.Friday, "school", 8, 10),
 		app.DailyActivity("vis", 20, 0)}
 
-	// schedule = append(schedule, app.DailyActivity("vis", time.Now().Hour(), time.Now().Minute()+1))
-
-	// app.ShowNotification("vis")
-	// NewActivity("gym", time.Tuesday, 8, 10)}
 	for {
 		a := nextActivity(schedule)
-		d := time.Until(a.Time())
-		log.Printf("Sleeping %s\n", d)
-		time.Sleep(d)
+		t := a.Time()
+		log.Printf("Scheduled reminder: \"%s\" on %s %d:%02d\n", a.Type, t.Weekday(), t.Hour(), t.Minute())
+		time.Sleep(time.Until(t))
 		log.Printf("Showing notification %s\n", a.Type)
 		app.ShowNotification(a.Type)
 		time.Sleep(10 * time.Minute)
