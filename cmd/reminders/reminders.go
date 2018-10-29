@@ -31,7 +31,8 @@ func main() {
 }
 
 func nextActivity(schedule []*app.Activity) (result *app.Activity) {
-	first := time.Now().Add(365 * 24 * time.Hour)
+	now := time.Now()
+	first := now.Add(365 * 24 * time.Hour)
 	for _, a := range schedule {
 		start := a.Time()
 		if start.Before(first) {

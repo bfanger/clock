@@ -28,6 +28,10 @@ func (a *Activity) Time() time.Time {
 		dayOffset = int(a.Day - now.Weekday())
 		if dayOffset < 0 {
 			dayOffset += 7
+		} else if a.Hour < now.Hour() {
+			dayOffset += 7
+		} else if a.Hour == now.Hour() && a.Minute < now.Minute() {
+			dayOffset += 7
 		}
 	}
 	return time.Date(now.Year(), now.Month(), now.Day()+dayOffset, a.Hour, a.Minute, 0, 0, now.Location())
