@@ -1,0 +1,15 @@
+[Unit]
+Description=Periodic reminders
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=pi
+WorkingDirectory=/home/pi
+ExecStart=/home/pi/go/bin/reminders
+Restart=on-failure
+RestartSec=60s
+
+[Install]
+WantedBy=multi-user.target

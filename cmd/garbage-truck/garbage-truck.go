@@ -39,24 +39,19 @@ func main() {
 		if first || previous != active {
 			previous = active
 			first = false
-
-			if active {
-				log.Println("Show notification")
-				if err := app.ShowNotification(t.Type); err != nil {
-					log.Printf("Failed to show notfication: %v", err)
-				}
+			if !active {
+				wait = d - (hoursBefore * time.Hour) + time.Minute
 			} else {
-				log.Println("Hide notification")
-				if err := app.HideNotification(); err != nil {
-					log.Printf("Failed to hide notfication: %v", err)
+				wait = d + (hoursAfter) + time.Minute
+			}
+			if active {
+				log.Printf("Show notification %s for %s\n", t.Type, d+hoursAfter)
+				if err := app.ShowNotification(t.Type, d+hoursAfter); err != nil {
+					log.Printf("Failed to show notfication: %v", err)
 				}
 			}
 		}
-		if !active {
-			wait = d - (hoursBefore * time.Hour) + time.Minute
-		} else {
-			wait = d + (hoursAfter) + time.Minute
-		}
+
 		log.Printf("Sleeping for %.1f hours\n", wait.Hours())
 		time.Sleep(wait)
 	}

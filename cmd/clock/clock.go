@@ -19,21 +19,14 @@ func main() {
 	defer display.Close()
 
 	engine := ui.NewEngine(display.Renderer)
-	server := app.NewServer(engine)
-	server.Background, err = app.NewBackground(engine)
+	displayManager, err := app.NewDisplayManager(engine)
 	if err != nil {
-		log.Fatalf("failed to create background: %v", err)
+		log.Fatal(err)
 	}
-	defer server.Background.Close()
+	defer displayManager.Close()
 
-	server.Clock, err = app.NewTime(engine)
-	if err != nil {
-		log.Fatalf("failed to create clock: %v", err)
-	}
-	defer server.Clock.Close()
-
+	server := app.NewServer(displayManager, engine)
 	go server.ListenAndServe()
-	// go app.ShowNotification("vis")
 
 	err = engine.EventLoop(func(event sdl.Event) {
 		switch e := event.(type) {

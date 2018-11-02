@@ -15,8 +15,8 @@ type FeedFishNotification struct {
 }
 
 // NewFeedFishNotification create a Notification
-func NewFeedFishNotification(engine *ui.Engine) (*FeedFishNotification, error) {
-	n, err := NewBasicNotification(engine, "vis")
+func NewFeedFishNotification(engine *ui.Engine, d time.Duration) (*FeedFishNotification, error) {
+	n, err := NewBasicNotification(engine, "vis", d)
 	if err != nil {
 		return nil, err
 	}

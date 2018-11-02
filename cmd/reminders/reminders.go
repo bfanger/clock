@@ -23,10 +23,7 @@ func main() {
 		log.Printf("Scheduled reminder: \"%s\" on %s %d:%02d\n", a.Type, t.Weekday(), t.Hour(), t.Minute())
 		time.Sleep(time.Until(t))
 		log.Printf("Showing notification %s\n", a.Type)
-		app.ShowNotification(a.Type)
-		time.Sleep(10 * time.Minute)
-		log.Println("Hiding notification")
-		app.HideNotification()
+		app.ShowNotification(a.Type, 10*time.Minute)
 	}
 }
 

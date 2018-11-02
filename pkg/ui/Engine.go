@@ -1,7 +1,6 @@
 package ui
 
 import (
-	"log"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -95,7 +94,6 @@ func (e *Engine) EventLoop(handle func(sdl.Event)) error {
 
 // Animate the tween
 func (e *Engine) Animate(a tween.Seeker) {
-	log.Println("start")
 	start := time.Now()
 	wg := sync.WaitGroup{}
 	done := false
@@ -112,7 +110,6 @@ func (e *Engine) Animate(a tween.Seeker) {
 			break
 		}
 	}
-	log.Println("end")
 }
 
 // Append a composer

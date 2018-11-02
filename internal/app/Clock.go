@@ -13,8 +13,8 @@ import (
 var white = sdl.Color{R: 255, G: 255, B: 255}
 var orange = sdl.Color{R: 254, G: 110, B: 2, A: 255}
 
-// Time display the current time
-type Time struct {
+// Clock displays the current time
+type Clock struct {
 	engine *ui.Engine
 	font   *ttf.Font
 	text   *ui.Text
@@ -22,8 +22,8 @@ type Time struct {
 	done   chan bool
 }
 
-// NewTime creats a new time widget
-func NewTime(engine *ui.Engine) (*Time, error) {
+// NewClock creats a new time widget
+func NewClock(engine *ui.Engine) (*Clock, error) {
 	font, err := ttf.OpenFont(asset("Roboto-Light.ttf"), 114)
 	if err != nil {
 		return nil, fmt.Errorf("unable to open font: %v", err)
@@ -37,7 +37,7 @@ func NewTime(engine *ui.Engine) (*Time, error) {
 
 	// sprite.SetScale(0.2)
 
-	t := &Time{
+	t := &Clock{
 		engine: engine,
 		text:   text,
 		font:   font,
@@ -54,7 +54,7 @@ func NewTime(engine *ui.Engine) (*Time, error) {
 }
 
 // Close free resources
-func (t *Time) Close() error {
+func (t *Clock) Close() error {
 	t.engine.Remove(t.text)
 	if err := t.text.Close(); err != nil {
 		return err
@@ -65,7 +65,7 @@ func (t *Time) Close() error {
 }
 
 // Minimize time to make room for notifications
-func (t *Time) Minimize() tween.Tween {
+func (t *Clock) Minimize() tween.Tween {
 	tl := &tween.Timeline{}
 	tl.Add(tween.FromToFloat32(1, 0.8, 1*time.Second, tween.EaseInOutQuad, t.sprite.SetScale))
 	tl.AddAt(150*time.Millisecond, tween.FromToInt32(screenHeight/2, 47, 850*time.Millisecond, tween.EaseInOutQuad, func(v int32) {
@@ -75,7 +75,7 @@ func (t *Time) Minimize() tween.Tween {
 }
 
 // Maximize time
-func (t *Time) Maximize() tween.Tween {
+func (t *Clock) Maximize() tween.Tween {
 	tl := &tween.Timeline{}
 	tl.Add(tween.FromToFloat32(0.8, 1, 1*time.Second, tween.EaseInOutQuad, t.sprite.SetScale))
 	tl.AddAt(150*time.Millisecond, tween.FromToInt32(47, screenHeight/2, 850*time.Millisecond, tween.EaseInOutQuad, func(v int32) {
@@ -84,7 +84,7 @@ func (t *Time) Maximize() tween.Tween {
 	return tl
 }
 
-func (t *Time) updateTime() error {
+func (t *Clock) updateTime() error {
 	now := time.Now()
 	time := fmt.Sprintf("%d%s", now.Hour(), now.Format(":04"))
 	if err := t.text.SetText(time); err != nil {
@@ -93,7 +93,7 @@ func (t *Time) updateTime() error {
 	return nil
 }
 
-func (t *Time) tick() {
+func (t *Clock) tick() {
 	for {
 		select {
 		case <-t.done:

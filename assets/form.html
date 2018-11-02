@@ -1,8 +1,4 @@
 <form method="POST">
-  {{if .Show}}
-  <input type="hidden" name="action" value="hide">
-  <input type="submit" value="Hide">
-  {{else}}
   <select name="icon">
     <option>gym</option>
     <option>papier</option>
@@ -11,7 +7,6 @@
     <option>vis</option>
     <option>zwembad</option>
   </select>
-  <input type="hidden" name="action" value="show">
-  <input type="submit" value="Show">
-  {{end}}
+  <input type="number" name="duration" value="15">
+  <input type="submit" value="Notify">
 </form>

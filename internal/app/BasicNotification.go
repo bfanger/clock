@@ -9,13 +9,14 @@ import (
 
 // BasicNotification for notifications
 type BasicNotification struct {
-	image  *ui.Image
-	sprite *ui.Sprite
-	engine *ui.Engine
+	image    *ui.Image
+	sprite   *ui.Sprite
+	duration time.Duration
+	engine   *ui.Engine
 }
 
 // NewBasicNotification creates a new Notification
-func NewBasicNotification(engine *ui.Engine, icon string) (*BasicNotification, error) {
+func NewBasicNotification(engine *ui.Engine, icon string, d time.Duration) (*BasicNotification, error) {
 	image, err := ui.ImageFromFile(asset("notifications/"+icon+".png"), engine.Renderer)
 	if err != nil {
 		return nil, err
@@ -28,9 +29,10 @@ func NewBasicNotification(engine *ui.Engine, icon string) (*BasicNotification, e
 	engine.Append(sprite)
 
 	return &BasicNotification{
-		image:  image,
-		sprite: sprite,
-		engine: engine}, nil
+		image:    image,
+		sprite:   sprite,
+		duration: d,
+		engine:   engine}, nil
 }
 
 // Close free memory used by the Notification
@@ -47,4 +49,8 @@ func (n *BasicNotification) Show() tween.Tween {
 // Hide notification
 func (n *BasicNotification) Hide() tween.Tween {
 	return tween.FromToUint8(255, 0, 500*time.Millisecond, tween.EaseOutQuad, n.sprite.SetAlpha)
+}
+
+func (n *BasicNotification) Duration() time.Duration {
+	return n.duration
 }
