@@ -2,6 +2,7 @@ package app
 
 import (
 	"fmt"
+	"sync"
 	"time"
 
 	"github.com/bfanger/clock/pkg/tween"
@@ -10,10 +11,11 @@ import (
 
 // DisplayManager manages what to show and when.
 type DisplayManager struct {
-	background    *Background
-	clock         *Clock
-	notifications []Notification
-	engine        *ui.Engine
+	background       *Background
+	clock            *Clock
+	notifications    []Notification
+	notificationLock sync.Mutex
+	engine           *ui.Engine
 }
 
 // NewDisplayManager create a new DisplayManager
@@ -48,39 +50,10 @@ func (dm *DisplayManager) Close() error {
 	return nil
 }
 
-// func (dm *DisplayManager) Notify(n Notification) error {
-// notifications
-// 	err := s.engine.Do(func() error {
-// 		if s.Notification != nil {
-// 			if err := s.Notification.Close(); err != nil {
-// 				return fmt.Errorf("failed to close notification: %v", err)
-// 			}
-// 		}
-// 		var err error
-// 		if icon == "vis" {
-// 			s.Notification, err = NewFeedFishNotification(s.engine)
-// 		} else {
-// 			s.Notification, err = NewBasicNotification(s.engine, icon)
-// 		}
-// 		if err != nil {
-// 			return err
-// 		}
-// 		return nil
-// 	})
-// 	if err != nil {
-// 		panic(err)
-// 	}
-// 	s.ShowNotification(s.Notification)
-// } else {
-// 	if err := s.HideNotification(); err != nil {
-// 		panic(err)
-// 	}
-// return nil
-// }
-
-// ShowNotification display a new notification
+// Notify display a new notification
 func (dm *DisplayManager) Notify(n Notification) {
 	// @todo lock access to notifications slice?
+	dm.notificationLock.Lock()
 	dm.notifications = append(dm.notifications, n)
 	if len(dm.notifications) == 1 {
 		tl := &tween.Timeline{}
@@ -91,7 +64,10 @@ func (dm *DisplayManager) Notify(n Notification) {
 	} else {
 		dm.engine.Animate(n.Show())
 	}
+	dm.notificationLock.Unlock()
 	time.Sleep(n.Duration())
+	dm.notificationLock.Lock()
+	defer dm.notificationLock.Unlock()
 	if len(dm.notifications) == 1 {
 		tl := &tween.Timeline{}
 		tl.Add(n.Hide())

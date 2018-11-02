@@ -4,7 +4,6 @@ import (
 	"html/template"
 	"net/http"
 	"strconv"
-	"sync"
 	"time"
 
 	"github.com/bfanger/clock/pkg/ui"
@@ -14,7 +13,6 @@ import (
 type Server struct {
 	displayManager *DisplayManager
 	engine         *ui.Engine
-	serialize      sync.Mutex
 }
 
 // NewServer creates a new webserver and creates the widgets controlled by the endpoints
@@ -35,8 +33,6 @@ type formViewModel struct {
 }
 
 func (s *Server) notify(w http.ResponseWriter, r *http.Request) {
-	s.serialize.Lock()
-	defer s.serialize.Unlock()
 	vm := formViewModel{}
 	if r.Method == "POST" {
 		if err := r.ParseForm(); err != nil {

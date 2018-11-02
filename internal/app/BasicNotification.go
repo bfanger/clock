@@ -51,6 +51,7 @@ func (n *BasicNotification) Hide() tween.Tween {
 	return tween.FromToUint8(255, 0, 500*time.Millisecond, tween.EaseOutQuad, n.sprite.SetAlpha)
 }
 
+// Duration that the notification will be shown
 func (n *BasicNotification) Duration() time.Duration {
 	return n.duration
 }
