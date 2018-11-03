@@ -1,7 +1,7 @@
 package main
 
 import (
-	"log"
+	"fmt"
 	"time"
 
 	"github.com/bfanger/clock/internal/app"
@@ -20,16 +20,15 @@ func main() {
 	for {
 		a := nextActivity(schedule)
 		t := a.Time()
-		log.Printf("Scheduled reminder: \"%s\" on %s %d:%02d\n", a.Type, t.Weekday(), t.Hour(), t.Minute())
+		fmt.Printf("Scheduled reminder: \"%s\" on %s %d:%02d\n", a.Type, t.Weekday(), t.Hour(), t.Minute())
 		time.Sleep(time.Until(t))
-		log.Printf("Showing notification %s\n", a.Type)
+		fmt.Printf("Showing notification %s\n", a.Type)
 		app.ShowNotification(a.Type, 10*time.Minute)
 	}
 }
 
 func nextActivity(schedule []*app.Activity) (result *app.Activity) {
-	now := time.Now()
-	first := now.Add(365 * 24 * time.Hour)
+	first := time.Now().Add(365 * 24 * time.Hour)
 	for _, a := range schedule {
 		start := a.Time()
 		if start.Before(first) {

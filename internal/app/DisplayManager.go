@@ -42,6 +42,7 @@ func (dm *DisplayManager) Close() error {
 	if err := dm.clock.Close(); err != nil {
 		return err
 	}
+	// @todo use notificationLock?
 	for _, n := range dm.notifications {
 		if err := n.Close(); err != nil {
 			return err
@@ -52,7 +53,6 @@ func (dm *DisplayManager) Close() error {
 
 // Notify display a new notification
 func (dm *DisplayManager) Notify(n Notification) {
-	// @todo lock access to notifications slice?
 	dm.notificationLock.Lock()
 	dm.notifications = append(dm.notifications, n)
 	if len(dm.notifications) == 1 {
@@ -84,18 +84,4 @@ func (dm *DisplayManager) Notify(n Notification) {
 		}
 	}
 	dm.engine.Go(n.Close)
-}
-
-// HideNotification hides the active notification
-func (dm *DisplayManager) HideNotification() error {
-	// if s.Notification == nil {
-	// 	return errors.New("no notification active")
-	// }
-	// n := s.Notification
-	// d.Notification = nil
-
-	// if err := s.engine.Do(n.Close); err != nil {
-	// 	return fmt.Errorf("failed to close notification: %v", err)
-	// }
-	return nil
 }

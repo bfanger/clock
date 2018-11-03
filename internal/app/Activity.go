@@ -21,7 +21,7 @@ func (a *Activity) Time() time.Time {
 	if a.Daily {
 		if a.Hour < now.Hour() {
 			dayOffset++
-		} else if a.Hour == now.Hour() && a.Minute < now.Minute() {
+		} else if a.Hour == now.Hour() && a.Minute <= now.Minute() {
 			dayOffset++
 		}
 	} else {
@@ -30,7 +30,7 @@ func (a *Activity) Time() time.Time {
 			dayOffset += 7
 		} else if a.Hour < now.Hour() {
 			dayOffset += 7
-		} else if a.Hour == now.Hour() && a.Minute < now.Minute() {
+		} else if a.Hour == now.Hour() && a.Minute <= now.Minute() {
 			dayOffset += 7
 		}
 	}
