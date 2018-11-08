@@ -27,6 +27,7 @@ func main() {
 
 	server := app.NewServer(displayManager, engine)
 	go server.ListenAndServe()
+	// go app.ShowNotification("vis", time.Minute)
 
 	err = engine.EventLoop(func(event sdl.Event) {
 		switch e := event.(type) {

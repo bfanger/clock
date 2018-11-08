@@ -37,14 +37,14 @@ func (b *Background) Close() error {
 
 // Minimize background
 func (b *Background) Minimize() tween.Tween {
-	return tween.FromToInt32(102, screenHeight, 650*time.Millisecond, tween.EaseInQuad, func(y int32) {
+	return tween.FromToInt32(196, screenHeight, 650*time.Millisecond, tween.EaseInQuad, func(y int32) {
 		b.sprite.Y = y
 	})
 }
 
 // Maximize background
 func (b *Background) Maximize() tween.Tween {
-	return tween.FromToInt32(screenHeight, 102, 800*time.Millisecond, tween.EaseInOutQuad, func(y int32) {
+	return tween.FromToInt32(screenHeight, 196, 800*time.Millisecond, tween.EaseInOutQuad, func(y int32) {
 		b.sprite.Y = y
 	})
 }

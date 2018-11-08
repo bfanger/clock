@@ -24,7 +24,7 @@ func NewBasicNotification(engine *ui.Engine, icon string, d time.Duration) (*Bas
 	sprite := ui.NewSprite(image)
 	sprite.X = screenWidth / 2
 	sprite.AnchorX = 0.5
-	sprite.Y = 130
+	sprite.Y = 240
 	sprite.SetAlpha(0)
 	engine.Append(sprite)
 

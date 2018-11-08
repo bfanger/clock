@@ -43,10 +43,10 @@ func (n *FeedFishNotification) Swim() {
 	tl.Add(tween.Func(func() {
 		n.sprite.SetAlpha(255)
 	}))
-	tl.Add(tween.Repeat(0, tween.FromToInt32(-90, 365, 10*time.Second, tween.Linear, func(x int32) {
+	tl.Add(tween.Repeat(0, tween.FromToInt32(-100, 900, 12*time.Second, tween.Linear, func(x int32) {
 		n.sprite.X = x
-		n.sprite.Rotation = math.Sin(float64(x)/20) * 7
-		n.sprite.Y = y + int32(math.Sin(float64(x)/20-math.Pi/2)*10)
+		n.sprite.Rotation = math.Sin(float64(x)/30) * 7
+		n.sprite.Y = y + int32(math.Sin(float64(x)/30-math.Pi/2)*18)
 	})))
 	n.animation = tween.NewCancelable(tl)
 	n.engine.Animate(n.animation)

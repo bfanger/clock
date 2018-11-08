@@ -1,6 +1,6 @@
 # Clock
 
-A "smart" clock written in [Go](https://golang.org) which runs on a [2.8inch screen](https://www.waveshare.com/2.8inch-RPi-LCD-A.htm) connected to a [Raspberry Pi Zero W](https://www.raspberrypi.org/)
+A "smart" clock written in [Go](https://golang.org) which runs on a [4.0 inch screen](https://shop.pimoroni.com/products/hyperpixel-4) connected to a [Raspberry Pi Zero W](https://www.raspberrypi.org/)
 
 ## Goal
 

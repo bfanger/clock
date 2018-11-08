@@ -11,7 +11,7 @@ import (
 )
 
 var white = sdl.Color{R: 255, G: 255, B: 255}
-var orange = sdl.Color{R: 254, G: 110, B: 2, A: 255}
+var orange = sdl.Color{R: 203, G: 87, B: 0, A: 255}
 
 // Clock displays the current time
 type Clock struct {
@@ -24,7 +24,7 @@ type Clock struct {
 
 // NewClock creats a new time widget
 func NewClock(engine *ui.Engine) (*Clock, error) {
-	font, err := ttf.OpenFont(asset("Roboto-Light.ttf"), 114)
+	font, err := ttf.OpenFont(asset("Roboto-Light.ttf"), 220)
 	if err != nil {
 		return nil, fmt.Errorf("unable to open font: %v", err)
 	}
@@ -67,8 +67,8 @@ func (t *Clock) Close() error {
 // Minimize time to make room for notifications
 func (t *Clock) Minimize() tween.Tween {
 	tl := &tween.Timeline{}
-	tl.Add(tween.FromToFloat32(1, 0.8, 1*time.Second, tween.EaseInOutQuad, t.sprite.SetScale))
-	tl.AddAt(150*time.Millisecond, tween.FromToInt32(screenHeight/2, 47, 850*time.Millisecond, tween.EaseInOutQuad, func(v int32) {
+	tl.Add(tween.FromToFloat32(1, 0.72, 1*time.Second, tween.EaseInOutQuad, t.sprite.SetScale))
+	tl.AddAt(150*time.Millisecond, tween.FromToInt32(screenHeight/2, 90, 850*time.Millisecond, tween.EaseInOutQuad, func(v int32) {
 		t.sprite.Y = v
 	}))
 	return tl
@@ -77,8 +77,8 @@ func (t *Clock) Minimize() tween.Tween {
 // Maximize time
 func (t *Clock) Maximize() tween.Tween {
 	tl := &tween.Timeline{}
-	tl.Add(tween.FromToFloat32(0.8, 1, 1*time.Second, tween.EaseInOutQuad, t.sprite.SetScale))
-	tl.AddAt(150*time.Millisecond, tween.FromToInt32(47, screenHeight/2, 850*time.Millisecond, tween.EaseInOutQuad, func(v int32) {
+	tl.Add(tween.FromToFloat32(0.72, 1, 1*time.Second, tween.EaseInOutQuad, t.sprite.SetScale))
+	tl.AddAt(150*time.Millisecond, tween.FromToInt32(90, screenHeight/2, 850*time.Millisecond, tween.EaseInOutQuad, func(v int32) {
 		t.sprite.Y = v
 	}))
 	return tl
