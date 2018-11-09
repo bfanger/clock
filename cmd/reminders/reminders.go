@@ -9,32 +9,25 @@ import (
 
 func main() {
 	schedule := []*app.Activity{
-		app.WeeklyActivity(time.Saturday, "zwemmen", 15, 45),
-		app.WeeklyActivity(time.Monday, "school", 8, 05),
-		app.WeeklyActivity(time.Tuesday, "gym", 8, 10),
-		app.WeeklyActivity(time.Wednesday, "school", 8, 10),
-		app.WeeklyActivity(time.Thursday, "gym", 8, 05),
-		app.WeeklyActivity(time.Friday, "school", 8, 10),
-		app.DailyActivity("vis", 20, 0)}
+		app.WeeklyActivity(time.Saturday, 15, 45, app.Alarm{Notification: "zwemmen", Duration: 15 * time.Minute}),
+		app.WeeklyActivity(time.Monday, 8, 05, app.Alarm{Notification: "school", Duration: 25 * time.Minute}),
+		app.WeeklyActivity(time.Tuesday, 8, 05, app.Alarm{Notification: "gym", Duration: 25 * time.Minute}),
+		app.WeeklyActivity(time.Wednesday, 8, 05, app.Alarm{Notification: "school", Duration: 25 * time.Minute}),
+		app.WeeklyActivity(time.Thursday, 8, 05, app.Alarm{Notification: "gym", Duration: 25 * time.Minute}),
+		app.WeeklyActivity(time.Friday, 8, 10, app.Alarm{Notification: "school", Duration: 25 * time.Minute}),
+		app.DailyActivity(20, 0, app.Alarm{Notification: "vis", Duration: 10 * time.Minute}),
+		app.DailyActivity(0, 0, app.Alarm{Notification: "bedtime", Duration: 30 * time.Minute}),
+	}
 
 	for {
-		a := nextActivity(schedule)
-		t := a.Time()
-		fmt.Printf("Scheduled reminder: \"%s\" on %s %d:%02d\n", a.Type, t.Weekday(), t.Hour(), t.Minute())
-		time.Sleep(time.Until(t))
-		fmt.Printf("Showing notification %s\n", a.Type)
-		app.ShowNotification(a.Type, 10*time.Minute)
-	}
-}
-
-func nextActivity(schedule []*app.Activity) (result *app.Activity) {
-	first := time.Now().Add(365 * 24 * time.Hour)
-	for _, a := range schedule {
-		start := a.Time()
-		if start.Before(first) {
-			first = start
-			result = a
+		alarms := make([]*app.Alarm, len(schedule))
+		for i, activity := range schedule {
+			alarms[i] = activity.NextAlarm()
 		}
+		alarm := app.FirstAlarm(alarms)
+		fmt.Printf("Next: %s\n", alarm)
+		time.Sleep(time.Until(alarm.Start))
+		alarm.Activate()
+		time.Sleep(alarm.Duration)
 	}
-	return
 }

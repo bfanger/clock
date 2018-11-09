@@ -7,8 +7,8 @@ import (
 	"github.com/veandco/go-sdl2/sdl"
 )
 
-// asset returns the absolute path for a file in the assets folder
-func asset(filename string) string {
+// Asset returns the absolute path for a file in the assets folder
+func Asset(filename string) string {
 	binPath := sdl.GetBasePath() + "assets/"
 	_, err := os.Stat(binPath)
 	if err == nil {

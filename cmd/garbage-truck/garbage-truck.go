@@ -14,78 +14,57 @@ import (
 	"github.com/bfanger/clock/internal/app"
 )
 
-type event struct {
-	Summary string
-	Start   time.Time
-}
-
-const hoursBefore = 13 // Start notification at 20:00 the day before
-const hoursAfter = 2   // Hide the notification at 9:00
-
 func main() {
-	first := true
-	var previous bool
-	var wait time.Duration
 	for {
-		t, err := nextGarbageTruck()
+		alarm, err := nextGarbageTruck()
 		if err != nil {
 			log.Fatal(err)
 		}
-		d := time.Until(t.Arrival)
-		hours := d.Hours()
-		log.Printf("Next %s in %.1f hours\n", t.Type, hours)
-		active := hours < hoursBefore
-
-		if first || previous != active {
-			previous = active
-			first = false
-			if !active {
-				wait = d - (hoursBefore * time.Hour) + time.Minute
-			} else {
-				wait = d + (hoursAfter) + time.Minute
-			}
-			if active {
-				log.Printf("Show notification %s for %s\n", t.Type, d+hoursAfter)
-				if err := app.ShowNotification(t.Type, d+hoursAfter); err != nil {
-					log.Printf("Failed to show notfication: %v", err)
-				}
-			}
-		}
-
-		log.Printf("Sleeping for %.1f hours\n", wait.Hours())
-		time.Sleep(wait)
+		fmt.Printf("Next: %s\n", alarm)
+		time.Sleep(time.Until(alarm.Start))
+		alarm.Activate()
+		time.Sleep(alarm.Duration)
 	}
 }
 
-type garbageTruck struct {
-	Type    string
-	Arrival time.Time
-}
+func nextGarbageTruck() (*app.Alarm, error) {
+	const hoursBefore = 12 * time.Hour // Start notification at 21:00 the day before
+	const hoursAfter = 2 * time.Hour   // Hide the notification at 9:00
 
-func nextGarbageTruck() (*garbageTruck, error) {
 	events, err := garbageCalendar()
 	if err != nil {
 		return nil, fmt.Errorf("failed to load events: %v", err)
 	}
-	t := garbageTruck{}
+	var alarms []*app.Alarm
 	for _, e := range events {
-		d := time.Until(e.Start)
-		if d.Hours() < -1*hoursAfter {
-			continue // Skip old entries
+		if e.Summary == "Gft & etensresten" {
+			continue
 		}
+		alarm := app.Alarm{
+			Start:    e.Start.Add(-1 * hoursBefore),
+			Duration: hoursBefore + hoursAfter}
 
 		switch e.Summary {
 		case "Restafval":
-			t.Type = "restafval"
+			alarm.Notification = "restafval"
+			alarms = append(alarms, &alarm)
 		case "Papier en karton":
-			t.Type = "restafval"
-		}
-		if t.Type != "" {
-			t.Arrival = e.Start
-			return &t, nil
+			alarm.Notification = "papier"
+			alarms = append(alarms, &alarm)
+		default:
+			fmt.Printf("Unknown event: %s", e.Summary)
 		}
 	}
-	return nil, errors.New("no valid entries found")
+	if len(alarms) == 0 {
+		return nil, errors.New("no valid entries found")
+	}
+	fmt.Println(alarms)
+	return app.FirstAlarm(alarms), nil
+}
+
+type event struct {
+	Summary string
+	Start   time.Time
 }
 
 func garbageCalendar() ([]*event, error) {

@@ -17,7 +17,7 @@ type BasicNotification struct {
 
 // NewBasicNotification creates a new Notification
 func NewBasicNotification(engine *ui.Engine, icon string, d time.Duration) (*BasicNotification, error) {
-	image, err := ui.ImageFromFile(asset("notifications/"+icon+".png"), engine.Renderer)
+	image, err := ui.ImageFromFile(Asset("notifications/"+icon+".png"), engine.Renderer)
 	if err != nil {
 		return nil, err
 	}

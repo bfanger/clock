@@ -24,7 +24,7 @@ type Clock struct {
 
 // NewClock creats a new time widget
 func NewClock(engine *ui.Engine) (*Clock, error) {
-	font, err := ttf.OpenFont(asset("Roboto-Light.ttf"), 220)
+	font, err := ttf.OpenFont(Asset("Roboto-Light.ttf"), 220)
 	if err != nil {
 		return nil, fmt.Errorf("unable to open font: %v", err)
 	}

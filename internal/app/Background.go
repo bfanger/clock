@@ -16,7 +16,7 @@ type Background struct {
 
 // NewBackground creates a new background
 func NewBackground(engine *ui.Engine) (*Background, error) {
-	image, err := ui.ImageFromFile(asset("background.png"), engine.Renderer)
+	image, err := ui.ImageFromFile(Asset("background.png"), engine.Renderer)
 	if err != nil {
 		return nil, err
 	}

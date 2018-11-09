@@ -1,16 +1,20 @@
 package main
 
 import (
+	"flag"
 	"log"
 	"runtime"
 
 	"github.com/bfanger/clock/internal/app"
 	"github.com/bfanger/clock/pkg/ui"
 	"github.com/veandco/go-sdl2/sdl"
+	"github.com/veandco/go-sdl2/ttf"
 )
 
 func main() {
 	runtime.LockOSThread()
+	fpsVisible := flag.Bool("fps", false, "Show FPS counter")
+	flag.Parse()
 
 	display, err := app.NewDisplay()
 	if err != nil {
@@ -25,9 +29,20 @@ func main() {
 	}
 	defer displayManager.Close()
 
+	if *fpsVisible {
+		font, err := ttf.OpenFont(app.Asset("Roboto-Light.ttf"), 24)
+		if err != nil {
+			log.Fatalf("unable to open font: %v", err)
+		}
+		fps := ui.NewFps(engine, font)
+		defer fps.Close()
+	}
+
 	server := app.NewServer(displayManager, engine)
 	go server.ListenAndServe()
-	// go app.ShowNotification("vis", time.Minute)
+
+	// a := app.Alarm{Notification: "vis", Duration: time.Minute}
+	// go a.Activate()
 
 	err = engine.EventLoop(func(event sdl.Event) {
 		switch e := event.(type) {

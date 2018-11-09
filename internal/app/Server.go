@@ -61,7 +61,7 @@ func (s *Server) notify(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	t, err := template.ParseFiles(asset("form.html"))
+	t, err := template.ParseFiles(Asset("form.html"))
 	if err != nil {
 		panic(err)
 	}
