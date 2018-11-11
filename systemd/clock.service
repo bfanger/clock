@@ -1,0 +1,15 @@
+[Unit]
+Description=Smart Clock
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=pi
+WorkingDirectory=/home/pi
+ExecStart=/home/pi/go/bin/clock
+Restart=on-failure
+RestartSec=6s
+
+[Install]
+WantedBy=multi-user.target

@@ -73,6 +73,7 @@ func garbageCalendar() ([]*event, error) {
 	if err != nil {
 		return nil, err
 	}
+	defer r.Body.Close()
 	lines := bufio.NewScanner(r.Body)
 	var stack []string
 	var mode string

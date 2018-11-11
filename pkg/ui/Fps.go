@@ -19,10 +19,7 @@ type Fps struct {
 
 // NewFps create a new Frames per second counter
 func NewFps(e *Engine, f *ttf.Font) *Fps {
-
 	fps := &Fps{engine: e, Text: NewText("-", f, white), done: make(chan bool)}
-	fps.Text.X = 10
-	fps.Text.Y = 7
 	e.Append(fps)
 	go fps.tick()
 	return fps
