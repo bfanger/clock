@@ -23,11 +23,11 @@ func main() {
 	defer display.Close()
 
 	engine := ui.NewEngine(display.Renderer)
-	displayManager, err := app.NewDisplayManager(engine)
+	wm, err := app.NewWidgetManager(engine)
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer displayManager.Close()
+	defer wm.Close()
 
 	if *fpsVisible {
 		font, err := ttf.OpenFont(app.Asset("Roboto-Light.ttf"), 24)
@@ -38,7 +38,7 @@ func main() {
 		defer fps.Close()
 	}
 
-	server := app.NewServer(displayManager, engine)
+	server := app.NewServer(wm, engine)
 	go server.ListenAndServe()
 
 	// a := app.Alarm{Notification: "vis", Duration: time.Minute}

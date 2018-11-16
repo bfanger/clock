@@ -9,8 +9,8 @@ import (
 	"github.com/bfanger/clock/pkg/ui"
 )
 
-// DisplayManager manages what to show and when.
-type DisplayManager struct {
+// WidgetManager manages what to show and when.
+type WidgetManager struct {
 	background       *Background
 	clock            *Clock
 	notifications    []Notification
@@ -18,9 +18,9 @@ type DisplayManager struct {
 	engine           *ui.Engine
 }
 
-// NewDisplayManager create a new DisplayManager
-func NewDisplayManager(e *ui.Engine) (*DisplayManager, error) {
-	dm := &DisplayManager{engine: e}
+// NewWidgetManager create a new WidgetManager
+func NewWidgetManager(e *ui.Engine) (*WidgetManager, error) {
+	dm := &WidgetManager{engine: e}
 	var err error
 	dm.background, err = NewBackground(e)
 	if err != nil {
@@ -35,7 +35,7 @@ func NewDisplayManager(e *ui.Engine) (*DisplayManager, error) {
 }
 
 // Close free memory used by the display elements
-func (dm *DisplayManager) Close() error {
+func (dm *WidgetManager) Close() error {
 	if err := dm.background.Close(); err != nil {
 		return err
 	}
@@ -52,7 +52,7 @@ func (dm *DisplayManager) Close() error {
 }
 
 // Notify display a new notification
-func (dm *DisplayManager) Notify(n Notification) {
+func (dm *WidgetManager) Notify(n Notification) {
 	dm.notificationLock.Lock()
 	dm.notifications = append(dm.notifications, n)
 	if len(dm.notifications) == 1 {

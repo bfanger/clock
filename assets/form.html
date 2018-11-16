@@ -1,12 +1,31 @@
-<form method="POST">
-  <select name="icon">
-    <option>gym</option>
-    <option>papier</option>
-    <option>restafval</option>
-    <option>school</option>
-    <option>vis</option>
-    <option>zwembad</option>
-  </select>
-  <input type="number" name="duration" value="15">
-  <input type="submit" value="Notify">
-</form>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>Clock</title>
+  </head>
+  <body>
+    <form method="POST">
+      <label><input name="icon" type="radio" value="papier" /> Papier</label
+      ><br />
+      <label
+        ><input name="icon" type="radio" value="restafval" /> Restafval</label
+      ><br />
+      <label
+        ><input name="icon" type="radio" value="school" /> Naar school</label
+      ><br />
+      <label
+        ><input name="icon" type="radio" value="gym" /> Naar school (Gym)</label
+      ><br />
+      <label><input name="icon" type="radio" value="vis" /> Vissen voeren</label
+      ><br />
+      <label><input name="icon" type="radio" value="zwemmen" /> Zwemles</label
+      ><br />
+      <label><input name="icon" type="radio" value="bedtime" /> Bedtijd</label
+      ><br />
+      <input type="number" name="duration" value="15" /><br />
+      <input type="submit" value="Notify" />
+    </form>
+  </body>
+</html>

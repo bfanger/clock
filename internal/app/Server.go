@@ -11,13 +11,13 @@ import (
 
 // Server handles API call
 type Server struct {
-	displayManager *DisplayManager
-	engine         *ui.Engine
+	wm     *WidgetManager
+	engine *ui.Engine
 }
 
 // NewServer creates a new webserver and creates the widgets controlled by the endpoints
-func NewServer(d *DisplayManager, e *ui.Engine) *Server {
-	return &Server{displayManager: d, engine: e}
+func NewServer(wm *WidgetManager, e *ui.Engine) *Server {
+	return &Server{wm: wm, engine: e}
 }
 
 // ListenAndServe start listening to requests and serving responses
@@ -53,7 +53,7 @@ func (s *Server) notify(w http.ResponseWriter, r *http.Request) {
 			if err != nil {
 				return err
 			}
-			go s.displayManager.Notify(n)
+			go s.wm.Notify(n)
 			return nil
 		})
 		if err != nil {
