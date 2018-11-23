@@ -32,48 +32,44 @@ func NewDisplay() (*Display, error) {
 	if err != nil {
 		return nil, err
 	}
-	d, err := sdl.GetCurrentDisplayMode(0)
+	m, err := sdl.GetCurrentDisplayMode(0)
 	if err != nil {
 		return nil, fmt.Errorf("can't read display mode: %v", err)
 	}
 	var x, y int32
 	var flags uint32
 	width, height := screenWidth, screenHeight
-	if d.W == screenWidth {
+	if m.W == screenWidth {
 		// fullscreen mode when the windowsize matches the displaysize
-		flags += sdl.WINDOW_FULLSCREEN
+		flags |= sdl.WINDOW_FULLSCREEN
 		if _, err := sdl.ShowCursor(sdl.DISABLE); err != nil {
 			return nil, err
 		}
 	} else {
-		flags += sdl.WINDOW_ALLOW_HIGHDPI
+		flags |= sdl.WINDOW_ALLOW_HIGHDPI | sdl.WINDOW_RESIZABLE
 		width /= 2
 		height /= 2
 	}
 	if n == 1 {
 		// Single monitor setup, show the clock bottom left.
-		x, y = 0, d.H-height
+		x, y = 0, m.H-height
 	} else {
 		// In a multi monitor setup, show the clock the second screen.
 		x, y = sdl.WINDOWPOS_CENTERED_MASK+1, sdl.WINDOWPOS_CENTERED_MASK+1
 	}
-	w, err := sdl.CreateWindow("Clock", x, y, width, height, flags)
+	d := &Display{}
+	d.window, err = sdl.CreateWindow("Clock", x, y, width, height, flags)
 	if err != nil {
 		return nil, fmt.Errorf("couldn't create window: %v", err)
 	}
-	r, err := sdl.CreateRenderer(w, -1, sdl.RENDERER_ACCELERATED|sdl.RENDERER_PRESENTVSYNC)
+	d.Renderer, err = sdl.CreateRenderer(d.window, -1, sdl.RENDERER_ACCELERATED|sdl.RENDERER_PRESENTVSYNC)
 	if err != nil {
 		return nil, fmt.Errorf("could not create renderer: %v", err)
 	}
-	drawWidth, _ := w.GLGetDrawableSize()
-	if drawWidth != screenWidth {
-		// scale the renderer on non-retina screens
-		scale := float32(drawWidth) / float32(screenWidth)
-		r.SetScale(scale, scale)
+	if err := d.Resized(); err != nil {
+		return nil, fmt.Errorf("could not resize: %v", err)
 	}
-	return &Display{
-		Renderer: r,
-		window:   w}, nil
+	return d, nil
 }
 
 // Close open resources
@@ -87,5 +83,13 @@ func (d *Display) Close() error {
 	ttf.Quit()
 	img.Quit()
 	sdl.Quit()
+	return nil
+}
+
+// Resized handles WINDOWEVENT_RESIZED events
+func (d *Display) Resized() error {
+	drawWidth, drawHeight := d.window.GLGetDrawableSize()
+	// scale the renderer to match the window (allow stretching)
+	d.Renderer.SetScale(float32(drawWidth)/float32(screenWidth), float32(drawHeight)/float32(screenHeight))
 	return nil
 }

@@ -24,9 +24,11 @@ func (a *Alarm) Activate() error {
 	data.Set("action", "notify")
 	data.Set("icon", a.Notification)
 	data.Set("duration", strconv.Itoa(int(a.Duration.Seconds())))
-	if _, err := http.PostForm(endpoint, data); err != nil {
+	r, err := http.PostForm(endpoint, data)
+	if err != nil {
 		return err
 	}
+	defer r.Body.Close()
 	return nil
 }
 

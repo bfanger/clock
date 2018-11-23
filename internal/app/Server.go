@@ -34,6 +34,7 @@ type formViewModel struct {
 
 func (s *Server) notify(w http.ResponseWriter, r *http.Request) {
 	vm := formViewModel{}
+	defer r.Body.Close()
 	if r.Method == "POST" {
 		if err := r.ParseForm(); err != nil {
 			panic(err)

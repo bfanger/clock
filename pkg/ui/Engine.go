@@ -11,11 +11,13 @@ import (
 
 // Engine handles the event- & renderloop
 type Engine struct {
-	Renderer  *sdl.Renderer
-	Composers []Composer
-	updates   []func() error
-	mutex     sync.Mutex
-	waiting   atomic.Value
+	Renderer   *sdl.Renderer
+	Composers  []Composer
+	Wait       time.Duration // Limit framerate, 30 FPS = time.Second / 30
+	updates    []func() error
+	mutex      sync.Mutex
+	waiting    atomic.Value
+	lastRender time.Time
 }
 
 // NewEngine create a new engine
@@ -150,6 +152,7 @@ func (e *Engine) update() error {
 }
 
 func (e *Engine) render() error {
+	started := time.Now()
 	if err := e.Renderer.Clear(); err != nil {
 		return err
 	}
@@ -159,6 +162,14 @@ func (e *Engine) render() error {
 		}
 	}
 	e.Renderer.Present()
+	completed := time.Now()
+	dt := completed.Sub(e.lastRender)
+	if dt < e.Wait {
+		render := completed.Sub(started)
+		update := started.Sub(e.lastRender)
+		time.Sleep(e.Wait - dt - render - update)
+	}
+	e.lastRender = time.Now()
 	return nil
 }
 
