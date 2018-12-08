@@ -23,6 +23,8 @@ func NewServer(wm *WidgetManager, e *ui.Engine) *Server {
 // ListenAndServe start listening to requests and serving responses
 func (s *Server) ListenAndServe() {
 	http.HandleFunc("/", s.notify)
+	http.HandleFunc("/notify", s.notify)
+	http.HandleFunc("/button", s.button)
 	if err := http.ListenAndServe(":8080", nil); err != nil {
 		panic(err)
 	}
@@ -62,12 +64,30 @@ func (s *Server) notify(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	t, err := template.ParseFiles(Asset("form.html"))
+	t, err := template.ParseFiles(Asset("notify.html"))
 	if err != nil {
 		panic(err)
 	}
 	w.Header().Add("Content-Type", "text/html")
 	if err := t.Execute(w, vm); err != nil {
+		panic(err)
+	}
+}
+
+func (s *Server) button(w http.ResponseWriter, r *http.Request) {
+	defer r.Body.Close()
+	t, err := template.ParseFiles(Asset("button.html"))
+	if err != nil {
+		panic(err)
+	}
+	if r.Method == "POST" {
+		if err := r.ParseForm(); err != nil {
+			panic(err)
+		}
+		go s.wm.ButtonPressed()
+	}
+	w.Header().Add("Content-Type", "text/html")
+	if err := t.Execute(w, struct{}{}); err != nil {
 		panic(err)
 	}
 }

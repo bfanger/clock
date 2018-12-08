@@ -47,8 +47,9 @@ func main() {
 		switch e := event.(type) {
 		case *sdl.MouseButtonEvent:
 			if e.Type == sdl.MOUSEBUTTONUP {
-				a := app.Alarm{Notification: "vis", Duration: 10 * time.Second}
-				go a.Activate()
+				// a := app.Alarm{Notification: "vis", Duration: 10 * time.Second}
+				// go a.Activate()
+				go wm.ButtonPressed()
 
 			}
 		case *sdl.KeyboardEvent:

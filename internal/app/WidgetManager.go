@@ -13,6 +13,7 @@ import (
 type WidgetManager struct {
 	background       *Background
 	clock            *Clock
+	splash           *Splash
 	notifications    []Notification
 	notificationLock sync.Mutex
 	engine           *ui.Engine
@@ -20,30 +21,34 @@ type WidgetManager struct {
 
 // NewWidgetManager create a new WidgetManager
 func NewWidgetManager(e *ui.Engine) (*WidgetManager, error) {
-	dm := &WidgetManager{engine: e}
+	wm := &WidgetManager{engine: e}
 	var err error
-	dm.background, err = NewBackground(e)
+	wm.background, err = NewBackground(e)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create background: %v", err)
 	}
-	dm.clock, err = NewClock(e)
+	wm.clock, err = NewClock(e)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create clock: %v", err)
 	}
-	return dm, nil
+	wm.splash, err = NewSplash(e)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create splash: %v", err)
+	}
+	return wm, nil
 
 }
 
 // Close free memory used by the display elements
-func (dm *WidgetManager) Close() error {
-	if err := dm.background.Close(); err != nil {
+func (wm *WidgetManager) Close() error {
+	if err := wm.background.Close(); err != nil {
 		return err
 	}
-	if err := dm.clock.Close(); err != nil {
+	if err := wm.clock.Close(); err != nil {
 		return err
 	}
 	// @todo use notificationLock?
-	for _, n := range dm.notifications {
+	for _, n := range wm.notifications {
 		if err := n.Close(); err != nil {
 			return err
 		}
@@ -52,36 +57,40 @@ func (dm *WidgetManager) Close() error {
 }
 
 // Notify display a new notification
-func (dm *WidgetManager) Notify(n Notification) {
-	dm.notificationLock.Lock()
-	dm.notifications = append(dm.notifications, n)
-	if len(dm.notifications) == 1 {
+func (wm *WidgetManager) Notify(n Notification) {
+	wm.notificationLock.Lock()
+	wm.notifications = append(wm.notifications, n)
+	if len(wm.notifications) == 1 {
 		tl := &tween.Timeline{}
-		tl.Add(dm.clock.Minimize())
-		tl.AddAt(200*time.Millisecond, dm.background.Maximize())
+		tl.Add(wm.clock.Minimize())
+		tl.AddAt(200*time.Millisecond, wm.background.Maximize())
 		tl.AddAt(800*time.Millisecond, n.Show())
-		dm.engine.Animate(tl)
+		wm.engine.Animate(tl)
 	} else {
-		dm.engine.Animate(n.Show())
+		wm.engine.Animate(n.Show())
 	}
-	dm.notificationLock.Unlock()
+	wm.notificationLock.Unlock()
 	time.Sleep(n.Duration())
-	dm.notificationLock.Lock()
-	defer dm.notificationLock.Unlock()
-	if len(dm.notifications) == 1 {
+	wm.notificationLock.Lock()
+	defer wm.notificationLock.Unlock()
+	if len(wm.notifications) == 1 {
 		tl := &tween.Timeline{}
 		tl.Add(n.Hide())
-		tl.AddAt(100*time.Millisecond, dm.clock.Maximize())
-		tl.AddAt(100*time.Millisecond, dm.background.Minimize())
-		dm.engine.Animate(tl)
+		tl.AddAt(100*time.Millisecond, wm.clock.Maximize())
+		tl.AddAt(100*time.Millisecond, wm.background.Minimize())
+		wm.engine.Animate(tl)
 	} else {
-		dm.engine.Animate(n.Hide())
+		wm.engine.Animate(n.Hide())
 	}
-	for i, x := range dm.notifications {
+	for i, x := range wm.notifications {
 		if n == x {
-			dm.notifications = append(dm.notifications[:i], dm.notifications[i+1:]...)
+			wm.notifications = append(wm.notifications[:i], wm.notifications[i+1:]...)
 			break
 		}
 	}
-	dm.engine.Go(n.Close)
+	wm.engine.Go(n.Close)
+}
+
+func (wm *WidgetManager) ButtonPressed() {
+	wm.engine.Animate(wm.splash.Splash())
 }

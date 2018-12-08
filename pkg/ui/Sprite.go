@@ -30,6 +30,9 @@ func NewSprite(imager Imager) *Sprite {
 
 // Compose the sprite
 func (s *Sprite) Compose(r *sdl.Renderer) error {
+	if s.alpha == 0 {
+		return nil
+	}
 	img, err := s.Imager.Image(r)
 	if err != nil {
 		return err

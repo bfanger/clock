@@ -49,6 +49,6 @@ func ImageFromFile(filename string, r *sdl.Renderer) (*Image, error) {
 		return nil, fmt.Errorf("could not load image from %s: %v", filename, err)
 	}
 	defer s.Free()
+	s.SetBlendMode(sdl.BLENDMODE_BLEND)
 	return ImageFromSurface(s, r)
-	// image = IMG_Load("sample.png")
 }
