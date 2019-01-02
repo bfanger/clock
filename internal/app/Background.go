@@ -21,7 +21,6 @@ func NewBackground(engine *ui.Engine) (*Background, error) {
 		return nil, err
 	}
 	sprite := ui.NewSprite(image)
-	sprite.Y = screenHeight
 	engine.Append(sprite)
 
 	return &Background{

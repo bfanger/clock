@@ -12,6 +12,7 @@ import (
 // WidgetManager manages what to show and when.
 type WidgetManager struct {
 	background       *Background
+	overlay          *Overlay
 	clock            *Clock
 	splash           *Splash
 	notifications    []Notification
@@ -27,6 +28,10 @@ func NewWidgetManager(e *ui.Engine) (*WidgetManager, error) {
 	if err != nil {
 		return nil, fmt.Errorf("failed to create background: %v", err)
 	}
+	wm.overlay, err = NewOverlay(e)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create overlay: %v", err)
+	}
 	wm.clock, err = NewClock(e)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create clock: %v", err)
@@ -41,7 +46,7 @@ func NewWidgetManager(e *ui.Engine) (*WidgetManager, error) {
 
 // Close free memory used by the display elements
 func (wm *WidgetManager) Close() error {
-	if err := wm.background.Close(); err != nil {
+	if err := wm.overlay.Close(); err != nil {
 		return err
 	}
 	if err := wm.clock.Close(); err != nil {
@@ -63,7 +68,7 @@ func (wm *WidgetManager) Notify(n Notification) {
 	if len(wm.notifications) == 1 {
 		tl := &tween.Timeline{}
 		tl.Add(wm.clock.Minimize())
-		tl.AddAt(200*time.Millisecond, wm.background.Maximize())
+		tl.AddAt(200*time.Millisecond, wm.overlay.Maximize())
 		tl.AddAt(800*time.Millisecond, n.Show())
 		wm.engine.Animate(tl)
 	} else {
@@ -77,7 +82,7 @@ func (wm *WidgetManager) Notify(n Notification) {
 		tl := &tween.Timeline{}
 		tl.Add(n.Hide())
 		tl.AddAt(100*time.Millisecond, wm.clock.Maximize())
-		tl.AddAt(100*time.Millisecond, wm.background.Minimize())
+		tl.AddAt(100*time.Millisecond, wm.overlay.Minimize())
 		wm.engine.Animate(tl)
 	} else {
 		wm.engine.Animate(n.Hide())

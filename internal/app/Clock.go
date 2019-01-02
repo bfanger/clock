@@ -24,16 +24,17 @@ type Clock struct {
 
 // NewClock creats a new time widget
 func NewClock(engine *ui.Engine) (*Clock, error) {
-	font, err := ttf.OpenFont(Asset("Roboto-Light.ttf"), 220)
+	font, err := ttf.OpenFont(Asset("Roboto-Light.ttf"), 180)
 	if err != nil {
 		return nil, fmt.Errorf("unable to open font: %v", err)
 	}
-	text := ui.NewText("", font, orange)
+	text := ui.NewText("", font, white)
 	sprite := ui.NewSprite(text)
 	sprite.X = screenWidth / 2
 	sprite.Y = screenHeight / 2
 	sprite.AnchorX = 0.5
 	sprite.AnchorY = 0.5
+	sprite.SetAlpha(160)
 
 	// sprite.SetScale(0.2)
 
@@ -67,8 +68,8 @@ func (t *Clock) Close() error {
 // Minimize time to make room for notifications
 func (t *Clock) Minimize() tween.Tween {
 	tl := &tween.Timeline{}
-	tl.Add(tween.FromToFloat32(1, 0.72, 1*time.Second, tween.EaseInOutQuad, t.sprite.SetScale))
-	tl.AddAt(150*time.Millisecond, tween.FromToInt32(screenHeight/2, 90, 850*time.Millisecond, tween.EaseInOutQuad, func(v int32) {
+	tl.Add(tween.FromToFloat32(1, 0.78, 1*time.Second, tween.EaseInOutQuad, t.sprite.SetScale))
+	tl.AddAt(150*time.Millisecond, tween.FromToInt32(screenHeight/2, 110, 850*time.Millisecond, tween.EaseInOutQuad, func(v int32) {
 		t.sprite.Y = v
 	}))
 	return tl
@@ -77,8 +78,8 @@ func (t *Clock) Minimize() tween.Tween {
 // Maximize time
 func (t *Clock) Maximize() tween.Tween {
 	tl := &tween.Timeline{}
-	tl.Add(tween.FromToFloat32(0.72, 1, 1*time.Second, tween.EaseInOutQuad, t.sprite.SetScale))
-	tl.AddAt(150*time.Millisecond, tween.FromToInt32(90, screenHeight/2, 850*time.Millisecond, tween.EaseInOutQuad, func(v int32) {
+	tl.Add(tween.FromToFloat32(0.78, 1, 1*time.Second, tween.EaseInOutQuad, t.sprite.SetScale))
+	tl.AddAt(150*time.Millisecond, tween.FromToInt32(110, screenHeight/2, 850*time.Millisecond, tween.EaseInOutQuad, func(v int32) {
 		t.sprite.Y = v
 	}))
 	return tl
