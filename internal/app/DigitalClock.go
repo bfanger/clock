@@ -13,8 +13,8 @@ import (
 var white = sdl.Color{R: 255, G: 255, B: 255}
 var orange = sdl.Color{R: 203, G: 87, B: 0, A: 255}
 
-// Clock displays the current time
-type Clock struct {
+// DigitalClock displays the current time
+type DigitalClock struct {
 	engine *ui.Engine
 	font   *ttf.Font
 	text   *ui.Text
@@ -22,8 +22,8 @@ type Clock struct {
 	done   chan bool
 }
 
-// NewClock creats a new time widget
-func NewClock(engine *ui.Engine) (*Clock, error) {
+// NewDigitalClock creats a new time widget
+func NewDigitalClock(engine *ui.Engine) (*DigitalClock, error) {
 	font, err := ttf.OpenFont(Asset("Roboto-Light.ttf"), 180)
 	if err != nil {
 		return nil, fmt.Errorf("unable to open font: %v", err)
@@ -38,69 +38,69 @@ func NewClock(engine *ui.Engine) (*Clock, error) {
 
 	// sprite.SetScale(0.2)
 
-	t := &Clock{
+	c := &DigitalClock{
 		engine: engine,
 		text:   text,
 		font:   font,
 		sprite: sprite,
 		done:   make(chan bool)}
 
-	if err := t.updateTime(); err != nil {
+	if err := c.updateTime(); err != nil {
 		return nil, err
 	}
-	engine.Append(t.sprite)
-	go t.tick()
+	engine.Append(c.sprite)
+	go c.tick()
 
-	return t, nil
+	return c, nil
 }
 
 // Close free resources
-func (t *Clock) Close() error {
-	t.engine.Remove(t.text)
-	if err := t.text.Close(); err != nil {
+func (c *DigitalClock) Close() error {
+	c.engine.Remove(c.text)
+	if err := c.text.Close(); err != nil {
 		return err
 	}
-	close(t.done)
-	t.font.Close()
+	close(c.done)
+	c.font.Close()
 	return nil
 }
 
 // Minimize time to make room for notifications
-func (t *Clock) Minimize() tween.Tween {
+func (c *DigitalClock) Minimize() tween.Tween {
 	tl := &tween.Timeline{}
-	tl.Add(tween.FromToFloat32(1, 0.78, 1*time.Second, tween.EaseInOutQuad, t.sprite.SetScale))
+	tl.Add(tween.FromToFloat32(1, 0.78, 1*time.Second, tween.EaseInOutQuad, c.sprite.SetScale))
 	tl.AddAt(150*time.Millisecond, tween.FromToInt32(screenHeight/2, 110, 850*time.Millisecond, tween.EaseInOutQuad, func(v int32) {
-		t.sprite.Y = v
+		c.sprite.Y = v
 	}))
 	return tl
 }
 
 // Maximize time
-func (t *Clock) Maximize() tween.Tween {
+func (c *DigitalClock) Maximize() tween.Tween {
 	tl := &tween.Timeline{}
-	tl.Add(tween.FromToFloat32(0.78, 1, 1*time.Second, tween.EaseInOutQuad, t.sprite.SetScale))
+	tl.Add(tween.FromToFloat32(0.78, 1, 1*time.Second, tween.EaseInOutQuad, c.sprite.SetScale))
 	tl.AddAt(150*time.Millisecond, tween.FromToInt32(110, screenHeight/2, 850*time.Millisecond, tween.EaseInOutQuad, func(v int32) {
-		t.sprite.Y = v
+		c.sprite.Y = v
 	}))
 	return tl
 }
 
-func (t *Clock) updateTime() error {
+func (c *DigitalClock) updateTime() error {
 	now := time.Now()
 	time := fmt.Sprintf("%d%s", now.Hour(), now.Format(":04"))
-	if err := t.text.SetText(time); err != nil {
+	if err := c.text.SetText(time); err != nil {
 		return err
 	}
 	return nil
 }
 
-func (t *Clock) tick() {
+func (c *DigitalClock) tick() {
 	for {
 		select {
-		case <-t.done:
+		case <-c.done:
 			return
 		case <-time.After(time.Until(next(time.Minute, time.Now()))):
-			t.engine.Go(t.updateTime)
+			c.engine.Go(c.updateTime)
 		}
 	}
 }

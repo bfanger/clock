@@ -61,6 +61,7 @@ func main() {
 					if err := display.Resized(); err != nil {
 						log.Fatalf("failed to respond to resize event: %v", err)
 					}
+					go engine.Go(func() error { return nil })
 				}
 			}
 		default:

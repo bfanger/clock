@@ -11,9 +11,9 @@ import (
 
 // WidgetManager manages what to show and when.
 type WidgetManager struct {
-	background       *Background
-	overlay          *Overlay
-	clock            *Clock
+	// background       *Background
+	// overlay          *Overlay
+	clock            *AnalogClock
 	splash           *Splash
 	notifications    []Notification
 	notificationLock sync.Mutex
@@ -24,15 +24,16 @@ type WidgetManager struct {
 func NewWidgetManager(e *ui.Engine) (*WidgetManager, error) {
 	wm := &WidgetManager{engine: e}
 	var err error
-	wm.background, err = NewBackground(e)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create background: %v", err)
-	}
-	wm.overlay, err = NewOverlay(e)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create overlay: %v", err)
-	}
-	wm.clock, err = NewClock(e)
+	// wm.background, err = NewBackground(e)
+	// if err != nil {
+	// 	return nil, fmt.Errorf("failed to create background: %v", err)
+	// }
+	// wm.overlay, err = NewOverlay(e)
+	// if err != nil {
+	// 	return nil, fmt.Errorf("failed to create overlay: %v", err)
+	// }
+	wm.clock, err = NewAnalogClock(e)
+	// wm.clock, err = NewDigitalClock(e)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create clock: %v", err)
 	}
@@ -46,9 +47,6 @@ func NewWidgetManager(e *ui.Engine) (*WidgetManager, error) {
 
 // Close free memory used by the display elements
 func (wm *WidgetManager) Close() error {
-	if err := wm.overlay.Close(); err != nil {
-		return err
-	}
 	if err := wm.clock.Close(); err != nil {
 		return err
 	}
@@ -67,8 +65,9 @@ func (wm *WidgetManager) Notify(n Notification) {
 	wm.notifications = append(wm.notifications, n)
 	if len(wm.notifications) == 1 {
 		tl := &tween.Timeline{}
-		tl.Add(wm.clock.Minimize())
-		tl.AddAt(200*time.Millisecond, wm.overlay.Maximize())
+		tl.Add(tween.FromToInt32(screenWidth/2, 240, 700*time.Millisecond, tween.EaseInOutQuad, func(x int32) {
+			wm.clock.MoveTo(x, screenHeight/2)
+		}))
 		tl.AddAt(800*time.Millisecond, n.Show())
 		wm.engine.Animate(tl)
 	} else {
@@ -81,8 +80,9 @@ func (wm *WidgetManager) Notify(n Notification) {
 	if len(wm.notifications) == 1 {
 		tl := &tween.Timeline{}
 		tl.Add(n.Hide())
-		tl.AddAt(100*time.Millisecond, wm.clock.Maximize())
-		tl.AddAt(100*time.Millisecond, wm.overlay.Minimize())
+		tl.Add(tween.FromToInt32(240, screenWidth/2, 100*time.Millisecond, tween.EaseInOutQuad, func(x int32) {
+			wm.clock.MoveTo(x, screenHeight/2)
+		}))
 		wm.engine.Animate(tl)
 	} else {
 		wm.engine.Animate(n.Hide())
@@ -96,6 +96,7 @@ func (wm *WidgetManager) Notify(n Notification) {
 	wm.engine.Go(n.Close)
 }
 
+// ButtonPressed show the splash image for a second
 func (wm *WidgetManager) ButtonPressed() {
 	wm.engine.Animate(wm.splash.Splash())
 }

@@ -8,7 +8,7 @@ import (
 	"github.com/veandco/go-sdl2/ttf"
 )
 
-const screenWidth, screenHeight int32 = 480, 800
+const screenWidth, screenHeight int32 = 800, 480
 
 // Display encapsulate setting up and cleaning up a SDL renderer
 type Display struct {

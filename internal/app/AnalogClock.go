@@ -1,0 +1,204 @@
+package app
+
+import (
+	"math"
+	"strconv"
+	"time"
+
+	"github.com/bfanger/clock/pkg/ui"
+	"github.com/veandco/go-sdl2/sdl"
+	"github.com/veandco/go-sdl2/ttf"
+)
+
+// AnalogClock displays the current time
+type AnalogClock struct {
+	engine *ui.Engine
+	face   struct {
+		image  *ui.Image
+		sprite *ui.Sprite
+	}
+	hourFont *ttf.Font
+	hours    [12]struct {
+		text   *ui.Text
+		sprite *ui.Sprite
+	}
+	minuteFont *ttf.Font
+	minutes    [12]struct {
+		text   *ui.Text
+		sprite *ui.Sprite
+	}
+	hourHand struct {
+		image  *ui.Image
+		sprite *ui.Sprite
+	}
+
+	minuteHand struct {
+		image  *ui.Image
+		sprite *ui.Sprite
+	}
+	x, y int32
+	done chan bool
+}
+
+var hourColor = sdl.Color{R: 135, G: 135, B: 135, A: 255}
+var hourActiveColor = sdl.Color{R: 169, G: 98, B: 44, A: 255}
+var minuteColor = sdl.Color{R: 68, G: 83, B: 86, A: 255}
+var minuteActiveColor = sdl.Color{R: 164, G: 96, B: 45, A: 255}
+
+// NewAnalogClock creats a new time widget
+func NewAnalogClock(engine *ui.Engine) (*AnalogClock, error) {
+	c := &AnalogClock{engine: engine}
+	i, err := ui.ImageFromFile(Asset("analog-clock/face.png"), engine.Renderer)
+	if err != nil {
+		return nil, err
+	}
+	c.face.image = i
+	c.face.sprite = ui.NewSprite(c.face.image)
+	c.face.sprite.AnchorX = 0.5
+	c.face.sprite.AnchorY = 0.5
+	engine.Append(c.face.sprite)
+
+	f, err := ttf.OpenFont(Asset("RobotoCondensed-Bold.ttf"), 50)
+	if err != nil {
+		return nil, err
+	}
+	c.hourFont = f
+	f, err = ttf.OpenFont(Asset("RobotoCondensed-Regular.ttf"), 34)
+	if err != nil {
+		return nil, err
+	}
+	c.minuteFont = f
+
+	for i := 0; i < 12; i++ {
+		c.minutes[i].text = ui.NewText(strconv.Itoa(i*5), c.minuteFont, minuteColor)
+		minute := ui.NewSprite(c.minutes[i].text)
+		minute.AnchorX = 0.5
+		minute.AnchorY = 0.5
+		engine.Append(minute)
+		c.minutes[i].sprite = minute
+
+		text := strconv.Itoa(i)
+		if text == "0" {
+			text = "12"
+		}
+		c.hours[i].text = ui.NewText(text, c.hourFont, hourColor)
+		hour := ui.NewSprite(c.hours[i].text)
+		hour.AnchorX = 0.5
+		hour.AnchorY = 0.5
+		engine.Append(hour)
+		c.hours[i].sprite = hour
+	}
+	// minute hand
+	i, err = ui.ImageFromFile(Asset("analog-clock/minute-hand.png"), engine.Renderer)
+	if err != nil {
+		return nil, err
+	}
+	c.minuteHand.image = i
+	c.minuteHand.sprite = ui.NewSprite(c.minuteHand.image)
+	c.minuteHand.sprite.AnchorX = 0.5
+	c.minuteHand.sprite.AnchorY = 0.5
+	c.minuteHand.sprite.SetAlpha(220)
+	engine.Append(c.minuteHand.sprite)
+
+	// hour hand
+	i, err = ui.ImageFromFile(Asset("analog-clock/hour-hand.png"), engine.Renderer)
+	if err != nil {
+		return nil, err
+	}
+	c.hourHand.image = i
+	c.hourHand.sprite = ui.NewSprite(c.hourHand.image)
+	c.hourHand.sprite.AnchorX = 0.5
+	c.hourHand.sprite.AnchorY = 0.5
+	c.hourHand.sprite.SetAlpha(220)
+	engine.Append(c.hourHand.sprite)
+
+	c.MoveTo(screenWidth/2, screenHeight/2)
+	go c.tick()
+
+	return c, nil
+}
+
+const hourRadius = 158.0
+const minuteRadius = 217.0
+
+// MoveTo allows moving the clock
+func (c *AnalogClock) MoveTo(x, y int32) {
+	c.face.sprite.X = x
+	c.face.sprite.Y = y
+	c.hourHand.sprite.X = x
+	c.hourHand.sprite.Y = y
+	c.minuteHand.sprite.X = x
+	c.minuteHand.sprite.Y = y
+
+	for i := 0; i < 12; i++ {
+		angle := math.Pi * (float64(i) / 6)
+		c.hours[i].sprite.X = x + int32(math.Sin(angle)*hourRadius)
+		c.hours[i].sprite.Y = y + int32(math.Cos(angle)*-hourRadius)
+		c.minutes[i].sprite.X = x + int32(math.Sin(angle)*minuteRadius)
+		c.minutes[i].sprite.Y = y + int32(math.Cos(angle)*-minuteRadius)
+	}
+	c.x = x
+	c.y = y
+	c.updateTime()
+}
+
+// Close frees related resources
+func (c *AnalogClock) Close() error {
+	c.engine.Remove(c.face.sprite)
+	if err := c.face.image.Close(); err != nil {
+
+		return err
+	}
+	// @todo the rest
+	return nil
+
+}
+
+// Update the clock
+func (c *AnalogClock) updateTime() error {
+	now := time.Now()
+	hour := now.Hour() % 12
+	minute := now.Minute()
+	// hour
+	c.hours[hour].text.SetColor(hourActiveColor)
+	previous := hour - 1
+	if previous == -1 {
+		previous = 11
+	}
+	c.hours[previous].text.SetColor(hourColor)
+	c.minuteHand.sprite.Rotation = float64(minute) * 6
+	c.hourHand.sprite.Rotation = (360 * (float64(hour) / 12)) + (float64(minute) * 0.5)
+	// minute
+	index := int((float32(minute) + 2.5) / 5)
+	previous = index - 1
+	if previous == -1 {
+		previous = 11
+	}
+	if index == 12 {
+		index = 0
+	}
+	c.minutes[index].text.SetColor(minuteActiveColor)
+	c.minutes[index].text.SetText(strconv.Itoa(minute))
+	c.minutes[previous].text.SetColor(minuteColor)
+	c.minutes[previous].text.SetText(strconv.Itoa(previous * 5))
+	angle := math.Pi * (float64(minute) / 30)
+	c.minutes[index].sprite.X = c.x + int32(math.Sin(angle)*minuteRadius)
+	c.minutes[index].sprite.Y = c.y + int32(math.Cos(angle)*-minuteRadius)
+
+	angle = math.Pi * (float64(previous) / 6)
+	c.minutes[previous].sprite.X = c.x + int32(math.Sin(angle)*minuteRadius)
+	c.minutes[previous].sprite.Y = c.y + int32(math.Cos(angle)*-minuteRadius)
+
+	return nil
+}
+
+func (c *AnalogClock) tick() {
+	for {
+		select {
+		case <-c.done:
+			return
+		case <-time.After(time.Until(next(time.Minute, time.Now()))):
+			c.engine.Go(c.updateTime)
+		}
+	}
+}

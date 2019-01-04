@@ -38,7 +38,7 @@ func (n *FeedFishNotification) Close() error {
 
 // Swim the fish
 func (n *FeedFishNotification) Swim() {
-	y := n.sprite.Y
+	var y int32 = 400
 	tl := &tween.Timeline{}
 	tl.Add(tween.Func(func() {
 		n.sprite.SetAlpha(255)
