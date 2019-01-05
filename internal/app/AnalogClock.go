@@ -159,6 +159,7 @@ func (c *AnalogClock) updateTime() error {
 	now := time.Now()
 	hour := now.Hour() % 12
 	minute := now.Minute()
+	second := now.Second()
 	// hour
 	c.hours[hour].text.SetColor(hourActiveColor)
 	previous := hour - 1
@@ -166,7 +167,7 @@ func (c *AnalogClock) updateTime() error {
 		previous = 11
 	}
 	c.hours[previous].text.SetColor(hourColor)
-	c.minuteHand.sprite.Rotation = float64(minute) * 6
+	c.minuteHand.sprite.Rotation = (float64(minute) * 6) + (float64(second) * 0.1)
 	c.hourHand.sprite.Rotation = (360 * (float64(hour) / 12)) + (float64(minute) * 0.5)
 	// minute
 	index := int((float32(minute) + 2.5) / 5)
@@ -197,7 +198,7 @@ func (c *AnalogClock) tick() {
 		select {
 		case <-c.done:
 			return
-		case <-time.After(time.Until(next(time.Minute, time.Now()))):
+		case <-time.After(time.Until(next(time.Second, time.Now()))):
 			c.engine.Go(c.updateTime)
 		}
 	}
