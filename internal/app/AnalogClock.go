@@ -40,10 +40,10 @@ type AnalogClock struct {
 	done chan bool
 }
 
-var hourColor = sdl.Color{R: 135, G: 135, B: 135, A: 255}
-var hourActiveColor = sdl.Color{R: 169, G: 98, B: 44, A: 255}
-var minuteColor = sdl.Color{R: 68, G: 83, B: 86, A: 255}
-var minuteActiveColor = sdl.Color{R: 164, G: 96, B: 45, A: 255}
+var hourColor = sdl.Color{R: 90, G: 90, B: 96, A: 255}
+var hourActiveColor = sdl.Color{R: 203, G: 222, B: 198, A: 255}
+var minuteColor = sdl.Color{R: 50, G: 50, B: 59, A: 255}
+var minuteActiveColor = sdl.Color{R: 8, G: 165, B: 218, A: 255}
 
 // NewAnalogClock creats a new time widget
 func NewAnalogClock(engine *ui.Engine) (*AnalogClock, error) {
@@ -58,12 +58,12 @@ func NewAnalogClock(engine *ui.Engine) (*AnalogClock, error) {
 	c.face.sprite.AnchorY = 0.5
 	engine.Append(c.face.sprite)
 
-	f, err := ttf.OpenFont(Asset("RobotoCondensed-Bold.ttf"), 50)
+	f, err := ttf.OpenFont(Asset("RobotoCondensed-Regular.ttf"), 54)
 	if err != nil {
 		return nil, err
 	}
 	c.hourFont = f
-	f, err = ttf.OpenFont(Asset("RobotoCondensed-Regular.ttf"), 34)
+	f, err = ttf.OpenFont(Asset("RobotoCondensed-Regular.ttf"), 36)
 	if err != nil {
 		return nil, err
 	}
@@ -97,7 +97,6 @@ func NewAnalogClock(engine *ui.Engine) (*AnalogClock, error) {
 	c.minuteHand.sprite = ui.NewSprite(c.minuteHand.image)
 	c.minuteHand.sprite.AnchorX = 0.5
 	c.minuteHand.sprite.AnchorY = 0.5
-	c.minuteHand.sprite.SetAlpha(220)
 	engine.Append(c.minuteHand.sprite)
 
 	// hour hand
@@ -109,7 +108,6 @@ func NewAnalogClock(engine *ui.Engine) (*AnalogClock, error) {
 	c.hourHand.sprite = ui.NewSprite(c.hourHand.image)
 	c.hourHand.sprite.AnchorX = 0.5
 	c.hourHand.sprite.AnchorY = 0.5
-	c.hourHand.sprite.SetAlpha(220)
 	engine.Append(c.hourHand.sprite)
 
 	c.MoveTo(screenWidth/2, screenHeight/2)
@@ -118,8 +116,8 @@ func NewAnalogClock(engine *ui.Engine) (*AnalogClock, error) {
 	return c, nil
 }
 
-const hourRadius = 158.0
-const minuteRadius = 217.0
+const hourRadius = 156.0
+const minuteRadius = 216.0
 
 // MoveTo allows moving the clock
 func (c *AnalogClock) MoveTo(x, y int32) {
@@ -182,7 +180,7 @@ func (c *AnalogClock) updateTime() error {
 	c.minutes[index].text.SetText(strconv.Itoa(minute))
 	c.minutes[previous].text.SetColor(minuteColor)
 	c.minutes[previous].text.SetText(strconv.Itoa(previous * 5))
-	angle := math.Pi * (float64(minute) / 30)
+	angle := 2 * math.Pi * ((float64(minute) / 60) + (float64(second) / 3600))
 	c.minutes[index].sprite.X = c.x + int32(math.Sin(angle)*minuteRadius)
 	c.minutes[index].sprite.Y = c.y + int32(math.Cos(angle)*-minuteRadius)
 
