@@ -20,7 +20,7 @@ type Fps struct {
 // NewFps create a new Frames per second counter
 func NewFps(e *Engine, f *ttf.Font) *Fps {
 	fps := &Fps{engine: e, Text: NewText("-", f, white), done: make(chan bool)}
-	e.Append(fps)
+	e.Scene.Append(fps)
 	go fps.tick()
 	return fps
 }
@@ -46,9 +46,9 @@ func (f *Fps) tick() {
 					return fmt.Errorf("failed to set text: %v", err)
 				}
 				f.count = 0
-				if len(f.engine.Composers) == 0 || f.engine.Composers[len(f.engine.Composers)-1] != f {
-					f.engine.Remove(f)
-					f.engine.Append(f)
+				if len(f.engine.Scene.Layers) == 0 || f.engine.Scene.Layers[len(f.engine.Scene.Layers)-1] != f {
+					f.engine.Scene.Remove(f)
+					f.engine.Scene.Append(f)
 				}
 				return nil
 			})

@@ -27,7 +27,7 @@ func NewBasicNotification(engine *ui.Engine, icon string, d time.Duration) (*Bas
 	sprite.AnchorY = 0.5
 	sprite.Y = 240
 	sprite.SetAlpha(0)
-	engine.Append(sprite)
+	engine.Scene.Append(sprite)
 
 	return &BasicNotification{
 		image:    image,
@@ -38,7 +38,7 @@ func NewBasicNotification(engine *ui.Engine, icon string, d time.Duration) (*Bas
 
 // Close free memory used by the Notification
 func (n *BasicNotification) Close() error {
-	n.engine.Remove(n.sprite)
+	n.engine.Scene.Remove(n.sprite)
 	return n.image.Close()
 }
 

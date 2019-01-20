@@ -12,8 +12,9 @@ import (
 
 // AnalogClock displays the current time
 type AnalogClock struct {
-	engine *ui.Engine
-	face   struct {
+	engine    *ui.Engine
+	container *ui.Container
+	face      struct {
 		image  *ui.Image
 		sprite *ui.Sprite
 	}
@@ -31,7 +32,6 @@ type AnalogClock struct {
 		image  *ui.Image
 		sprite *ui.Sprite
 	}
-
 	minuteHand struct {
 		image  *ui.Image
 		sprite *ui.Sprite
@@ -40,6 +40,9 @@ type AnalogClock struct {
 	done chan bool
 }
 
+const hourRadius = 156.0
+const minuteRadius = 216.0
+
 var hourColor = sdl.Color{R: 90, G: 90, B: 96, A: 255}
 var hourActiveColor = sdl.Color{R: 203, G: 222, B: 198, A: 255}
 var minuteColor = sdl.Color{R: 50, G: 50, B: 59, A: 255}
@@ -47,7 +50,10 @@ var minuteActiveColor = sdl.Color{R: 8, G: 165, B: 218, A: 255}
 
 // NewAnalogClock creats a new time widget
 func NewAnalogClock(engine *ui.Engine) (*AnalogClock, error) {
-	c := &AnalogClock{engine: engine}
+	c := &AnalogClock{
+		engine:    engine,
+		container: &ui.Container{},
+		done:      make(chan bool)}
 	i, err := ui.ImageFromFile(Asset("analog-clock/face.png"), engine.Renderer)
 	if err != nil {
 		return nil, err
@@ -56,7 +62,7 @@ func NewAnalogClock(engine *ui.Engine) (*AnalogClock, error) {
 	c.face.sprite = ui.NewSprite(c.face.image)
 	c.face.sprite.AnchorX = 0.5
 	c.face.sprite.AnchorY = 0.5
-	engine.Append(c.face.sprite)
+	c.container.Append(c.face.sprite)
 
 	f, err := ttf.OpenFont(Asset("RobotoCondensed-Regular.ttf"), 54)
 	if err != nil {
@@ -74,7 +80,7 @@ func NewAnalogClock(engine *ui.Engine) (*AnalogClock, error) {
 		minute := ui.NewSprite(c.minutes[i].text)
 		minute.AnchorX = 0.5
 		minute.AnchorY = 0.5
-		engine.Append(minute)
+		c.container.Append(minute)
 		c.minutes[i].sprite = minute
 
 		text := strconv.Itoa(i)
@@ -85,7 +91,7 @@ func NewAnalogClock(engine *ui.Engine) (*AnalogClock, error) {
 		hour := ui.NewSprite(c.hours[i].text)
 		hour.AnchorX = 0.5
 		hour.AnchorY = 0.5
-		engine.Append(hour)
+		c.container.Append(hour)
 		c.hours[i].sprite = hour
 	}
 	// minute hand
@@ -97,7 +103,8 @@ func NewAnalogClock(engine *ui.Engine) (*AnalogClock, error) {
 	c.minuteHand.sprite = ui.NewSprite(c.minuteHand.image)
 	c.minuteHand.sprite.AnchorX = 0.5
 	c.minuteHand.sprite.AnchorY = 0.5
-	engine.Append(c.minuteHand.sprite)
+	c.minuteHand.sprite.SetAlpha(180)
+	c.container.Append(c.minuteHand.sprite)
 
 	// hour hand
 	i, err = ui.ImageFromFile(Asset("analog-clock/hour-hand.png"), engine.Renderer)
@@ -108,18 +115,16 @@ func NewAnalogClock(engine *ui.Engine) (*AnalogClock, error) {
 	c.hourHand.sprite = ui.NewSprite(c.hourHand.image)
 	c.hourHand.sprite.AnchorX = 0.5
 	c.hourHand.sprite.AnchorY = 0.5
-	engine.Append(c.hourHand.sprite)
-
+	c.hourHand.sprite.SetAlpha(160)
+	c.container.Append(c.hourHand.sprite)
+	engine.Scene.Append(c.container)
 	c.MoveTo(screenWidth/2, screenHeight/2)
 	go c.tick()
 
 	return c, nil
 }
 
-const hourRadius = 156.0
-const minuteRadius = 216.0
-
-// MoveTo allows moving the clock
+// MoveTo positions the clock
 func (c *AnalogClock) MoveTo(x, y int32) {
 	c.face.sprite.X = x
 	c.face.sprite.Y = y
@@ -142,14 +147,29 @@ func (c *AnalogClock) MoveTo(x, y int32) {
 
 // Close frees related resources
 func (c *AnalogClock) Close() error {
-	c.engine.Remove(c.face.sprite)
-	if err := c.face.image.Close(); err != nil {
-
-		return err
+	close(c.done)
+	c.engine.Scene.Remove(c.container)
+	c.hourFont.Close()
+	c.minuteFont.Close()
+	closers := []*ui.Image{
+		c.face.image,
+		c.minuteHand.image,
+		c.hourHand.image}
+	for _, closer := range closers {
+		if err := closer.Close(); err != nil {
+			return err
+		}
+	}
+	for i := 0; i < 12; i++ {
+		if err := c.hours[i].text.Close(); err != nil {
+			return err
+		}
+		if err := c.minutes[i].text.Close(); err != nil {
+			return err
+		}
 	}
 	// @todo the rest
 	return nil
-
 }
 
 // Update the clock

@@ -11,9 +11,10 @@ import (
 
 // WidgetManager manages what to show and when.
 type WidgetManager struct {
-	// background       *Background
-	// overlay          *Overlay
-	clock            *AnalogClock
+	clock interface {
+		Close() error
+		MoveTo(x, y int32)
+	}
 	splash           *Splash
 	notifications    []Notification
 	notificationLock sync.Mutex
@@ -24,14 +25,7 @@ type WidgetManager struct {
 func NewWidgetManager(e *ui.Engine) (*WidgetManager, error) {
 	wm := &WidgetManager{engine: e}
 	var err error
-	// wm.background, err = NewBackground(e)
-	// if err != nil {
-	// 	return nil, fmt.Errorf("failed to create background: %v", err)
-	// }
-	// wm.overlay, err = NewOverlay(e)
-	// if err != nil {
-	// 	return nil, fmt.Errorf("failed to create overlay: %v", err)
-	// }
+
 	wm.clock, err = NewAnalogClock(e)
 	// wm.clock, err = NewDigitalClock(e)
 	if err != nil {

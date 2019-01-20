@@ -48,7 +48,7 @@ func NewDigitalClock(engine *ui.Engine) (*DigitalClock, error) {
 	if err := c.updateTime(); err != nil {
 		return nil, err
 	}
-	engine.Append(c.sprite)
+	engine.Scene.Append(c.sprite)
 	go c.tick()
 
 	return c, nil
@@ -56,13 +56,19 @@ func NewDigitalClock(engine *ui.Engine) (*DigitalClock, error) {
 
 // Close free resources
 func (c *DigitalClock) Close() error {
-	c.engine.Remove(c.text)
+	c.engine.Scene.Remove(c.text)
 	if err := c.text.Close(); err != nil {
 		return err
 	}
 	close(c.done)
 	c.font.Close()
 	return nil
+}
+
+// MoveTo positions the clock
+func (c *DigitalClock) MoveTo(x, y int32) {
+	c.sprite.X = x
+	c.sprite.Y = y
 }
 
 // Minimize time to make room for notifications

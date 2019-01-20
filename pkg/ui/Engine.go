@@ -12,7 +12,7 @@ import (
 // Engine handles the event- & renderloop
 type Engine struct {
 	Renderer   *sdl.Renderer
-	Composers  []Composer
+	Scene      *Container
 	Wait       time.Duration // Limit framerate, 30 FPS = time.Second / 30
 	updates    []func() error
 	mutex      sync.Mutex
@@ -22,7 +22,7 @@ type Engine struct {
 
 // NewEngine create a new engine
 func NewEngine(r *sdl.Renderer) *Engine {
-	e := &Engine{Renderer: r}
+	e := &Engine{Renderer: r, Scene: &Container{}}
 	e.waiting.Store(false)
 	return e
 }
@@ -114,23 +114,6 @@ func (e *Engine) Animate(a tween.Seeker) {
 	}
 }
 
-// Append a composer
-func (e *Engine) Append(c Composer) {
-	e.Composers = append(e.Composers, c)
-	e.forceUpdate()
-}
-
-// Remove a composer
-func (e *Engine) Remove(layer Composer) {
-	for i, l := range e.Composers {
-		if l == layer {
-			e.Composers = append(e.Composers[:i], e.Composers[i+1:]...)
-			e.forceUpdate()
-			return
-		}
-	}
-}
-
 func (e *Engine) needsUpdate() bool {
 	e.mutex.Lock()
 	defer e.mutex.Unlock()
@@ -156,10 +139,8 @@ func (e *Engine) render() error {
 	if err := e.Renderer.Clear(); err != nil {
 		return err
 	}
-	for _, layer := range e.Composers {
-		if err := layer.Compose(e.Renderer); err != nil {
-			return err
-		}
+	if err := e.Scene.Compose(e.Renderer); err != nil {
+		return err
 	}
 	e.Renderer.Present()
 	completed := time.Now()
@@ -173,9 +154,9 @@ func (e *Engine) render() error {
 	return nil
 }
 
-func (e *Engine) forceUpdate() {
-	e.Go(noop)
-}
+// func (e *Engine) forceUpdate() {
+// 	e.Go(noop)
+// }
 
 func noop() error {
 	return nil

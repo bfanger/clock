@@ -22,7 +22,7 @@ func NewSplash(engine *ui.Engine) (*Splash, error) {
 	}
 	sprite := ui.NewSprite(image)
 	sprite.SetAlpha(0)
-	engine.Append(sprite)
+	engine.Scene.Append(sprite)
 
 	return &Splash{
 		image:  image,
