@@ -53,6 +53,11 @@ func (s *Server) notify(w http.ResponseWriter, r *http.Request) {
 			} else {
 				n, err = NewBasicNotification(s.engine, icon, time.Duration(duration)*time.Second)
 			}
+			if icon == "school" || icon == "gym" {
+				if err := s.wm.clock.SetTimerDuration(30 * time.Minute); err != nil {
+					return err
+				}
+			}
 			if err != nil {
 				return err
 			}

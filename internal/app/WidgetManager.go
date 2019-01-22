@@ -14,6 +14,7 @@ type WidgetManager struct {
 	clock interface {
 		Close() error
 		MoveTo(x, y int32)
+		SetTimerDuration(time.Duration) error
 	}
 	splash           *Splash
 	notifications    []Notification

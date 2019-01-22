@@ -1,6 +1,8 @@
 package app
 
 import (
+	"fmt"
+	"io"
 	"math"
 	"strconv"
 	"time"
@@ -18,6 +20,7 @@ type AnalogClock struct {
 		image  *ui.Image
 		sprite *ui.Sprite
 	}
+	timer    *Timer
 	hourFont *ttf.Font
 	hours    [12]struct {
 		text   *ui.Text
@@ -63,6 +66,14 @@ func NewAnalogClock(engine *ui.Engine) (*AnalogClock, error) {
 	c.face.sprite.AnchorX = 0.5
 	c.face.sprite.AnchorY = 0.5
 	c.container.Append(c.face.sprite)
+
+	c.timer, err = NewTimer(engine)
+	if err != nil {
+		return nil, fmt.Errorf("couldn't create timer: %v", err)
+	}
+	c.timer.Sprite.AnchorX = 0.5
+	c.timer.Sprite.AnchorY = 0.5
+	c.container.Append(c.timer)
 
 	f, err := ttf.OpenFont(Asset("RobotoCondensed-Regular.ttf"), 54)
 	if err != nil {
@@ -128,6 +139,8 @@ func NewAnalogClock(engine *ui.Engine) (*AnalogClock, error) {
 func (c *AnalogClock) MoveTo(x, y int32) {
 	c.face.sprite.X = x
 	c.face.sprite.Y = y
+	c.timer.Sprite.X = x
+	c.timer.Sprite.Y = y
 	c.hourHand.sprite.X = x
 	c.hourHand.sprite.Y = y
 	c.minuteHand.sprite.X = x
@@ -151,8 +164,9 @@ func (c *AnalogClock) Close() error {
 	c.engine.Scene.Remove(c.container)
 	c.hourFont.Close()
 	c.minuteFont.Close()
-	closers := []*ui.Image{
+	closers := []io.Closer{
 		c.face.image,
+		c.timer,
 		c.minuteHand.image,
 		c.hourHand.image}
 	for _, closer := range closers {
@@ -170,6 +184,11 @@ func (c *AnalogClock) Close() error {
 	}
 	// @todo the rest
 	return nil
+}
+
+// SetTimerDuration and starts the timer
+func (c *AnalogClock) SetTimerDuration(d time.Duration) error {
+	return c.timer.SetDuration(d, time.Minute)
 }
 
 // Update the clock

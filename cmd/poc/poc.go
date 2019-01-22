@@ -21,7 +21,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("failed to load image: %v", err)
 	}
-	engine.Append(img)
+	engine.Scene.Append(img)
 	err = engine.EventLoop(func(event sdl.Event) {
 
 	})

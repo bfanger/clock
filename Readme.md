@@ -22,7 +22,7 @@ An abstraction on top of SDL to make an efficient event-based ui.
 
 ### Lazy execution
 
-Work is deferred until the result is needed. This allows us to freely change individual properties of a layer without causing an updated texture per change.
+Allow work to be deferred until the result are needed. This allows freely changing individual properties of a layer without causing an updated texture for every change.
 
 The actual work is performed when a `Image(\*sdl.Renderer)` or `Compose(\*sdl.Renderer)` is called.
 The result of that work is cached, so drawing the next frame will be even faster.
@@ -49,14 +49,6 @@ The Composer is responsible for rendering the texture(s) onto the screen
 
 #### Engine
 
-Composers are added to the Engine and are rendered automaticly.
+Composers are added to Scene in the Engine and are rendered automaticly.
 All UI operation should be wrapped in a `engine.Go()` closure which are batched and executed in the main/ui thread.
 A useful side-effect of calling engine.Go is that it will trigger a re-render.
-
-# Sidenote
-
-I use a custom display driver [fbcp-ili9341](https://github.com/juj/fbcp-ili9341) which i configured with:
-
-```sh
-cmake -DILI9341=ON -DSPI_BUS_CLOCK_DIVISOR=6 -DGPIO_TFT_RESET_PIN=27 -DGPIO_TFT_DATA_CONTROL=22 -DSTATISTICS=0 ..
-```

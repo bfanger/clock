@@ -1,6 +1,7 @@
 package ui
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/veandco/go-sdl2/sdl"
@@ -32,6 +33,9 @@ func NewSprite(imager Imager) *Sprite {
 func (s *Sprite) Compose(r *sdl.Renderer) error {
 	if s.alpha == 0 {
 		return nil
+	}
+	if s.Imager == nil {
+		return errors.New("Imager is required")
 	}
 	img, err := s.Imager.Image(r)
 	if err != nil {
