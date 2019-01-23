@@ -5,44 +5,47 @@ import (
 
 	"github.com/bfanger/clock/pkg/tween"
 	"github.com/bfanger/clock/pkg/ui"
+	"github.com/veandco/go-sdl2/sdl"
 )
 
 // Splash for notifications
 type Splash struct {
 	image  *ui.Image
 	sprite *ui.Sprite
-	engine *ui.Engine
 }
 
 // NewSplash creates a new Splash
-func NewSplash(engine *ui.Engine) (*Splash, error) {
-	image, err := ui.ImageFromFile(Asset("splash.jpg"), engine.Renderer)
+func NewSplash(r *sdl.Renderer) (*Splash, error) {
+	image, err := ui.ImageFromFile(Asset("splash.jpg"), r)
 	if err != nil {
 		return nil, err
 	}
 	sprite := ui.NewSprite(image)
 	sprite.SetAlpha(0)
-	engine.Scene.Append(sprite)
 
 	return &Splash{
 		image:  image,
-		sprite: sprite,
-		engine: engine}, nil
+		sprite: sprite}, nil
 }
 
 // Close free memory used by the Splash
-func (b *Splash) Close() error {
-	return b.image.Close()
+func (s *Splash) Close() error {
+	return s.image.Close()
+}
+
+// Compose the splash
+func (s *Splash) Compose(r *sdl.Renderer) error {
+	return s.sprite.Compose(r)
 }
 
 // Splash animation
-func (b *Splash) Splash() tween.Tween {
+func (s *Splash) Splash() tween.Tween {
 	tl := &tween.Timeline{}
 	tl.Add(tween.FromToUint8(0, 255, 300*time.Millisecond, tween.EaseInOutQuad, func(a uint8) {
-		b.sprite.SetAlpha(a)
+		s.sprite.SetAlpha(a)
 	}))
 	tl.AddAt(500*time.Millisecond, tween.FromToUint8(255, 0, 400*time.Millisecond, tween.EaseInOutQuad, func(a uint8) {
-		b.sprite.SetAlpha(a)
+		s.sprite.SetAlpha(a)
 	}))
 	return tl
 }

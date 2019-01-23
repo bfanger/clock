@@ -7,6 +7,7 @@ import (
 
 	"github.com/bfanger/clock/pkg/tween"
 	"github.com/bfanger/clock/pkg/ui"
+	"github.com/veandco/go-sdl2/sdl"
 )
 
 // WidgetManager manages what to show and when.
@@ -14,8 +15,9 @@ type WidgetManager struct {
 	clock interface {
 		Close() error
 		MoveTo(x, y int32)
-		SetTimerDuration(time.Duration) error
+		Compose(*sdl.Renderer) error
 	}
+	timer            *Timer
 	splash           *Splash
 	notifications    []Notification
 	notificationLock sync.Mutex
@@ -27,22 +29,30 @@ func NewWidgetManager(e *ui.Engine) (*WidgetManager, error) {
 	wm := &WidgetManager{engine: e}
 	var err error
 
-	wm.clock, err = NewAnalogClock(e)
+	clock, err := NewAnalogClock(e)
 	// wm.clock, err = NewDigitalClock(e)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create clock: %v", err)
 	}
-	wm.splash, err = NewSplash(e)
+	wm.clock = clock
+	wm.timer = clock.timer
+	e.Scene.Append(wm.clock)
+	wm.splash, err = NewSplash(e.Renderer)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create splash: %v", err)
 	}
+	e.Scene.Append(wm.splash)
 	return wm, nil
-
 }
 
 // Close free memory used by the display elements
 func (wm *WidgetManager) Close() error {
+	wm.engine.Scene.Remove(wm.clock)
+	wm.engine.Scene.Remove(wm.splash)
 	if err := wm.clock.Close(); err != nil {
+		return err
+	}
+	if err := wm.splash.Close(); err != nil {
 		return err
 	}
 	// @todo use notificationLock?

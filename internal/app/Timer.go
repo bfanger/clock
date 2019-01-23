@@ -33,14 +33,8 @@ func NewTimer(e *ui.Engine) (*Timer, error) {
 	if err != nil {
 		return nil, err
 	}
-	t.gauge, err = ui.NewGuage(t.green, 0, 0, e.Renderer)
-	if err != nil {
-		return nil, err
-	}
-	t.Sprite = t.gauge.Sprite
-	if err := t.update(); err != nil {
-		return nil, err
-	}
+	t.gauge = ui.NewGuage(t.green, 0, 0)
+	t.Sprite = ui.NewSprite(t.gauge)
 	go t.tick()
 	return t, nil
 }
@@ -92,31 +86,38 @@ func (t *Timer) completed() bool {
 		return true
 	}
 	now := time.Now()
-	return now.Before(t.started) && now.After(t.started.Add(t.duration))
+	return now.Before(t.started) || now.After(t.started.Add(t.duration))
 }
 
 func (t *Timer) update() error {
-	if t.completed() {
-		return nil
-	}
 	now := time.Now()
-	start := time2deg(now, t.scale)
-	end := time2deg(t.started.Add(t.duration), t.scale)
-	t.gauge.Imager = t.green
+	if err := t.gauge.SetStart(time2deg(now, t.scale)); err != nil {
+		return err
+	}
+	if err := t.gauge.SetEnd(time2deg(t.started.Add(t.duration), t.scale)); err != nil {
+		return err
+	}
+	imager := t.green
 	last10min := now.After(t.started.Add(t.duration - (10 * time.Minute)))
 	if t.scale == time.Minute && last10min {
-		t.gauge.Imager = t.orange
+		imager = t.orange
 	}
-	return t.gauge.Set(start, end)
+	return t.gauge.SetImager(imager)
 }
 
 func (t *Timer) tick() {
+	// @todo
+	// - only tick when a timer is active
+	//   - wait until t.started
+	//   - stop when t.duration is reached
 	for {
 		select {
 		case <-t.done:
 			return
 		case <-time.After(time.Second):
-			t.engine.Go(t.update)
+			if t.completed() == false {
+				t.engine.Go(t.update)
+			}
 		}
 	}
 }

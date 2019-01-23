@@ -54,7 +54,7 @@ func (s *Server) notify(w http.ResponseWriter, r *http.Request) {
 				n, err = NewBasicNotification(s.engine, icon, time.Duration(duration)*time.Second)
 			}
 			if icon == "school" || icon == "gym" {
-				if err := s.wm.clock.SetTimerDuration(30 * time.Minute); err != nil {
+				if err := s.wm.timer.SetDuration(30*time.Minute, time.Minute); err != nil {
 					return err
 				}
 			}

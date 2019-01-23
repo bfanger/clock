@@ -128,7 +128,6 @@ func NewAnalogClock(engine *ui.Engine) (*AnalogClock, error) {
 	c.hourHand.sprite.AnchorY = 0.5
 	c.hourHand.sprite.SetAlpha(160)
 	c.container.Append(c.hourHand.sprite)
-	engine.Scene.Append(c.container)
 	c.MoveTo(screenWidth/2, screenHeight/2)
 	go c.tick()
 
@@ -161,7 +160,6 @@ func (c *AnalogClock) MoveTo(x, y int32) {
 // Close frees related resources
 func (c *AnalogClock) Close() error {
 	close(c.done)
-	c.engine.Scene.Remove(c.container)
 	c.hourFont.Close()
 	c.minuteFont.Close()
 	closers := []io.Closer{
@@ -169,26 +167,21 @@ func (c *AnalogClock) Close() error {
 		c.timer,
 		c.minuteHand.image,
 		c.hourHand.image}
+	for i := 0; i < 12; i++ {
+		closers = append(closers, c.hours[i].text, c.minutes[i].text)
+	}
 	for _, closer := range closers {
 		if err := closer.Close(); err != nil {
 			return err
 		}
 	}
-	for i := 0; i < 12; i++ {
-		if err := c.hours[i].text.Close(); err != nil {
-			return err
-		}
-		if err := c.minutes[i].text.Close(); err != nil {
-			return err
-		}
-	}
-	// @todo the rest
+
 	return nil
 }
 
-// SetTimerDuration and starts the timer
-func (c *AnalogClock) SetTimerDuration(d time.Duration) error {
-	return c.timer.SetDuration(d, time.Minute)
+// Compose the clock
+func (c *AnalogClock) Compose(r *sdl.Renderer) error {
+	return c.container.Compose(r)
 }
 
 // Update the clock
