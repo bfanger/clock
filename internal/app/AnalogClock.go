@@ -20,14 +20,9 @@ type AnalogClock struct {
 		image  *ui.Image
 		sprite *ui.Sprite
 	}
-	timer    *Timer
-	hourFont *ttf.Font
-	hours    [12]struct {
-		text   *ui.Text
-		sprite *ui.Sprite
-	}
-	minuteFont *ttf.Font
-	minutes    [12]struct {
+	timer *Timer
+	font  *ttf.Font
+	hours [12]struct {
 		text   *ui.Text
 		sprite *ui.Sprite
 	}
@@ -43,13 +38,11 @@ type AnalogClock struct {
 	done chan bool
 }
 
-const hourRadius = 156.0
-const minuteRadius = 216.0
+const radius = 184.0
+const fontSize = 70
 
-var hourColor = sdl.Color{R: 90, G: 90, B: 96, A: 255}
-var hourActiveColor = sdl.Color{R: 203, G: 222, B: 198, A: 255}
-var minuteColor = sdl.Color{R: 50, G: 50, B: 59, A: 255}
-var minuteActiveColor = sdl.Color{R: 8, G: 165, B: 218, A: 255}
+var color = sdl.Color{R: 103, G: 103, B: 109, A: 255}
+var activeColor = sdl.Color{R: 203, G: 222, B: 198, A: 255}
 
 // NewAnalogClock creats a new time widget
 func NewAnalogClock(engine *ui.Engine) (*AnalogClock, error) {
@@ -75,30 +68,18 @@ func NewAnalogClock(engine *ui.Engine) (*AnalogClock, error) {
 	c.timer.Sprite.AnchorY = 0.5
 	c.container.Append(c.timer)
 
-	f, err := ttf.OpenFont(Asset("RobotoCondensed-Regular.ttf"), 54)
+	c.font, err = ttf.OpenFont(Asset("Roboto-Regular.ttf"), fontSize)
 	if err != nil {
 		return nil, err
 	}
-	c.hourFont = f
-	f, err = ttf.OpenFont(Asset("RobotoCondensed-Regular.ttf"), 36)
-	if err != nil {
-		return nil, err
-	}
-	c.minuteFont = f
+	// c.font.SetStyle()
 
 	for i := 0; i < 12; i++ {
-		c.minutes[i].text = ui.NewText(strconv.Itoa(i*5), c.minuteFont, minuteColor)
-		minute := ui.NewSprite(c.minutes[i].text)
-		minute.AnchorX = 0.5
-		minute.AnchorY = 0.5
-		c.container.Append(minute)
-		c.minutes[i].sprite = minute
-
 		text := strconv.Itoa(i)
 		if text == "0" {
 			text = "12"
 		}
-		c.hours[i].text = ui.NewText(text, c.hourFont, hourColor)
+		c.hours[i].text = ui.NewText(text, c.font, color)
 		hour := ui.NewSprite(c.hours[i].text)
 		hour.AnchorX = 0.5
 		hour.AnchorY = 0.5
@@ -147,10 +128,8 @@ func (c *AnalogClock) MoveTo(x, y int32) {
 
 	for i := 0; i < 12; i++ {
 		angle := math.Pi * (float64(i) / 6)
-		c.hours[i].sprite.X = x + int32(math.Sin(angle)*hourRadius)
-		c.hours[i].sprite.Y = y + int32(math.Cos(angle)*-hourRadius)
-		c.minutes[i].sprite.X = x + int32(math.Sin(angle)*minuteRadius)
-		c.minutes[i].sprite.Y = y + int32(math.Cos(angle)*-minuteRadius)
+		c.hours[i].sprite.X = x + int32(math.Sin(angle)*radius)
+		c.hours[i].sprite.Y = y + int32(math.Cos(angle)*-radius)
 	}
 	c.x = x
 	c.y = y
@@ -160,15 +139,14 @@ func (c *AnalogClock) MoveTo(x, y int32) {
 // Close frees related resources
 func (c *AnalogClock) Close() error {
 	close(c.done)
-	c.hourFont.Close()
-	c.minuteFont.Close()
+	c.font.Close()
 	closers := []io.Closer{
 		c.face.image,
 		c.timer,
 		c.minuteHand.image,
 		c.hourHand.image}
 	for i := 0; i < 12; i++ {
-		closers = append(closers, c.hours[i].text, c.minutes[i].text)
+		closers = append(closers, c.hours[i].text)
 	}
 	for _, closer := range closers {
 		if err := closer.Close(); err != nil {
@@ -191,12 +169,12 @@ func (c *AnalogClock) updateTime() error {
 	minute := now.Minute()
 	second := now.Second()
 	// hour
-	c.hours[hour].text.SetColor(hourActiveColor)
+	c.hours[hour].text.SetColor(activeColor)
 	previous := hour - 1
 	if previous == -1 {
 		previous = 11
 	}
-	c.hours[previous].text.SetColor(hourColor)
+	c.hours[previous].text.SetColor(color)
 	c.minuteHand.sprite.Rotation = (float64(minute) * 6) + (float64(second) * 0.1)
 	c.hourHand.sprite.Rotation = (360 * (float64(hour) / 12)) + (float64(minute) * 0.5)
 	// minute
@@ -208,17 +186,6 @@ func (c *AnalogClock) updateTime() error {
 	if index == 12 {
 		index = 0
 	}
-	c.minutes[index].text.SetColor(minuteActiveColor)
-	c.minutes[index].text.SetText(strconv.Itoa(minute))
-	c.minutes[previous].text.SetColor(minuteColor)
-	c.minutes[previous].text.SetText(strconv.Itoa(previous * 5))
-	angle := 2 * math.Pi * ((float64(minute) / 60) + (float64(second) / 3600))
-	c.minutes[index].sprite.X = c.x + int32(math.Sin(angle)*minuteRadius)
-	c.minutes[index].sprite.Y = c.y + int32(math.Cos(angle)*-minuteRadius)
-
-	angle = math.Pi * (float64(previous) / 6)
-	c.minutes[previous].sprite.X = c.x + int32(math.Sin(angle)*minuteRadius)
-	c.minutes[previous].sprite.Y = c.y + int32(math.Cos(angle)*-minuteRadius)
 
 	return nil
 }
