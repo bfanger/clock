@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"io"
 	"math"
-	"strconv"
 	"time"
 
 	"github.com/bfanger/clock/pkg/ui"
@@ -23,7 +22,7 @@ type AnalogClock struct {
 	timer *Timer
 	font  *ttf.Font
 	hours [12]struct {
-		text   *ui.Text
+		text   *Number
 		sprite *ui.Sprite
 	}
 	hourHand struct {
@@ -38,11 +37,11 @@ type AnalogClock struct {
 	done chan bool
 }
 
-const radius = 184.0
-const fontSize = 70
+const radius = 180.0
+const fontSize = 62
 
 var color = sdl.Color{R: 103, G: 103, B: 109, A: 255}
-var activeColor = sdl.Color{R: 203, G: 222, B: 198, A: 255}
+var activeColor = sdl.Color{R: 176, G: 192, B: 197, A: 255}
 
 // NewAnalogClock creats a new time widget
 func NewAnalogClock(engine *ui.Engine) (*AnalogClock, error) {
@@ -75,11 +74,11 @@ func NewAnalogClock(engine *ui.Engine) (*AnalogClock, error) {
 	// c.font.SetStyle()
 
 	for i := 0; i < 12; i++ {
-		text := strconv.Itoa(i)
-		if text == "0" {
-			text = "12"
+		number := i
+		if number == 0 {
+			number = 12
 		}
-		c.hours[i].text = ui.NewText(text, c.font, color)
+		c.hours[i].text = NewNumber(number, c.font, color)
 		hour := ui.NewSprite(c.hours[i].text)
 		hour.AnchorX = 0.5
 		hour.AnchorY = 0.5
