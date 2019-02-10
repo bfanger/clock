@@ -60,6 +60,9 @@ func (n *Number) Image(r *sdl.Renderer) (*ui.Image, error) {
 		if err := r.SetRenderTarget(n.image.Texture); err != nil {
 			return nil, err
 		}
+		if err := r.Clear(); err != nil {
+			return nil, err
+		}
 		for _, glyp := range characters {
 			glyp.Compose(r)
 		}

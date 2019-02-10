@@ -40,8 +40,7 @@ type AnalogClock struct {
 const radius = 180.0
 const fontSize = 62
 
-var color = sdl.Color{R: 103, G: 103, B: 109, A: 255}
-var activeColor = sdl.Color{R: 176, G: 192, B: 197, A: 255}
+var color = sdl.Color{R: 202, G: 214, B: 217, A: 255}
 
 // NewAnalogClock creats a new time widget
 func NewAnalogClock(engine *ui.Engine) (*AnalogClock, error) {
@@ -168,24 +167,25 @@ func (c *AnalogClock) updateTime() error {
 	minute := now.Minute()
 	second := now.Second()
 	// hour
-	c.hours[hour].text.SetColor(activeColor)
-	previous := hour - 1
-	if previous == -1 {
-		previous = 11
-	}
-	c.hours[previous].text.SetColor(color)
-	c.minuteHand.sprite.Rotation = (float64(minute) * 6) + (float64(second) * 0.1)
-	c.hourHand.sprite.Rotation = (360 * (float64(hour) / 12)) + (float64(minute) * 0.5)
-	// minute
-	index := int((float32(minute) + 2.5) / 5)
-	previous = index - 1
-	if previous == -1 {
-		previous = 11
-	}
-	if index == 12 {
-		index = 0
+	target := float64(hour) + float64(minute)/60
+	const maxDistance = 1.8
+	const base = 110
+
+	for h := 0; h < 12; h++ {
+		distance := math.Abs(target - float64(h))
+		if distance > 6 {
+			distance = math.Abs(distance - 12)
+		}
+		if distance < maxDistance {
+			factor := 1 - (distance / maxDistance)
+			c.hours[h].sprite.SetAlpha(base + uint8(float64(255-base)*factor))
+		} else {
+			c.hours[h].sprite.SetAlpha(base)
+		}
 	}
 
+	c.minuteHand.sprite.Rotation = (float64(minute) * 6) + (float64(second) * 0.1)
+	c.hourHand.sprite.Rotation = (360 * (float64(hour) / 12)) + (float64(minute) * 0.5)
 	return nil
 }
 
