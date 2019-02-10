@@ -28,8 +28,8 @@ func main() {
 }
 
 func nextGarbageTruck() (*app.Alarm, error) {
-	const hoursBefore = 12 * time.Hour // Start notification at 21:00 the day before
-	const hoursAfter = 2 * time.Hour   // Hide the notification at 9:00
+	const hoursBefore = 5 * time.Hour // Start notification at 19:00 the day before
+	const hoursAfter = 9 * time.Hour  // Hide the notification at 9:00
 
 	events, err := garbageCalendar()
 	if err != nil {
@@ -37,7 +37,7 @@ func nextGarbageTruck() (*app.Alarm, error) {
 	}
 	var alarms []*app.Alarm
 	for _, e := range events {
-		if e.Summary == "Gft & etensresten" {
+		if e.Summary == "Gft & etensresten." {
 			continue
 		}
 		alarm := app.Alarm{
@@ -58,7 +58,6 @@ func nextGarbageTruck() (*app.Alarm, error) {
 	if len(alarms) == 0 {
 		return nil, errors.New("no valid entries found")
 	}
-	fmt.Println(alarms)
 	return app.FirstAlarm(alarms), nil
 }
 
@@ -104,8 +103,8 @@ func garbageCalendar() ([]*event, error) {
 			if strings.HasPrefix(line, "SUMMARY:") {
 				e.Summary = line[8:]
 			}
-			if strings.HasPrefix(line, "DTSTART:") {
-				e.Start, err = time.Parse("20060102T150405", line[8:])
+			if strings.HasPrefix(line, "DTSTART;VALUE=DATE:") {
+				e.Start, err = time.Parse("20060102", line[19:])
 			}
 		}
 	}
