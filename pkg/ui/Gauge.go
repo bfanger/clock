@@ -70,9 +70,6 @@ func (g *Guage) Image(r *sdl.Renderer) (*Image, error) {
 			return nil, fmt.Errorf("couldn't create offset texture: %v", err)
 		}
 		defer offset.Destroy()
-		if err := offset.SetBlendMode(sdl.BLENDMODE_BLEND); err != nil {
-			return nil, err
-		}
 		if err := r.SetRenderTarget(offset); err != nil {
 			return nil, err
 		}
@@ -89,9 +86,6 @@ func (g *Guage) Image(r *sdl.Renderer) (*Image, error) {
 			return nil, fmt.Errorf("couldn't create limit texture: %v", err)
 		}
 		defer limit.Destroy()
-		if err := limit.SetBlendMode(sdl.BLENDMODE_BLEND); err != nil {
-			return nil, err
-		}
 		if err := r.SetRenderTarget(limit); err != nil {
 			return nil, err
 		}
@@ -113,7 +107,6 @@ func (g *Guage) Image(r *sdl.Renderer) (*Image, error) {
 		if err := r.CopyEx(limit, src, dst, -180+size+start, pivot, sdl.FLIP_NONE); err != nil {
 			return nil, err
 		}
-
 	}
 	return g.image, nil
 }
