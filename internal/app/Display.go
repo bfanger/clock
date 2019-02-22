@@ -90,6 +90,16 @@ func (d *Display) Close() error {
 func (d *Display) Resized() error {
 	drawWidth, drawHeight := d.window.GLGetDrawableSize()
 	// scale the renderer to match the window (allow stretching)
-	d.Renderer.SetScale(float32(drawWidth)/float32(screenWidth), float32(drawHeight)/float32(screenHeight))
+	scaleX := float32(drawWidth) / float32(screenWidth)
+	scaleY := float32(drawHeight) / float32(screenHeight)
+	const maintainAspect = true
+	if maintainAspect {
+		if scaleX > scaleY {
+			scaleX = scaleY
+		} else {
+			scaleY = scaleX
+		}
+	}
+	d.Renderer.SetScale(scaleX, scaleY)
 	return nil
 }

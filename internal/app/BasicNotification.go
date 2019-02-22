@@ -5,6 +5,7 @@ import (
 
 	"github.com/bfanger/clock/pkg/tween"
 	"github.com/bfanger/clock/pkg/ui"
+	"github.com/veandco/go-sdl2/sdl"
 )
 
 // BasicNotification for notifications
@@ -27,7 +28,6 @@ func NewBasicNotification(engine *ui.Engine, icon string, d time.Duration) (*Bas
 	sprite.AnchorY = 0.5
 	sprite.Y = 240
 	sprite.SetAlpha(0)
-	engine.Scene.Append(sprite)
 
 	return &BasicNotification{
 		image:    image,
@@ -38,8 +38,12 @@ func NewBasicNotification(engine *ui.Engine, icon string, d time.Duration) (*Bas
 
 // Close free memory used by the Notification
 func (n *BasicNotification) Close() error {
-	n.engine.Scene.Remove(n.sprite)
 	return n.image.Close()
+}
+
+// Compose the notification
+func (n *BasicNotification) Compose(r *sdl.Renderer) error {
+	return n.sprite.Compose(r)
 }
 
 // Show notification

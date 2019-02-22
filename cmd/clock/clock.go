@@ -22,10 +22,10 @@ func main() {
 		log.Fatalf("failed to create display: %v", err)
 	}
 	defer display.Close()
-
-	engine := ui.NewEngine(display.Renderer)
+	scene := &ui.Container{}
+	engine := ui.NewEngine(scene, display.Renderer)
 	engine.Wait = time.Second / 120 // Limit framerate (VSYNC doesn't work on macOS Mohave)
-	wm, err := app.NewWidgetManager(engine)
+	wm, err := app.NewWidgetManager(scene, engine)
 	if err != nil {
 		log.Fatal(err)
 	}

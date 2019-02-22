@@ -12,7 +12,7 @@ import (
 // Engine handles the event- & renderloop
 type Engine struct {
 	Renderer   *sdl.Renderer
-	Scene      *Container
+	Scene      Composer
 	Wait       time.Duration // Limit framerate, 30 FPS = time.Second / 30
 	updates    []func() error
 	mutex      sync.Mutex
@@ -21,8 +21,8 @@ type Engine struct {
 }
 
 // NewEngine create a new engine
-func NewEngine(r *sdl.Renderer) *Engine {
-	e := &Engine{Renderer: r, Scene: &Container{}}
+func NewEngine(scene Composer, r *sdl.Renderer) *Engine {
+	e := &Engine{Renderer: r, Scene: scene}
 	e.waiting.Store(false)
 	return e
 }

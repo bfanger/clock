@@ -12,6 +12,7 @@ import (
 
 // WidgetManager manages what to show and when.
 type WidgetManager struct {
+	Scene *ui.Container
 	clock interface {
 		Close() error
 		MoveTo(x, y int32)
@@ -25,8 +26,8 @@ type WidgetManager struct {
 }
 
 // NewWidgetManager create a new WidgetManager
-func NewWidgetManager(e *ui.Engine) (*WidgetManager, error) {
-	wm := &WidgetManager{engine: e}
+func NewWidgetManager(scene *ui.Container, e *ui.Engine) (*WidgetManager, error) {
+	wm := &WidgetManager{engine: e, Scene: scene}
 	var err error
 
 	clock, err := NewAnalogClock(e)
@@ -36,22 +37,21 @@ func NewWidgetManager(e *ui.Engine) (*WidgetManager, error) {
 	}
 	wm.clock = clock
 	wm.timer = clock.timer
-	e.Scene.Append(wm.clock)
+	wm.Scene.Append(wm.clock)
 	wm.splash, err = NewSplash(e.Renderer)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create splash: %v", err)
 	}
-	e.Scene.Append(wm.splash)
 	return wm, nil
 }
 
 // Close free memory used by the display elements
 func (wm *WidgetManager) Close() error {
-	wm.engine.Scene.Remove(wm.clock)
-	wm.engine.Scene.Remove(wm.splash)
+	wm.Scene.Remove(wm.clock)
 	if err := wm.clock.Close(); err != nil {
 		return err
 	}
+	wm.Scene.Remove(wm.splash)
 	if err := wm.splash.Close(); err != nil {
 		return err
 	}
@@ -68,6 +68,7 @@ func (wm *WidgetManager) Close() error {
 func (wm *WidgetManager) Notify(n Notification) {
 	wm.notificationLock.Lock()
 	wm.notifications = append(wm.notifications, n)
+	wm.Scene.Append(n)
 	if len(wm.notifications) == 1 {
 		tl := &tween.Timeline{}
 		tl.Add(tween.FromToInt32(screenWidth/2, 240, 700*time.Millisecond, tween.EaseInOutQuad, func(x int32) {
@@ -98,10 +99,15 @@ func (wm *WidgetManager) Notify(n Notification) {
 			break
 		}
 	}
-	wm.engine.Go(n.Close)
+	wm.engine.Go(func() error {
+		wm.Scene.Remove(n)
+		return n.Close()
+	})
 }
 
 // ButtonPressed show the splash image for a second
 func (wm *WidgetManager) ButtonPressed() {
+	wm.Scene.Append(wm.splash)
 	wm.engine.Animate(wm.splash.Splash())
+	wm.Scene.Remove(wm.splash)
 }

@@ -2,6 +2,9 @@ package ui
 
 import (
 	"fmt"
+	"io/ioutil"
+	"net/http"
+	"unsafe"
 
 	"github.com/veandco/go-sdl2/img"
 	"github.com/veandco/go-sdl2/sdl"
@@ -42,7 +45,7 @@ func ImageFromSurface(s *sdl.Surface, r *sdl.Renderer) (*Image, error) {
 	return &Image{Texture: t, Frame: sdl.Rect{W: s.W, H: s.H}}, nil
 }
 
-// ImageFromFile loads an image frmo disk
+// ImageFromFile loads an image from disk
 func ImageFromFile(filename string, r *sdl.Renderer) (*Image, error) {
 	s, err := img.Load(filename)
 	if err != nil {
@@ -51,4 +54,27 @@ func ImageFromFile(filename string, r *sdl.Renderer) (*Image, error) {
 	defer s.Free()
 	s.SetBlendMode(sdl.BLENDMODE_BLEND)
 	return ImageFromSurface(s, r)
+}
+
+// ImageFromURL downloads the image from the web
+func ImageFromURL(url string, r *sdl.Renderer) (*Image, error) {
+	response, err := http.Get(url)
+	if err != nil {
+		return nil, err
+	}
+	defer response.Body.Close()
+	if response.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("request failed: %s", response.Status)
+	}
+	body, err := ioutil.ReadAll(response.Body)
+	if err != nil {
+		return nil, err
+	}
+	buffer := sdl.RWFromMem(unsafe.Pointer(&body[0]), len(body))
+	surface, err := img.LoadRW(buffer, true)
+	if err != nil {
+		return nil, err
+	}
+	defer surface.Free()
+	return ImageFromSurface(surface, r)
 }

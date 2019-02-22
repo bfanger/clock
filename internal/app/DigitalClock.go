@@ -48,7 +48,6 @@ func NewDigitalClock(engine *ui.Engine) (*DigitalClock, error) {
 	if err := c.updateTime(); err != nil {
 		return nil, err
 	}
-	engine.Scene.Append(c.sprite)
 	go c.tick()
 
 	return c, nil
@@ -56,7 +55,6 @@ func NewDigitalClock(engine *ui.Engine) (*DigitalClock, error) {
 
 // Close free resources
 func (c *DigitalClock) Close() error {
-	c.engine.Scene.Remove(c.text)
 	if err := c.text.Close(); err != nil {
 		return err
 	}

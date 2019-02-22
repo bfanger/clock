@@ -12,6 +12,7 @@ import (
 // Fps counter
 type Fps struct {
 	count  int
+	Scene  Composer
 	engine *Engine
 	done   chan bool
 	Text   *Text
@@ -19,8 +20,8 @@ type Fps struct {
 
 // NewFps create a new Frames per second counter
 func NewFps(e *Engine, f *ttf.Font) *Fps {
-	fps := &Fps{engine: e, Text: NewText("-", f, white), done: make(chan bool)}
-	e.Scene.Append(fps)
+	fps := &Fps{Scene: e.Scene, engine: e, Text: NewText("-", f, white), done: make(chan bool)}
+	e.Scene = fps
 	go fps.tick()
 	return fps
 }
@@ -28,11 +29,15 @@ func NewFps(e *Engine, f *ttf.Font) *Fps {
 // Close the fps and stop the tick
 func (f *Fps) Close() error {
 	close(f.done)
+	f.engine.Scene = f.Scene
 	return f.Text.Close()
 }
 
 // Compose the fps counter
 func (f *Fps) Compose(r *sdl.Renderer) error {
+	if err := f.Scene.Compose(r); err != nil {
+		return err
+	}
 	f.count++
 	return f.Text.Compose(r)
 }
@@ -46,10 +51,7 @@ func (f *Fps) tick() {
 					return fmt.Errorf("failed to set text: %v", err)
 				}
 				f.count = 0
-				if len(f.engine.Scene.Layers) == 0 || f.engine.Scene.Layers[len(f.engine.Scene.Layers)-1] != f {
-					f.engine.Scene.Remove(f)
-					f.engine.Scene.Append(f)
-				}
+
 				return nil
 			})
 		case <-f.done:
