@@ -46,6 +46,14 @@ func (t *tween) progress(d time.Duration) float32 {
 	return float32(d) / float32(t.D)
 }
 
+// FromToFloat64 creates a new Tween for an float64
+func FromToFloat64(from, to float64, d time.Duration, e Ease, update func(float64)) Tween {
+	distance := to - from
+	return &tween{D: d, Ease: e, Update: func(v float32) {
+		update(from + (distance * float64(v)))
+	}}
+}
+
 // FromToFloat32 creates a new Tween for an float32
 func FromToFloat32(from, to float32, d time.Duration, e Ease, update func(float32)) Tween {
 	distance := to - from
