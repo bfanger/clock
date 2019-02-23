@@ -3,7 +3,6 @@ package app
 import (
 	"fmt"
 	"io/ioutil"
-	"log"
 	"math"
 	"net/http"
 	"time"
@@ -25,10 +24,12 @@ type Map struct {
 	Longitude     float64
 	CenterOffsetX int32 // Offset the Latitude/Longitude from the center in pixels
 	CenterOffsetY int32
+	Markers       []*Marker
 	key           string
 	engine        *ui.Engine
 	tiles         map[int]map[int]*ui.Image
 	downloads     map[string]bool
+	err           error
 }
 
 // NewMap create a new map
@@ -45,6 +46,9 @@ func NewMap(key string, e *ui.Engine) *Map {
 
 // Compose the map
 func (m *Map) Compose(r *sdl.Renderer) error {
+	if m.err != nil {
+		return m.err
+	}
 	lat, lon := coords(m.Latitude, m.Longitude, m.Zoom)
 	x := int(lat)
 	y := int(lon)
@@ -53,7 +57,11 @@ func (m *Map) Compose(r *sdl.Renderer) error {
 	minX, maxX := minmax(m.W, offsetX)
 	minY, maxY := minmax(m.H, offsetY)
 	prev := r.GetClipRect()
-	defer r.SetClipRect(&prev)
+	restore := &prev
+	if prev.W == 0 {
+		restore = nil
+	}
+	defer r.SetClipRect(restore)
 	r.SetClipRect(&sdl.Rect{X: m.X, Y: m.Y, W: m.W, H: m.H})
 	for dx := minX; dx <= maxX; dx++ {
 		for dy := minY; dy <= maxY; dy++ {
@@ -64,6 +72,12 @@ func (m *Map) Compose(r *sdl.Renderer) error {
 					return err
 				}
 			}
+		}
+	}
+	for _, marker := range m.Markers {
+		marker.Sprite.X, marker.Sprite.Y = m.XY(marker.Latitude, marker.Longitude)
+		if err := marker.Sprite.Compose(r); err != nil {
+			return err
 		}
 	}
 	return nil
@@ -80,10 +94,17 @@ func (m *Map) PanTo(latitude, longitude float64, d time.Duration) *tween.Timelin
 	}))
 	return tl
 }
-func (m *Map) getTile(x, y int) *ui.Image {
-	if m.tiles == nil {
 
-	}
+// XY get the screen location in pixels of the given latitude and longitude
+func (m *Map) XY(latitude, longitude float64) (int32, int32) {
+	mapX, mapY := coords(m.Latitude, m.Longitude, m.Zoom)
+	tileX, tileY := coords(latitude, longitude, m.Zoom)
+	x := m.X + (m.W / 2) + m.CenterOffsetX + int32((tileX-mapX)*tileSize)
+	y := m.Y + (m.H / 2) + m.CenterOffsetY + int32((tileY-mapY)*tileSize)
+	return x, y
+}
+
+func (m *Map) getTile(x, y int) *ui.Image {
 	if m.tiles[x] == nil {
 		m.tiles[x] = make(map[int]*ui.Image)
 	}
@@ -94,7 +115,8 @@ func (m *Map) getTile(x, y int) *ui.Image {
 			go func() {
 				body, err := download(url)
 				if err != nil {
-					log.Fatal(err)
+					m.err = err
+					return
 				}
 				err = m.engine.Do(func() error {
 					image, err := ui.ImageFromBytes(body, m.engine.Renderer)
@@ -105,14 +127,15 @@ func (m *Map) getTile(x, y int) *ui.Image {
 					return nil
 				})
 				if err != nil {
-					log.Fatal(err)
+					m.err = err
+					return
 				}
-
 			}()
 		}
 	}
 	return m.tiles[x][y]
 }
+
 func (m *Map) tileRects(dx, dy int, offsetX, offsetY int32) (*sdl.Rect, *sdl.Rect) {
 	src := &sdl.Rect{W: tileSize, H: tileSize}
 	dst := &sdl.Rect{W: tileSize, H: tileSize}
