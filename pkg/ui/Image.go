@@ -2,7 +2,6 @@ package ui
 
 import (
 	"fmt"
-	"unsafe"
 
 	"github.com/veandco/go-sdl2/img"
 	"github.com/veandco/go-sdl2/sdl"
@@ -56,7 +55,10 @@ func ImageFromFile(filename string, r *sdl.Renderer) (*Image, error) {
 
 // ImageFromBytes downloads the image from the web
 func ImageFromBytes(contents []byte, r *sdl.Renderer) (*Image, error) {
-	buffer := sdl.RWFromMem(unsafe.Pointer(&contents[0]), len(contents))
+	buffer, err := sdl.RWFromMem(contents)
+	if err != nil {
+		return nil, err
+	}
 	surface, err := img.LoadRW(buffer, true)
 	if err != nil {
 		return nil, err
