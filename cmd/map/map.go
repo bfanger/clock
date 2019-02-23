@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"time"
 
 	"github.com/bfanger/clock/pkg/ui"
 	"github.com/joho/godotenv"
@@ -24,13 +25,13 @@ func main() {
 	defer d.Close()
 	scene := &ui.Container{}
 	e := ui.NewEngine(scene, d.Renderer)
-	m := &app.Map{
-		Zoom:      17,
-		Latitude:  52.4900311,
-		Longitude: 4.7602125,
-		Key:       os.Getenv("MAPTILER_KEY")}
+	m := app.NewMap(os.Getenv("MAPTILER_KEY"), e)
+	m.Zoom = 17
+	m.Latitude = 52.4900311
+	m.Longitude = 4.7602125
 
 	scene.Append(m)
+	go e.Animate(m.PanTo(m.Latitude, m.Longitude+0.0002, time.Second))
 
 	err = e.EventLoop(func(e sdl.Event) {
 

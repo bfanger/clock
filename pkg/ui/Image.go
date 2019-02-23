@@ -2,8 +2,6 @@ package ui
 
 import (
 	"fmt"
-	"io/ioutil"
-	"net/http"
 	"unsafe"
 
 	"github.com/veandco/go-sdl2/img"
@@ -56,21 +54,9 @@ func ImageFromFile(filename string, r *sdl.Renderer) (*Image, error) {
 	return ImageFromSurface(s, r)
 }
 
-// ImageFromURL downloads the image from the web
-func ImageFromURL(url string, r *sdl.Renderer) (*Image, error) {
-	response, err := http.Get(url)
-	if err != nil {
-		return nil, err
-	}
-	defer response.Body.Close()
-	if response.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("request failed: %s", response.Status)
-	}
-	body, err := ioutil.ReadAll(response.Body)
-	if err != nil {
-		return nil, err
-	}
-	buffer := sdl.RWFromMem(unsafe.Pointer(&body[0]), len(body))
+// ImageFromBytes downloads the image from the web
+func ImageFromBytes(contents []byte, r *sdl.Renderer) (*Image, error) {
+	buffer := sdl.RWFromMem(unsafe.Pointer(&contents[0]), len(contents))
 	surface, err := img.LoadRW(buffer, true)
 	if err != nil {
 		return nil, err
