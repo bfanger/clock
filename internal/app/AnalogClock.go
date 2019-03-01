@@ -1,12 +1,12 @@
 package app
 
 import (
-	"fmt"
 	"io"
 	"math"
 	"time"
 
 	"github.com/bfanger/clock/pkg/ui"
+	"github.com/pkg/errors"
 	"github.com/veandco/go-sdl2/sdl"
 	"github.com/veandco/go-sdl2/ttf"
 )
@@ -60,7 +60,7 @@ func NewAnalogClock(engine *ui.Engine) (*AnalogClock, error) {
 
 	c.timer, err = NewTimer(engine)
 	if err != nil {
-		return nil, fmt.Errorf("couldn't create timer: %v", err)
+		return nil, errors.Wrap(err, "couldn't create timer")
 	}
 	c.timer.Sprite.AnchorX = 0.5
 	c.timer.Sprite.AnchorY = 0.5

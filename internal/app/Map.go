@@ -9,6 +9,7 @@ import (
 
 	"github.com/bfanger/clock/pkg/tween"
 	"github.com/bfanger/clock/pkg/ui"
+	"github.com/pkg/errors"
 	"github.com/veandco/go-sdl2/sdl"
 )
 
@@ -152,7 +153,7 @@ func download(url string) ([]byte, error) {
 	}
 	defer response.Body.Close()
 	if response.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("request failed: %s", response.Status)
+		return nil, errors.Errorf("request failed: %s", response.Status)
 	}
 	body, err := ioutil.ReadAll(response.Body)
 	if err != nil {

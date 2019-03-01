@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/bfanger/clock/pkg/ui"
+	"github.com/pkg/errors"
 	"github.com/veandco/go-sdl2/sdl"
 )
 
@@ -65,10 +66,10 @@ func (t *Timer) Compose(r *sdl.Renderer) error {
 // SetDuration of the timer
 func (t *Timer) SetDuration(d time.Duration, scale time.Duration) error {
 	if d > 30*time.Minute {
-		return fmt.Errorf("maximun duration of 30 min exceeded, got %v", d)
+		return errors.Errorf("maximun duration of 30 min exceeded, got %v", d)
 	}
 	if d <= 0 {
-		return fmt.Errorf("invalid duration: %v", d)
+		return errors.Errorf("invalid duration: %v", d)
 	}
 	t.duration = d
 	t.scale = scale

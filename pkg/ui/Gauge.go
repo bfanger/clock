@@ -1,9 +1,9 @@
 package ui
 
 import (
-	"fmt"
 	"math"
 
+	"github.com/pkg/errors"
 	"github.com/veandco/go-sdl2/sdl"
 )
 
@@ -37,7 +37,7 @@ func (g *Guage) Image(r *sdl.Renderer) (*Image, error) {
 	}
 	source, err := g.imager.Image(r)
 	if err != nil {
-		return nil, fmt.Errorf("couldn't read image: %v", err)
+		return nil, errors.Wrap(err, "couldn't read image")
 	}
 	// normalize values
 	start := math.Mod(g.start, 360)
@@ -67,7 +67,7 @@ func (g *Guage) Image(r *sdl.Renderer) (*Image, error) {
 	} else {
 		offset, err := r.CreateTexture(sdl.PIXELFORMAT_RGBA8888, sdl.TEXTUREACCESS_TARGET, radius, diameter)
 		if err != nil {
-			return nil, fmt.Errorf("couldn't create offset texture: %v", err)
+			return nil, errors.Wrap(err, "couldn't create offset texture")
 		}
 		defer offset.Destroy()
 		if err := r.SetRenderTarget(offset); err != nil {
@@ -83,7 +83,7 @@ func (g *Guage) Image(r *sdl.Renderer) (*Image, error) {
 		}
 		limit, err := r.CreateTexture(sdl.PIXELFORMAT_RGBA8888, sdl.TEXTUREACCESS_TARGET, radius, diameter)
 		if err != nil {
-			return nil, fmt.Errorf("couldn't create limit texture: %v", err)
+			return nil, errors.Wrap(err, "couldn't create limit texture")
 		}
 		defer limit.Destroy()
 		if err := r.SetRenderTarget(limit); err != nil {

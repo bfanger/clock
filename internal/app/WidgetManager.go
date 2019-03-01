@@ -1,12 +1,12 @@
 package app
 
 import (
-	"fmt"
 	"sync"
 	"time"
 
 	"github.com/bfanger/clock/pkg/tween"
 	"github.com/bfanger/clock/pkg/ui"
+	"github.com/pkg/errors"
 	"github.com/veandco/go-sdl2/sdl"
 )
 
@@ -33,14 +33,13 @@ func NewWidgetManager(scene *ui.Container, e *ui.Engine) (*WidgetManager, error)
 	clock, err := NewAnalogClock(e)
 	// wm.clock, err = NewDigitalClock(e)
 	if err != nil {
-		return nil, fmt.Errorf("failed to create clock: %v", err)
+		return nil, errors.Wrap(err, "failed to create clock")
 	}
 	wm.clock = clock
 	wm.timer = clock.timer
 	wm.Scene.Append(wm.clock)
-	wm.splash, err = NewSplash(e.Renderer)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create splash: %v", err)
+	if wm.splash, err = NewSplash(e.Renderer); err != nil {
+		return nil, errors.Wrap(err, "failed to create splash")
 	}
 	return wm, nil
 }

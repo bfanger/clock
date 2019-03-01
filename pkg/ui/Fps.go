@@ -1,10 +1,10 @@
 package ui
 
 import (
-	"fmt"
 	"strconv"
 	"time"
 
+	"github.com/pkg/errors"
 	"github.com/veandco/go-sdl2/sdl"
 	"github.com/veandco/go-sdl2/ttf"
 )
@@ -48,7 +48,7 @@ func (f *Fps) tick() {
 		case <-time.After(time.Second):
 			f.engine.Go(func() error {
 				if err := f.Text.SetText(strconv.Itoa(f.count)); err != nil {
-					return fmt.Errorf("failed to set text: %v", err)
+					return errors.Wrap(err, "failed to set text")
 				}
 				f.count = 0
 

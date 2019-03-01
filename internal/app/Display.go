@@ -1,8 +1,7 @@
 package app
 
 import (
-	"fmt"
-
+	"github.com/pkg/errors"
 	"github.com/veandco/go-sdl2/img"
 	"github.com/veandco/go-sdl2/sdl"
 	"github.com/veandco/go-sdl2/ttf"
@@ -20,13 +19,13 @@ type Display struct {
 // NewDisplay initializes SDL and creates a window
 func NewDisplay() (*Display, error) {
 	if err := sdl.Init(sdl.INIT_VIDEO); err != nil {
-		return nil, fmt.Errorf("couldn't initialize sdl: %v", err)
+		return nil, errors.Wrap(err, "couldn't initialize sdl")
 	}
 	if err := ttf.Init(); err != nil {
-		return nil, fmt.Errorf("couldn't initialize sdl_ttf: %v", err)
+		return nil, errors.Wrap(err, "couldn't initialize sdl_ttf")
 	}
 	if err := img.Init(img.INIT_PNG); err != img.INIT_PNG {
-		return nil, fmt.Errorf("couldn't initialize sdl_img: %v", err)
+		return nil, errors.Errorf("couldn't initialize sdl_img: %d", err)
 	}
 	n, err := sdl.GetNumVideoDisplays()
 	if err != nil {
@@ -34,7 +33,7 @@ func NewDisplay() (*Display, error) {
 	}
 	m, err := sdl.GetCurrentDisplayMode(0)
 	if err != nil {
-		return nil, fmt.Errorf("can't read display mode: %v", err)
+		return nil, errors.Wrap(err, "can't read display mode")
 	}
 	var x, y int32
 	var flags uint32
@@ -60,14 +59,14 @@ func NewDisplay() (*Display, error) {
 	d := &Display{}
 	d.window, err = sdl.CreateWindow("Clock", x, y, width, height, flags)
 	if err != nil {
-		return nil, fmt.Errorf("couldn't create window: %v", err)
+		return nil, errors.Wrap(err, "couldn't create window")
 	}
 	d.Renderer, err = sdl.CreateRenderer(d.window, -1, sdl.RENDERER_ACCELERATED|sdl.RENDERER_PRESENTVSYNC)
 	if err != nil {
-		return nil, fmt.Errorf("could not create renderer: %v", err)
+		return nil, errors.Wrap(err, "could not create renderer")
 	}
 	if err := d.Resized(); err != nil {
-		return nil, fmt.Errorf("could not resize: %v", err)
+		return nil, errors.Wrap(err, "could not resize")
 	}
 	return d, nil
 }

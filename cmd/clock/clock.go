@@ -2,12 +2,12 @@ package main
 
 import (
 	"flag"
-	"log"
 	"runtime"
 	"time"
 
 	"github.com/bfanger/clock/internal/app"
 	"github.com/bfanger/clock/pkg/ui"
+	"github.com/pkg/errors"
 	"github.com/veandco/go-sdl2/sdl"
 	"github.com/veandco/go-sdl2/ttf"
 )
@@ -19,7 +19,7 @@ func main() {
 
 	display, err := app.NewDisplay()
 	if err != nil {
-		log.Fatalf("failed to create display: %v", err)
+		app.Fatal(errors.Wrap(err, "failed to create display"))
 	}
 	defer display.Close()
 	scene := &ui.Container{}
@@ -27,14 +27,14 @@ func main() {
 	engine.Wait = time.Second / 120 // Limit framerate (VSYNC doesn't work on macOS Mohave)
 	wm, err := app.NewWidgetManager(scene, engine)
 	if err != nil {
-		log.Fatal(err)
+		app.Fatal(err)
 	}
 	defer wm.Close()
 
 	if *fpsVisible {
 		font, err := ttf.OpenFont(app.Asset("Roboto-Light.ttf"), 24)
 		if err != nil {
-			log.Fatalf("unable to open font: %v", err)
+			app.Fatal(errors.Wrap(err, "unable to open font"))
 		}
 		fps := ui.NewFps(engine, font)
 		defer fps.Close()
@@ -59,7 +59,7 @@ func main() {
 			{
 				if e.Event == sdl.WINDOWEVENT_RESIZED {
 					if err := display.Resized(); err != nil {
-						log.Fatalf("failed to respond to resize event: %v", err)
+						app.Fatal(errors.Wrap(err, "failed to respond to resize event"))
 					}
 					go engine.Go(func() error { return nil })
 				}
@@ -69,7 +69,7 @@ func main() {
 		}
 	})
 	if err != nil {
-		log.Fatalf("eventloop exit: %v", err)
+		app.Fatal(errors.Wrap(err, "eventloop exit"))
 	}
 
 }

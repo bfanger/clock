@@ -1,9 +1,7 @@
 package ui
 
 import (
-	"errors"
-	"fmt"
-
+	"github.com/pkg/errors"
 	"github.com/veandco/go-sdl2/sdl"
 )
 
@@ -42,7 +40,7 @@ func (s *Sprite) Compose(r *sdl.Renderer) error {
 		return err
 	}
 	if img == nil {
-		return fmt.Errorf("Image() returned nil. %T %+v", s.Imager, s.Imager)
+		return errors.Errorf("Image() returned nil. %T %+v", s.Imager, s.Imager)
 	}
 	if s.image != img {
 		err = img.Texture.SetAlphaMod(s.alpha)

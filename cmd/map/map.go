@@ -64,6 +64,6 @@ func main() {
 
 	})
 	if err != nil {
-		log.Fatalf("eventloop exit: %v", err)
+		log.Fatalf("eventloop exit")
 	}
 }

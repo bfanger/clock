@@ -33,7 +33,7 @@ func nextGarbageTruck() (*app.Alarm, error) {
 
 	events, err := garbageCalendar()
 	if err != nil {
-		return nil, fmt.Errorf("failed to load events: %v", err)
+		return nil, errors.Wrap(err, "failed to load events")
 	}
 	var alarms []*app.Alarm
 	for _, e := range events {

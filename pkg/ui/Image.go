@@ -1,8 +1,7 @@
 package ui
 
 import (
-	"fmt"
-
+	"github.com/pkg/errors"
 	"github.com/veandco/go-sdl2/img"
 	"github.com/veandco/go-sdl2/sdl"
 )
@@ -46,7 +45,7 @@ func ImageFromSurface(s *sdl.Surface, r *sdl.Renderer) (*Image, error) {
 func ImageFromFile(filename string, r *sdl.Renderer) (*Image, error) {
 	s, err := img.Load(filename)
 	if err != nil {
-		return nil, fmt.Errorf("could not load image from %s: %v", filename, err)
+		return nil, errors.Wrap(err, "could not load image")
 	}
 	defer s.Free()
 	s.SetBlendMode(sdl.BLENDMODE_BLEND)

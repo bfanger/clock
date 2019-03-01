@@ -6,6 +6,7 @@ import (
 
 	"github.com/bfanger/clock/pkg/tween"
 	"github.com/bfanger/clock/pkg/ui"
+	"github.com/pkg/errors"
 	"github.com/veandco/go-sdl2/sdl"
 	"github.com/veandco/go-sdl2/ttf"
 )
@@ -26,7 +27,7 @@ type DigitalClock struct {
 func NewDigitalClock(engine *ui.Engine) (*DigitalClock, error) {
 	font, err := ttf.OpenFont(Asset("Roboto-Light.ttf"), 180)
 	if err != nil {
-		return nil, fmt.Errorf("unable to open font: %v", err)
+		return nil, errors.Wrap(err, "unable to open font")
 	}
 	text := ui.NewText("", font, white)
 	sprite := ui.NewSprite(text)

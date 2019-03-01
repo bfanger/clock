@@ -1,9 +1,12 @@
 package app
 
 import (
+	"fmt"
 	"go/build"
+	"log"
 	"os"
 
+	"github.com/pkg/errors"
 	"github.com/veandco/go-sdl2/sdl"
 )
 
@@ -24,4 +27,21 @@ func Asset(filename string) string {
 		return packagePath + filename
 	}
 	return "./assets/" + filename
+}
+
+// Fatal exit with a formatted error.
+func Fatal(err error) {
+	RED := "\033[1;31m"
+	GRAY := "\033[1;30m"
+	NC := "\033[0m"
+	log.Println(RED + err.Error() + NC)
+	type stackTracer interface {
+		StackTrace() errors.StackTrace
+	}
+	if err, ok := err.(stackTracer); ok {
+		for _, f := range err.StackTrace() {
+			fmt.Printf(GRAY+"%+s:%d\n"+NC, f, f)
+		}
+	}
+	os.Exit(1)
 }
