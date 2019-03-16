@@ -2,11 +2,13 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"runtime"
 	"time"
 
 	"github.com/bfanger/clock/internal/app"
 	"github.com/bfanger/clock/pkg/ui"
+	"github.com/joho/godotenv"
 	"github.com/pkg/errors"
 	"github.com/veandco/go-sdl2/sdl"
 	"github.com/veandco/go-sdl2/ttf"
@@ -14,6 +16,10 @@ import (
 
 func main() {
 	runtime.LockOSThread()
+	err := godotenv.Load()
+	if err != nil {
+		fmt.Println(err)
+	}
 	fpsVisible := flag.Bool("fps", false, "Show FPS counter")
 	flag.Parse()
 

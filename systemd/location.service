@@ -1,0 +1,15 @@
+[Unit]
+Description=The Things Network location daemon
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=pi
+WorkingDirectory=/home/pi
+ExecStart=/home/pi/go/bin/location
+Restart=on-failure
+RestartSec=60s
+
+[Install]
+WantedBy=multi-user.target

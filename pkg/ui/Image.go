@@ -36,7 +36,7 @@ func (i *Image) Compose(r *sdl.Renderer) error {
 func ImageFromSurface(s *sdl.Surface, r *sdl.Renderer) (*Image, error) {
 	t, err := r.CreateTextureFromSurface(s)
 	if err != nil {
-		return nil, err
+		return nil, errors.WithStack(err)
 	}
 	return &Image{Texture: t, Frame: sdl.Rect{W: s.W, H: s.H}}, nil
 }
@@ -56,11 +56,11 @@ func ImageFromFile(filename string, r *sdl.Renderer) (*Image, error) {
 func ImageFromBytes(contents []byte, r *sdl.Renderer) (*Image, error) {
 	buffer, err := sdl.RWFromMem(contents)
 	if err != nil {
-		return nil, err
+		return nil, errors.WithStack(err)
 	}
 	surface, err := img.LoadRW(buffer, true)
 	if err != nil {
-		return nil, err
+		return nil, errors.WithStack(err)
 	}
 	defer surface.Free()
 	return ImageFromSurface(surface, r)

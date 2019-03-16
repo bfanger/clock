@@ -15,13 +15,13 @@ func main() {
 		log.Fatalf("failed to create display")
 	}
 	defer display.Close()
-	engine := ui.NewEngine(display.Renderer)
-	engine.Wait = time.Second / 120 // Limit framerate (VSYNC doesn't work on macOS Mohave)
 	img, err := ui.ImageFromFile(app.Asset("poc.png"), display.Renderer)
 	if err != nil {
 		log.Fatalf("failed to load image")
 	}
-	engine.Scene.Append(img)
+	engine := ui.NewEngine(img, display.Renderer)
+	engine.Wait = time.Second / 120 // Limit framerate (VSYNC doesn't work on macOS Mohave)
+
 	err = engine.EventLoop(func(event sdl.Event) {
 
 	})

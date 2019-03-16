@@ -26,6 +26,7 @@ type Map struct {
 	CenterOffsetX int32 // Offset the Latitude/Longitude from the center in pixels
 	CenterOffsetY int32
 	Markers       []*Marker
+	Alpha         uint8
 	key           string
 	engine        *ui.Engine
 	tiles         map[int]map[int]*ui.Image
@@ -39,10 +40,23 @@ func NewMap(key string, e *ui.Engine) *Map {
 		Zoom:      2,
 		W:         screenWidth,
 		H:         screenHeight,
+		Alpha:     255,
 		key:       key,
 		engine:    e,
 		tiles:     make(map[int]map[int]*ui.Image),
 		downloads: make(map[string]bool)}
+}
+
+// Close map and free memory used by the tiles
+func (m *Map) Close() error {
+	for y := range m.tiles {
+		for _, img := range m.tiles[y] {
+			if err := img.Close(); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
 }
 
 // Compose the map
@@ -68,6 +82,14 @@ func (m *Map) Compose(r *sdl.Renderer) error {
 		for dy := minY; dy <= maxY; dy++ {
 			image := m.getTile(x+dx, y+dy)
 			if image != nil {
+				if m.Alpha == 255 {
+					image.Texture.SetBlendMode(sdl.BLENDMODE_NONE)
+				} else {
+					image.Texture.SetBlendMode(sdl.BLENDMODE_BLEND)
+					if err := image.Texture.SetAlphaMod(m.Alpha); err != nil {
+						return err
+					}
+				}
 				src, dst := m.tileRects(dx, dy, offsetX, offsetY)
 				if err := r.Copy(image.Texture, src, dst); err != nil {
 					return err
@@ -149,11 +171,11 @@ func download(url string) ([]byte, error) {
 	// @todo Implement cache?
 	response, err := http.Get(url)
 	if err != nil {
-		return nil, err
+		return nil, errors.WithStack(err)
 	}
 	defer response.Body.Close()
 	if response.StatusCode != http.StatusOK {
-		return nil, errors.Errorf("request failed: %s", response.Status)
+		return nil, errors.Errorf("request \"%s\" failed: %s", url, response.Status)
 	}
 	body, err := ioutil.ReadAll(response.Body)
 	if err != nil {
