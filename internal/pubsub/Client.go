@@ -74,9 +74,33 @@ func (c *Connection) Subscribe(topic string) chan mqtt.Message {
 	return messages
 }
 
+// PublishOption are optional arguments to Publish
+type PublishOption byte
+
+const (
+	// Retain the message
+	Retain PublishOption = 0
+	// QOS1 Quality of Service 1
+	QOS1 = 1
+	// QOS2 Quality of Service 2
+	QOS2 = 2
+)
+
 // Publish to a topic
-func (c *Connection) Publish(topic string, payload interface{}) error {
-	t := c.mqtt.Publish(topic, 0, false, payload)
+func (c *Connection) Publish(topic string, payload interface{}, opts ...PublishOption) error {
+	var qos byte
+	retain := false
+	for _, o := range opts {
+		switch o {
+		case Retain:
+			retain = true
+		case QOS1:
+			qos = 1
+		case QOS2:
+			qos = 2
+		}
+	}
+	t := c.mqtt.Publish(topic, qos, retain, payload)
 	t.Wait()
 	return errors.WithStack(t.Error())
 }

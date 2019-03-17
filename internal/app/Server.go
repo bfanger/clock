@@ -44,14 +44,25 @@ func (s *Server) notify(w http.ResponseWriter, r *http.Request) {
 		icon := r.PostForm.Get("icon")
 		err := s.engine.Do(func() error {
 			var n Notification
-			duration, err := strconv.Atoi(r.PostForm.Get("duration"))
+			d, err := strconv.Atoi(r.PostForm.Get("duration"))
 			if err != nil {
 				return err
 			}
+			duration := time.Duration(d) * time.Second
 			if icon == "vis" {
-				n, err = NewFeedFishNotification(s.engine, time.Duration(duration)*time.Second)
+				n, err = NewFeedFishNotification(s.engine, duration)
+			} else if icon == "gps" {
+				lat, err := strconv.ParseFloat(r.PostForm.Get("latitude"), 64)
+				if err != nil {
+					return err
+				}
+				lng, err := strconv.ParseFloat(r.PostForm.Get("longitude"), 64)
+				if err != nil {
+					return err
+				}
+				n, err = NewGPSNotification(lat, lng, s.engine, s.wm.background)
 			} else {
-				n, err = NewBasicNotification(s.engine, icon, time.Duration(duration)*time.Second)
+				n, err = NewBasicNotification(s.engine, icon, duration)
 			}
 			if icon == "school" || icon == "gym" {
 				if err := s.wm.timer.SetDuration(30*time.Minute, time.Minute); err != nil {

@@ -3,8 +3,10 @@ package main
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"log"
 	"os"
+	"time"
 
 	"github.com/bfanger/clock/internal/app"
 	"github.com/bfanger/clock/internal/pubsub"
@@ -51,14 +53,19 @@ func main() {
 		}
 		return response
 	})
-
+	alarm := app.Alarm{Notification: "gps", Duration: 5 * time.Minute, Start: time.Now()}
 	for l := range ttn.Updates() {
 		log.Printf("%+v\n", l)
 		update, err := json.Marshal(l)
 		if err != nil {
 			app.Fatal(err)
 		}
-		if err := c.Publish("sensors/gps/charlie", update); err != nil {
+		if err := c.Publish("sensors/gps/charlie", update, pubsub.Retain); err != nil {
+			app.Fatal(err)
+		}
+		lat := app.AlarmOption{Key: "latitude", Value: fmt.Sprintf("%f", l.Latitude)}
+		lng := app.AlarmOption{Key: "longitude", Value: fmt.Sprintf("%f", l.Longitude)}
+		if err := alarm.Activate(lat, lng); err != nil {
 			app.Fatal(err)
 		}
 	}

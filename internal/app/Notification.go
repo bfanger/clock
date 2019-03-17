@@ -1,8 +1,6 @@
 package app
 
 import (
-	"time"
-
 	"github.com/bfanger/clock/pkg/tween"
 	"github.com/veandco/go-sdl2/sdl"
 )
@@ -11,7 +9,7 @@ import (
 type Notification interface {
 	Show() tween.Tween
 	Hide() tween.Tween
-	Duration() time.Duration
+	Wait()
 	Close() error
 	Compose(*sdl.Renderer) error
 }

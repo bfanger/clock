@@ -20,7 +20,7 @@ type WidgetManager struct {
 	}
 	timer            *Timer
 	splash           *Splash
-	location         *Location
+	background       *ui.Container
 	notifications    []Notification
 	notificationLock sync.Mutex
 	engine           *ui.Engine
@@ -30,11 +30,11 @@ type WidgetManager struct {
 func NewWidgetManager(scene *ui.Container, e *ui.Engine) (*WidgetManager, error) {
 	wm := &WidgetManager{engine: e, Scene: scene}
 	var err error
-	wm.location, err = NewLocation(e)
+	wm.background = &ui.Container{}
 	if err != nil {
 		return nil, err
 	}
-	wm.Scene.Append(wm.location)
+	wm.Scene.Append(wm.background)
 
 	clock, err := NewAnalogClock(e)
 	// wm.clock, err = NewDigitalClock(e)
@@ -85,7 +85,7 @@ func (wm *WidgetManager) Notify(n Notification) {
 		wm.engine.Animate(n.Show())
 	}
 	wm.notificationLock.Unlock()
-	time.Sleep(n.Duration())
+	n.Wait()
 	wm.notificationLock.Lock()
 	defer wm.notificationLock.Unlock()
 	if len(wm.notifications) == 1 {

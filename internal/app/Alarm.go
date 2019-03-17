@@ -17,13 +17,21 @@ type Alarm struct {
 
 const endpoint = "http://localhost:8080/"
 
+type AlarmOption struct {
+	Key   string
+	Value string
+}
+
 // Activate the alarm
-func (a *Alarm) Activate() error {
+func (a *Alarm) Activate(opts ...AlarmOption) error {
 	fmt.Printf("Showing notification %s\n", a.Notification)
 	data := url.Values{}
 	data.Set("action", "notify")
 	data.Set("icon", a.Notification)
 	data.Set("duration", strconv.Itoa(int(a.Duration.Seconds())))
+	for _, o := range opts {
+		data.Set(o.Key, o.Value)
+	}
 	r, err := http.PostForm(endpoint+"notify", data)
 	if err != nil {
 		return err

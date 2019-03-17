@@ -9,9 +9,10 @@
     <form method="POST">
       <label><input name="icon" type="radio" value="papier" /> Papier</label
       ><br />
-      <label
-        ><input name="icon" type="radio" value="restafval" /> Restafval</label
-      ><br />
+      <label>
+        <input name="icon" type="radio" value="restafval" /> Restafval
+      </label>
+      <br />
       <label
         ><input name="icon" type="radio" value="school" /> Naar school</label
       ><br />
@@ -24,8 +25,27 @@
       ><br />
       <label><input name="icon" type="radio" value="bedtime" /> Bedtijd</label
       ><br />
+      <label class="gps">
+        <input id="gps" name="icon" type="radio" value="gps" /> GPS
+      </label>
+      <div id="options">
+        <label>ID <input name="id" type="text" value="charlie"/></label>
+        <label
+          >Latitude <input name="latitude" type="text" value="52.4900311"
+        /></label>
+        <label
+          >Longitude <input name="longitude" type="text" value="4.7602125"
+        /></label>
+      </div>
+      <br />
       <input type="number" name="duration" value="15" /><br />
       <input type="submit" value="Notify" />
     </form>
+    <script>
+      options.hidden = true;
+      gps.addEventListener("input", () => {
+        options.hidden = false;
+      });
+    </script>
   </body>
 </html>
