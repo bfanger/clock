@@ -38,7 +38,7 @@ func nextGarbageTruck() (*app.Alarm, error) {
 	}
 	var alarms []*app.Alarm
 	for _, e := range events {
-		if e.Summary == "Gft & etensresten." {
+		if e.Summary == "Gft & etensresten." || e.Summary == "Gft & etensresten" {
 			continue
 		}
 		alarm := app.Alarm{
@@ -53,7 +53,7 @@ func nextGarbageTruck() (*app.Alarm, error) {
 			alarm.Notification = "papier"
 			alarms = append(alarms, &alarm)
 		default:
-			fmt.Printf("Unknown event: %s", e.Summary)
+			fmt.Printf("Unknown event: %s\n", e.Summary)
 		}
 	}
 	if len(alarms) == 0 {
