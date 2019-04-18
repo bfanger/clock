@@ -6,7 +6,7 @@ Wants=network-online.target
 [Service]
 Type=simple
 User=pi
-WorkingDirectory=/home/pi
+WorkingDirectory=/home/pi/clock
 ExecStart=/home/pi/go/bin/clock
 Restart=on-failure
 RestartSec=6s
