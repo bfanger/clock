@@ -11,10 +11,11 @@ func main() {
 	schedule := []*app.Activity{
 		app.WeeklyActivity(time.Saturday, 15, 45, app.Alarm{Notification: "zwemmen", Duration: 15 * time.Minute}),
 		app.WeeklyActivity(time.Monday, 7, 35, app.Alarm{Notification: "school", Duration: 45 * time.Minute}),
-		app.WeeklyActivity(time.Tuesday, 7, 45, app.Alarm{Notification: "gym", Duration: 45 * time.Minute}),
-		app.WeeklyActivity(time.Wednesday, 7, 45, app.Alarm{Notification: "school", Duration: 45 * time.Minute}),
+		app.WeeklyActivity(time.Tuesday, 7, 35, app.Alarm{Notification: "gym", Duration: 45 * time.Minute}),
+		app.WeeklyActivity(time.Wednesday, 7, 35, app.Alarm{Notification: "school", Duration: 45 * time.Minute}),
 		app.WeeklyActivity(time.Thursday, 7, 35, app.Alarm{Notification: "gym", Duration: 45 * time.Minute}),
-		app.WeeklyActivity(time.Friday, 7, 45, app.Alarm{Notification: "school", Duration: 45 * time.Minute}),
+		app.WeeklyActivity(time.Friday, 7, 35, app.Alarm{Notification: "school", Duration: 45 * time.Minute}),
+		app.WeeklyActivity(time.Friday, 15, 45, app.Alarm{Notification: "sport", Duration: 15 * time.Minute}),
 		app.DailyActivity(20, 0, app.Alarm{Notification: "vis", Duration: 10 * time.Minute}),
 		app.DailyActivity(0, 0, app.Alarm{Notification: "bedtime", Duration: 30 * time.Minute}),
 	}
