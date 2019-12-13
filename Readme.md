@@ -24,8 +24,8 @@ An abstraction on top of SDL to make an efficient event-based ui.
 
 Allow work to be deferred until the result are needed. This allows freely changing individual properties of a layer without causing an updated texture for every change.
 
-The actual work is performed when a `Image(\*sdl.Renderer)` or `Compose(\*sdl.Renderer)` is called.
-The result of that work is cached, so drawing the next frame will be even faster.
+The actual work is performed when a `Image(\*sdl.Renderer)` via `Compose(\*sdl.Renderer)` is called.
+The resulting texture is cached, so drawing the next frame will be even faster.
 
 ### Concepts
 

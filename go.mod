@@ -5,7 +5,10 @@ require (
 	github.com/eclipse/paho.mqtt.golang v1.2.0
 	github.com/joho/godotenv v1.3.0
 	github.com/pkg/errors v0.8.1
-	github.com/stretchr/testify v1.3.0
-	github.com/veandco/go-sdl2 v0.3.1-0.20190613010447-7a9b8d607870
-	golang.org/x/net v0.0.0-20190620200207-3b0461eec859 // indirect
+	github.com/stretchr/testify v1.4.0
+	github.com/veandco/go-sdl2 v0.4.0-rc.0.0.20190924140640-68b56f2c64c3
+	golang.org/x/net v0.0.0-20191209160850-c0dbc17a3553 // indirect
+	gopkg.in/yaml.v2 v2.2.7 // indirect
 )
+
+go 1.13

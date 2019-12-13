@@ -46,8 +46,8 @@ func nextGarbageTruck() (*app.Alarm, error) {
 			Duration: hoursBefore + hoursAfter}
 
 		switch e.Summary {
-		case "Restafval":
-			alarm.Notification = "restafval"
+		case "Plastic\\, blik & drinkpakken":
+			alarm.Notification = "plastic"
 			alarms = append(alarms, &alarm)
 		case "Papier en karton":
 			alarm.Notification = "papier"
