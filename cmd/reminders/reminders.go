@@ -16,7 +16,7 @@ func main() {
 		app.WeeklyActivity(time.Thursday, 7, 40, app.Alarm{Notification: "gym", Duration: 45 * time.Minute}),
 		app.WeeklyActivity(time.Friday, 7, 40, app.Alarm{Notification: "school", Duration: 45 * time.Minute}),
 		app.DailyActivity(20, 0, app.Alarm{Notification: "bedtime-charlie", Duration: 10 * time.Minute}),
-		app.DailyActivity(0, 0, app.Alarm{Notification: "bedtime", Duration: 30 * time.Minute}),
+		app.DailyActivity(0, 0, app.Alarm{Notification: "bedtime-bob", Duration: 30 * time.Minute}),
 	}
 
 	for {
