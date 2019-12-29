@@ -70,6 +70,11 @@ func (c *DigitalClock) MoveTo(x, y int32) {
 	c.sprite.Y = y
 }
 
+// Compose renders the clock
+func (c *DigitalClock) Compose(r *sdl.Renderer) error {
+	return c.sprite.Compose(r)
+}
+
 // Minimize time to make room for notifications
 func (c *DigitalClock) Minimize() tween.Tween {
 	tl := &tween.Timeline{}

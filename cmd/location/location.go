@@ -53,7 +53,6 @@ func main() {
 		}
 		return response
 	})
-	alarm := app.Alarm{Notification: "gps", Duration: 5 * time.Minute, Start: time.Now()}
 	for l := range ttn.Updates() {
 		log.Printf("%+v\n", l)
 		update, err := json.Marshal(l)
@@ -63,9 +62,9 @@ func main() {
 		if err := c.Publish("sensors/gps/charlie", update, pubsub.Retain); err != nil {
 			app.Fatal(err)
 		}
-		lat := app.AlarmOption{Key: "latitude", Value: fmt.Sprintf("%f", l.Latitude)}
-		lng := app.AlarmOption{Key: "longitude", Value: fmt.Sprintf("%f", l.Longitude)}
-		if err := alarm.Activate(lat, lng); err != nil {
+		lat := app.NotificationOption{Key: "latitude", Value: fmt.Sprintf("%f", l.Latitude)}
+		lng := app.NotificationOption{Key: "longitude", Value: fmt.Sprintf("%f", l.Longitude)}
+		if err := app.ShowNotification("gps", 5*time.Minute, lat, lng); err != nil {
 			app.Fatal(err)
 		}
 	}

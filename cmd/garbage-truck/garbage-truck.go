@@ -1,65 +1,65 @@
-// https://inzamelkalender.hvcgroep.nl/ical-info
+// https://www.hvcgroep.nl/zelf-regelen/afvalkalender-maandoverzicht
 
 package main
 
 import (
 	"bufio"
-	"fmt"
 	"log"
 	"net/http"
 	"strings"
 	"time"
 
-	"github.com/pkg/errors"
-
 	"github.com/bfanger/clock/internal/app"
+	"github.com/bfanger/clock/internal/schedule"
+	"github.com/pkg/errors"
 )
 
 func main() {
 	for {
-		alarm, err := nextGarbageTruck()
+		appointment, err := nextGarbageTruck()
 		if err != nil {
 			log.Fatal(err)
 		}
-		fmt.Printf("Next: %s\n", alarm)
-		time.Sleep(time.Until(alarm.Start))
-		alarm.Activate()
-		time.Sleep(alarm.Duration)
+		appointment.Wait()
+		if err := app.ShowAppointment(appointment); err != nil {
+			app.Fatal(err)
+		}
 	}
 }
 
-func nextGarbageTruck() (*app.Alarm, error) {
-	const hoursBefore = 5 * time.Hour // Start notification at 19:00 the day before
-	const hoursAfter = 9 * time.Hour  // Hide the notification at 9:00
-
+func nextGarbageTruck() (*schedule.Appointment, error) {
 	events, err := garbageCalendar()
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to load events")
 	}
-	var alarms []*app.Alarm
+	var appointments []*schedule.Appointment
 	for _, e := range events {
 		if e.Summary == "Gft & etensresten." || e.Summary == "Gft & etensresten" {
 			continue
 		}
-		alarm := app.Alarm{
-			Start:    e.Start.Add(-1 * hoursBefore),
-			Duration: hoursBefore + hoursAfter}
-
+		notification := &schedule.Appointment{
+			At:       time.Date(e.Start.Year(), e.Start.Month(), e.Start.Day()-1, 20, 31, 0, 0, time.Local),
+			Duration: (12 + 9) * time.Hour,
+		}
 		switch e.Summary {
 		case "Plastic\\, blik & drinkpakken":
-			alarm.Notification = "plastic"
-			alarms = append(alarms, &alarm)
+			notification.Notification = "plastic"
+			appointments = append(appointments, notification)
 		case "Papier en karton":
-			alarm.Notification = "papier"
-			alarms = append(alarms, &alarm)
+			notification.Notification = "papier"
+			appointments = append(appointments, notification)
 		default:
-			fmt.Printf("Unknown event: %s\n", e.Summary)
+			log.Printf("unknown event: %s\n", e.Summary)
 		}
 	}
-	if len(alarms) == 0 {
+	if len(appointments) == 0 {
 		return nil, errors.New("no valid entries found")
 	}
-	return app.FirstAlarm(alarms), nil
+	planned := schedule.Upcomming(appointments)
+	if len(planned) == 0 {
+		return nil, errors.New("outdated calender")
+	}
+	return planned[0], nil
 }
 
 type event struct {
@@ -67,7 +67,7 @@ type event struct {
 	Start   time.Time
 }
 
-func garbageCalendar() ([]*event, error) {
+func garbageCalendar() ([]event, error) {
 	const eventMode = "VEVENT"
 	r, err := http.Get("https://inzamelkalender.hvcgroep.nl/ical/0479200000012088")
 	if err != nil {
@@ -77,15 +77,15 @@ func garbageCalendar() ([]*event, error) {
 	lines := bufio.NewScanner(r.Body)
 	var stack []string
 	var mode string
-	var events []*event
-	var e *event
+	var events []event
+	var e event
 	for lines.Scan() {
 		line := lines.Text()
 		if strings.HasPrefix(line, "BEGIN:") {
 			mode = line[6:]
 			stack = append(stack, mode)
 			if mode == eventMode {
-				e = &event{}
+				e = event{}
 			}
 		}
 		if strings.HasPrefix(line, "END:") {

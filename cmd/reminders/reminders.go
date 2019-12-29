@@ -1,33 +1,68 @@
 package main
 
 import (
-	"fmt"
+	"errors"
 	"time"
 
 	"github.com/bfanger/clock/internal/app"
+	"github.com/bfanger/clock/internal/schedule"
 )
 
 func main() {
-	schedule := []*app.Activity{
-		app.WeeklyActivity(time.Saturday, 15, 45, app.Alarm{Notification: "zwemmen", Duration: 15 * time.Minute}),
-		app.WeeklyActivity(time.Monday, 7, 40, app.Alarm{Notification: "school", Duration: 45 * time.Minute}),
-		app.WeeklyActivity(time.Tuesday, 7, 40, app.Alarm{Notification: "gym", Duration: 45 * time.Minute}),
-		app.WeeklyActivity(time.Wednesday, 7, 40, app.Alarm{Notification: "school", Duration: 45 * time.Minute}),
-		app.WeeklyActivity(time.Thursday, 7, 40, app.Alarm{Notification: "gym", Duration: 45 * time.Minute}),
-		app.WeeklyActivity(time.Friday, 7, 40, app.Alarm{Notification: "school", Duration: 45 * time.Minute}),
-		app.DailyActivity(20, 0, app.Alarm{Notification: "bedtime-charlie", Duration: 10 * time.Minute}),
-		app.DailyActivity(0, 0, app.Alarm{Notification: "bedtime-bob", Duration: 30 * time.Minute}),
+	schema := []*schedule.RepeatedAppointment{
+		&schedule.RepeatedAppointment{
+			Notification: "school",
+			Hour:         7,
+			Minute:       50,
+			Duration:     45 * time.Minute,
+			Timer:        15 * time.Minute,
+			Repeat:       schedule.RepeatDays{Monday: true, Wednesday: true, Friday: true},
+		},
+		&schedule.RepeatedAppointment{
+			Notification: "gym",
+			Hour:         7,
+			Minute:       50,
+			Duration:     45 * time.Minute,
+			Timer:        15 * time.Minute,
+			Repeat:       schedule.RepeatDays{Tuesday: true, Thursday: true},
+		},
+		&schedule.RepeatedAppointment{
+			Notification: "zwemmen",
+			Hour:         15,
+			Minute:       45,
+			Duration:     15 * time.Minute,
+			Timer:        15 * time.Minute,
+			Repeat:       schedule.RepeatDays{Saturday: true, Thursday: true},
+		},
+		&schedule.RepeatedAppointment{
+			Notification: "bedtime-charlie",
+			Hour:         20,
+			Minute:       0,
+			Duration:     10 * time.Minute,
+			Repeat:       schedule.Daily(),
+		},
+		&schedule.RepeatedAppointment{
+			Notification: "bedtime-bob",
+			Hour:         23,
+			Minute:       45,
+			Duration:     45 * time.Minute,
+			Repeat:       schedule.Daily(),
+		},
 	}
-
 	for {
-		alarms := make([]*app.Alarm, len(schedule))
-		for i, activity := range schedule {
-			alarms[i] = activity.NextAlarm()
+		appointments := schedule.PlanRepeated(schema)
+		if len(appointments) == 0 {
+			app.Fatal(errors.New("Empty schedule"))
 		}
-		alarm := app.FirstAlarm(alarms)
-		fmt.Printf("Next: %s\n", alarm)
-		time.Sleep(time.Until(alarm.Start))
-		alarm.Activate()
-		time.Sleep(alarm.Duration)
+		planned := schedule.Upcomming(appointments)
+		if len(planned) == 0 {
+			app.Fatal(errors.New("No appointments left"))
+		}
+		planned[0].Wait()
+		for _, a := range planned {
+			if err := app.ShowAppointment(a); err != nil {
+				app.Fatal(err)
+			}
+		}
 	}
 }

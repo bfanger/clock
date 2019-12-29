@@ -16,8 +16,7 @@ import (
 
 func main() {
 	runtime.LockOSThread()
-	err := godotenv.Load()
-	if err != nil {
+	if err := godotenv.Load(); err != nil {
 		fmt.Println(err)
 	}
 	fpsVisible := flag.Bool("fps", false, "Show FPS counter")
@@ -52,23 +51,13 @@ func main() {
 	err = engine.EventLoop(func(event sdl.Event) {
 		switch e := event.(type) {
 		case *sdl.MouseButtonEvent:
-			if e.Type == sdl.MOUSEBUTTONUP {
-				// a := app.Alarm{Notification: "vis", Duration: 10 * time.Second}
-				// go a.Activate()
+			if e.Type == sdl.MOUSEBUTTONDOWN {
 				go wm.ButtonPressed()
-
-			}
-		case *sdl.KeyboardEvent:
-			if e.Type == sdl.KEYDOWN {
-			}
-		case *sdl.WindowEvent:
-			{
-				if e.Event == sdl.WINDOWEVENT_RESIZED {
-					if err := display.Resized(); err != nil {
-						app.Fatal(errors.Wrap(err, "failed to respond to resize event"))
-					}
-					go engine.Go(func() error { return nil })
-				}
+				// go func() {
+				// 	if err := app.ShowNotification("vis", 10*time.Second); err != nil {
+				// 		app.Fatal(err)
+				// 	}
+				// }()
 			}
 		default:
 			// log.Printf("%T %v\n", event, event)

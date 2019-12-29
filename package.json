@@ -8,6 +8,7 @@
     "dev:race": "find . -name '*.go'|entr -rs 'go run -race ./cmd/clock'",
     "garbage-truck": "find . -name '*.go'|entr -rs 'go run ./cmd/garbage-truck'",
     "reminders": "find . -name '*.go'|entr -rs 'go run ./cmd/reminders'",
-    "test": "go test ./pkg/tween ./internal/app"
+    "weather": "find . -name '*.go'|entr -rs 'go run ./cmd/weather'",
+    "test": "go test ./pkg/tween ./internal/app ./internal/schedule"
   }
 }

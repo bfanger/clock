@@ -24,7 +24,7 @@ func NewDisplay() (*Display, error) {
 	if err := ttf.Init(); err != nil {
 		return nil, errors.Wrap(err, "couldn't initialize sdl_ttf")
 	}
-	if err := img.Init(img.INIT_PNG); err != img.INIT_PNG {
+	if err := img.Init(img.INIT_PNG); err != nil {
 		return nil, errors.Errorf("couldn't initialize sdl_img: %d", err)
 	}
 	n, err := sdl.GetNumVideoDisplays()
@@ -45,7 +45,7 @@ func NewDisplay() (*Display, error) {
 			return nil, err
 		}
 	} else {
-		flags |= sdl.WINDOW_ALLOW_HIGHDPI | sdl.WINDOW_RESIZABLE
+		flags |= sdl.WINDOW_ALLOW_HIGHDPI
 		width /= 2
 		height /= 2
 	}
@@ -65,9 +65,6 @@ func NewDisplay() (*Display, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "could not create renderer")
 	}
-	if err := d.Resized(); err != nil {
-		return nil, errors.Wrap(err, "could not resize")
-	}
 	return d, nil
 }
 
@@ -82,23 +79,5 @@ func (d *Display) Close() error {
 	ttf.Quit()
 	img.Quit()
 	sdl.Quit()
-	return nil
-}
-
-// Resized handles WINDOWEVENT_RESIZED events
-func (d *Display) Resized() error {
-	drawWidth, drawHeight := d.window.GLGetDrawableSize()
-	// scale the renderer to match the window (allow stretching)
-	scaleX := float32(drawWidth) / float32(screenWidth)
-	scaleY := float32(drawHeight) / float32(screenHeight)
-	const maintainAspect = true
-	if maintainAspect {
-		if scaleX > scaleY {
-			scaleX = scaleY
-		} else {
-			scaleY = scaleX
-		}
-	}
-	d.Renderer.SetScale(scaleX, scaleY)
 	return nil
 }

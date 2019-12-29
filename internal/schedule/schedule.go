@@ -1,56 +1,88 @@
 package schedule
 
 import (
+	"log"
 	"time"
+
+	"github.com/pkg/errors"
 )
 
-// Appointment of an event, which can trigger a notification
+// Appointment is a single occurance
 type Appointment struct {
-	Disabled    bool `json:"Disabled,omitempty"`
-	Description string
-	Visual      string
-	Hour        int // hour
-	Minute      int // minutes
-	Duration    int `json:"Duration,omitempty"` // in seconds
-	Timer       int `json:"Timer,omitempty"`    // in seconds
-	Repeat      struct {
-		Monday    bool
-		Tuesday   bool
-		Wednesday bool
-		Thursday  bool
-		Friday    bool
-		Saturday  bool
-		Sunday    bool
+	Notification string
+	At           time.Time
+	Duration     time.Duration
+	Timer        time.Duration
+}
+
+// Wait until the appointment
+func (a *Appointment) Wait() {
+	wait := time.Until(a.At)
+	log.Printf("%s", a.At)
+	log.Printf("wait: '%s' on %s", a.Notification, a.At.Format("Mon 2 January 15:04"))
+	time.Sleep(wait)
+}
+
+// RepeatedAppointment of an event, which can trigger a notification
+type RepeatedAppointment struct {
+	Notification string
+	Hour         int // hour
+	Minute       int // minutes
+	Duration     time.Duration
+	Timer        time.Duration
+	Repeat       RepeatDays
+}
+
+// RepeatDays configuration for an appointment
+type RepeatDays struct {
+	Monday    bool
+	Tuesday   bool
+	Wednesday bool
+	Thursday  bool
+	Friday    bool
+	Saturday  bool
+	Sunday    bool
+}
+
+// Daily repeats every day
+func Daily() RepeatDays {
+	return RepeatDays{
+		Monday:    true,
+		Tuesday:   true,
+		Wednesday: true,
+		Thursday:  true,
+		Friday:    true,
+		Saturday:  true,
+		Sunday:    true,
 	}
 }
 
 // Planned calculates first occurrence of the appointment
-func (a *Appointment) Planned() time.Time {
+func (a *RepeatedAppointment) Planned() (*Appointment, error) {
 	return a.plannedAfter(time.Now())
 }
 
 // Planned calculates first occurrence of the appointment after the given time
-func (a *Appointment) plannedAfter(after time.Time) time.Time {
-	if a.Disabled {
-		return time.Time{} //error? appointment was disabled
-	}
-	daytime := time.Duration(a.Hour)*time.Hour + time.Duration(a.Minute)*time.Minute
+func (a *RepeatedAppointment) plannedAfter(after time.Time) (*Appointment, error) {
 	day := after.Day()
-	daytimeafter := time.Duration(after.Hour())*time.Hour + time.Duration(after.Minute())*time.Minute
-	if daytime < daytimeafter { // not today?
-		day++ // check tomorrow
-	}
 	weekdays := a.repeatedWeekdays()
-	for i := 0; i < 7; i++ {
+	for i := 0; i <= 7; i++ {
 		planned := time.Date(after.Year(), after.Month(), day+i, a.Hour, a.Minute, 0, 0, time.Local)
 		if weekdays[planned.Weekday()] {
-			return planned
+			if planned.After(after) {
+				return &Appointment{
+					Notification: a.Notification,
+					At:           planned,
+					Duration:     a.Duration,
+					Timer:        a.Timer,
+				}, nil
+			}
 		}
 	}
-	return time.Time{} // error? appointment is not repeated on any weekday
+	return nil, errors.New("appointment is not repeated on any day")
 }
 
-func (a *Appointment) repeatedWeekdays() map[time.Weekday]bool {
+func (a *RepeatedAppointment) repeatedWeekdays() map[time.Weekday]bool {
 	return map[time.Weekday]bool{
 		time.Monday:    a.Repeat.Monday,
 		time.Tuesday:   a.Repeat.Tuesday,
@@ -62,34 +94,38 @@ func (a *Appointment) repeatedWeekdays() map[time.Weekday]bool {
 	}
 }
 
-// Scheduler detemines the next appoinment and prevents duplicates
-type Scheduler struct {
-	Appointments []*Appointment
-	Current      PlannedAppointment
+// PlanRepeated converts a repeatable appointments
+func PlanRepeated(schema []*RepeatedAppointment) []*Appointment {
+	return planRepeatedAfter(schema, time.Now())
 }
-
-type PlannedAppointment struct {
-	Appointment *Appointment
-	Planned     time.Time
-}
-
-func (s *Scheduler) Next() PlannedAppointment {
-	var first PlannedAppointment
-
-	now := time.Now()
-	for _, a := range s.Appointments {
-		p := a.Planned()
-		if p.Before(now) {
+func planRepeatedAfter(schema []*RepeatedAppointment, after time.Time) []*Appointment {
+	var planned []*Appointment
+	for _, a := range schema {
+		appointment, err := a.plannedAfter(after)
+		if err != nil {
+			// skip appointment if it couldn't be planned
 			continue
 		}
-		if s.Current.Appointment == a && p == s.Current.Planned {
-			p = a.plannedAfter(p.Add(1 * time.Minute))
+		planned = append(planned, appointment)
+	}
+	return planned
+}
+
+// Upcomming appointment(s), returns multiple if they are starting at the same time
+func Upcomming(appointments []*Appointment) []*Appointment {
+	return upcommingAfter(appointments, time.Now())
+}
+func upcommingAfter(appointments []*Appointment, datetime time.Time) []*Appointment {
+	var upcomming []*Appointment
+	for _, a := range appointments {
+		if a.At.Before(datetime) {
+			continue
 		}
-		if first.Appointment == nil || p.Before(first.Planned) {
-			first.Appointment = a
-			first.Planned = p
+		if len(upcomming) == 0 || a.At.Before(upcomming[0].At) {
+			upcomming = []*Appointment{a}
+		} else if upcomming[0].At == a.At {
+			upcomming = append(upcomming, a)
 		}
 	}
-	s.Current = first
-	return first
+	return upcomming
 }
