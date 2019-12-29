@@ -1,0 +1,15 @@
+[Unit]
+Description=Weather notification
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=pi
+WorkingDirectory=/home/pi/clock
+ExecStart=/home/pi/go/bin/weather
+Restart=on-failure
+RestartSec=60s
+
+[Install]
+WantedBy=multi-user.target

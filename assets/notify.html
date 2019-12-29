@@ -7,10 +7,10 @@
   </head>
   <body>
     <form method="POST">
-      <label><input name="icon" type="radio" value="sport" /> Sport</label
-      ><br />
-      <label><input name="icon" type="radio" value="papier" /> Papier</label
-      ><br />
+      <label><input name="icon" type="radio" value="sport" /> Sport</label>
+      <br />
+      <label><input name="icon" type="radio" value="papier" /> Papier</label>
+      <br />
       <label>
         <input name="icon" type="radio" value="restafval" /> Restafval
       </label>
@@ -19,13 +19,16 @@
         <input name="icon" type="radio" value="plastic" /> Plastic
       </label>
       <br />
-      <label
-        ><input name="icon" type="radio" value="school" /> Naar school</label
-      ><br />
       <label>
-        <input name="icon" type="radio" value="gym" />
+        <input data-with="timer" name="icon" type="radio" value="school" /> Naar school
+      </label>
+      <br />
+      <label>
+        <input  data-with="timer" name="icon" type="radio" value="gym" />
         Naar school (Gym)
       </label>
+      <br />
+      <label><input name="icon" type="radio" value="ice" /> Ice</label>
       <br />
       <label>
         <input name="icon" type="radio" value="bedtime-charlie" /> Naar bed
@@ -38,22 +41,26 @@
       <br />
       <label><input name="icon" type="radio" value="zwemmen" /> Zwemles</label>
       <br />
-      <label><input name="icon" type="radio" value="bedtime" /> Bedtijd</label
-      ><br />
+      <label><input name="icon" type="radio" value="bedtime" /> Bedtijd</label>
+      <br />
       <label class="gps">
         <input id="gps" name="icon" type="radio" value="gps" /> GPS
       </label>
+      <div id="timer">
+        <label>Timer <input name="timer" type="text" value=""/></label>
+      </div>
       <div id="options">
         <label>ID <input name="id" type="text" value="charlie"/></label>
         <label
           >Latitude <input name="latitude" type="text" value="52.4900311"
         /></label>
-        <label
-          >Longitude <input name="longitude" type="text" value="4.7602125"
-        /></label>
+        <label>
+          Longitude <input name="longitude" type="text" value="4.7602125" />
+        </label>
       </div>
       <br />
-      <input type="number" name="duration" value="15" /><br />
+      <input type="number" name="duration" value="15" />
+      <br />
       <input type="submit" value="Notify" />
     </form>
     <script>
@@ -61,6 +68,12 @@
       gps.addEventListener("input", () => {
         options.hidden = false;
       });
+      timer.hidden = true;
+      for (const input of document.querySelectorAll('[data-with="timer"]')) {
+        input.addEventListener("input", () => {
+          timer.hidden = false;
+        });
+      }
     </script>
   </body>
 </html>

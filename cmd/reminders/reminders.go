@@ -15,7 +15,7 @@ func main() {
 			Hour:         7,
 			Minute:       50,
 			Duration:     45 * time.Minute,
-			Timer:        15 * time.Minute,
+			Timer:        30 * time.Minute,
 			Repeat:       schedule.RepeatDays{Monday: true, Wednesday: true, Friday: true},
 		},
 		&schedule.RepeatedAppointment{
@@ -23,7 +23,7 @@ func main() {
 			Hour:         7,
 			Minute:       50,
 			Duration:     45 * time.Minute,
-			Timer:        15 * time.Minute,
+			Timer:        30 * time.Minute,
 			Repeat:       schedule.RepeatDays{Tuesday: true, Thursday: true},
 		},
 		&schedule.RepeatedAppointment{

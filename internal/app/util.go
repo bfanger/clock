@@ -81,7 +81,7 @@ func ShowNotification(notification string, d time.Duration, opts ...Notification
 func ShowAppointment(a *schedule.Appointment) error {
 	var opts []NotificationOption
 	if a.Timer != 0 {
-		opts = append(opts, NotificationOption{Key: "timer", Value: strconv.Itoa(int(a.Timer.Seconds()))})
+		opts = append(opts, NotificationOption{Key: "timer", Value: strconv.Itoa(int(a.Timer.Minutes()))})
 	}
 	return ShowNotification(a.Notification, a.Duration, opts...)
 
