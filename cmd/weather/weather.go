@@ -2,8 +2,8 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"os"
 	"time"
@@ -16,7 +16,7 @@ import (
 
 func main() {
 	if err := godotenv.Load(); err != nil {
-		log.Println(err)
+		fmt.Println(err)
 	}
 	trigger := schedule.RepeatedAppointment{
 		Notification: "ice",
@@ -36,12 +36,12 @@ func main() {
 			app.Fatal(err)
 		}
 		appointment.Wait()
-		log.Println("Getting temp")
+		fmt.Println("Getting temp from openweathermap")
 		temp, err := getTemp(appid)
 		if err != nil {
 			app.Fatal(err)
 		}
-		log.Printf("temp: %.2f°C", temp)
+		fmt.Printf("temp: %.2f°C\n", temp)
 		if temp < 3 {
 			app.ShowAppointment(appointment)
 		}

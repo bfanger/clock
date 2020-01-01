@@ -1,7 +1,7 @@
 package schedule
 
 import (
-	"log"
+	"fmt"
 	"time"
 
 	"github.com/pkg/errors"
@@ -17,10 +17,9 @@ type Appointment struct {
 
 // Wait until the appointment
 func (a *Appointment) Wait() {
-	wait := time.Until(a.At)
-	log.Printf("%s", a.At)
-	log.Printf("wait: '%s' on %s", a.Notification, a.At.Format("Mon 2 January 15:04"))
-	time.Sleep(wait)
+	d := time.Until(a.At)
+	fmt.Printf("waiting %s for %s: %s\n", d.Round(time.Second), a.Notification, a.At.Format("Mon 2 January 15:04"))
+	time.Sleep(d)
 }
 
 // RepeatedAppointment of an event, which can trigger a notification

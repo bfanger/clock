@@ -4,7 +4,7 @@ package main
 
 import (
 	"bufio"
-	"log"
+	"fmt"
 	"net/http"
 	"strings"
 	"time"
@@ -18,7 +18,7 @@ func main() {
 	for {
 		appointment, err := nextGarbageTruck()
 		if err != nil {
-			log.Fatal(err)
+			app.Fatal(err)
 		}
 		appointment.Wait()
 		if err := app.ShowAppointment(appointment); err != nil {
@@ -49,7 +49,7 @@ func nextGarbageTruck() (*schedule.Appointment, error) {
 			notification.Notification = "papier"
 			appointments = append(appointments, notification)
 		default:
-			log.Printf("unknown event: %s\n", e.Summary)
+			fmt.Printf("unknown event: %s\n", e.Summary)
 		}
 	}
 	if len(appointments) == 0 {

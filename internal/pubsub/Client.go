@@ -1,7 +1,7 @@
 package pubsub
 
 import (
-	"log"
+	"fmt"
 	"net/url"
 	"regexp"
 	"strconv"
@@ -67,7 +67,7 @@ func (c *Connection) Close() error {
 func (c *Connection) Subscribe(topic string) chan mqtt.Message {
 	messages := make(chan mqtt.Message)
 	c.mqtt.Subscribe(topic, 0, func(c mqtt.Client, m mqtt.Message) {
-		log.Println(m.Topic(), string(m.Payload()))
+		fmt.Println(m.Topic(), string(m.Payload()))
 		messages <- m
 	})
 	c.subscriptions = append(c.subscriptions, messages)

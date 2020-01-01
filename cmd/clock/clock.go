@@ -48,9 +48,6 @@ func main() {
 	server := app.NewServer(wm, engine)
 	go server.ListenAndServe()
 
-	go app.ShowNotification("ice", 20*time.Second)
-	go app.ShowNotification("gym", 20*time.Second)
-
 	err = engine.EventLoop(func(event sdl.Event) {
 		switch e := event.(type) {
 		case *sdl.MouseButtonEvent:
@@ -63,7 +60,7 @@ func main() {
 				// }()
 			}
 		default:
-			// log.Printf("%T %v\n", event, event)
+			// fmt.Printf("%T %v\n", event, event)
 		}
 	})
 	if err != nil {

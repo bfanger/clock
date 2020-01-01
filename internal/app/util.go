@@ -3,7 +3,6 @@ package app
 import (
 	"fmt"
 	"go/build"
-	"log"
 	"net/http"
 	"net/url"
 	"os"
@@ -41,7 +40,7 @@ func Fatal(err error) {
 	RED := "\033[1;31m"
 	GRAY := "\033[1;30m"
 	NC := "\033[0m"
-	log.Println(RED + err.Error() + NC)
+	fmt.Println(RED + err.Error() + NC)
 	type stackTracer interface {
 		StackTrace() errors.StackTrace
 	}

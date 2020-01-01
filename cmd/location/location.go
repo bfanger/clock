@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"log"
 	"os"
 	"time"
 
@@ -16,7 +15,7 @@ import (
 func main() {
 	err := godotenv.Load()
 	if err != nil {
-		log.Println(err)
+		fmt.Println(err)
 	}
 	ttn, err := pubsub.NewTheThingsNetwork()
 	if err != nil {
@@ -36,7 +35,7 @@ func main() {
 	}
 	defer c.Close()
 
-	log.Println("Connected to mqtt")
+	fmt.Println("Connected to mqtt")
 
 	go c.HandleRPC("mapbox_token", func(_ []byte) []byte {
 		return []byte(mapbox)
@@ -54,7 +53,7 @@ func main() {
 		return response
 	})
 	for l := range ttn.Updates() {
-		log.Printf("%+v\n", l)
+		fmt.Printf("%+v\n", l)
 		update, err := json.Marshal(l)
 		if err != nil {
 			app.Fatal(err)
