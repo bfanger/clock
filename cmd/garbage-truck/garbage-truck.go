@@ -34,9 +34,7 @@ func nextGarbageTruck() (*schedule.Appointment, error) {
 	}
 	var appointments []*schedule.Appointment
 	for _, e := range events {
-		if e.Summary == "Gft & etensresten." || e.Summary == "Gft & etensresten" {
-			continue
-		}
+
 		notification := &schedule.Appointment{
 			At:       time.Date(e.Start.Year(), e.Start.Month(), e.Start.Day()-1, 20, 31, 0, 0, time.Local),
 			Duration: (12 + 9) * time.Hour,
@@ -48,6 +46,11 @@ func nextGarbageTruck() (*schedule.Appointment, error) {
 		case "Papier en karton":
 			notification.Notification = "papier"
 			appointments = append(appointments, notification)
+		case "Gft & etensresten":
+		case "Gft & etensresten.":
+			notification.Notification = "gft"
+			appointments = append(appointments, notification)
+			continue
 		default:
 			fmt.Printf("unknown event: %s\n", e.Summary)
 		}

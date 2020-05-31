@@ -132,7 +132,7 @@ func (m *Map) getTile(x, y int) *ui.Image {
 		m.tiles[x] = make(map[int]*ui.Image)
 	}
 	if m.tiles[x][y] == nil {
-		url := fmt.Sprintf("http://maps.tilehosting.com/styles/hybrid/%d/%d/%d@2x.jpg?key=%s", m.Zoom, x, y, m.key)
+		url := fmt.Sprintf("https://api.maptiler.com/maps/basic/256/%d/%d/%d.png?key=%s", m.Zoom, x, y, m.key)
 		if m.downloads[url] == false {
 			m.downloads[url] = true
 			go func() {

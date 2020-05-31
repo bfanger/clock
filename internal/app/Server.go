@@ -49,7 +49,7 @@ func (s *Server) notify(w http.ResponseWriter, r *http.Request) {
 				return err
 			}
 			duration := time.Duration(d) * time.Second
-			if icon == "ice" || icon == "plastic" || icon == "papier" {
+			if icon == "ice" || icon == "plastic" || icon == "papier" || icon == "gft" {
 				n, err = NewTrayNotification(icon, s.engine, duration)
 			} else if icon == "vis" {
 				n, err = NewFeedFishNotification(s.engine, duration)
