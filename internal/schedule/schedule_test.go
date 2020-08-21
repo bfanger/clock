@@ -23,8 +23,8 @@ func TestRepeating(t *testing.T) {
 }
 func TestSchedule(t *testing.T) {
 	schema := []*RepeatedAppointment{
-		&RepeatedAppointment{Notification: "half vijf", Hour: 16, Minute: 30, Repeat: Daily()},
-		&RepeatedAppointment{Notification: "acht uur", Hour: 20, Minute: 0, Repeat: Daily()},
+		{Notification: "half vijf", Hour: 16, Minute: 30, Repeat: Daily()},
+		{Notification: "acht uur", Hour: 20, Minute: 0, Repeat: Daily()},
 	}
 
 	datetime := time.Date(2010, 10, 5, 14, 30, 0, 0, time.Local)

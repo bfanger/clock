@@ -10,23 +10,23 @@ import (
 
 func main() {
 	schema := []*schedule.RepeatedAppointment{
-		&schedule.RepeatedAppointment{
+		{
 			Notification: "school",
 			Hour:         7,
 			Minute:       50,
 			Duration:     45 * time.Minute,
 			Timer:        30 * time.Minute,
-			Repeat:       schedule.RepeatDays{Monday: true, Wednesday: true, Friday: true},
+			Repeat:       schedule.RepeatDays{Tuesday: true, Wednesday: true, Friday: true},
 		},
-		&schedule.RepeatedAppointment{
+		{
 			Notification: "gym",
 			Hour:         7,
 			Minute:       50,
 			Duration:     45 * time.Minute,
 			Timer:        30 * time.Minute,
-			Repeat:       schedule.RepeatDays{Tuesday: true, Thursday: true},
+			Repeat:       schedule.RepeatDays{Monday: true, Thursday: true},
 		},
-		&schedule.RepeatedAppointment{
+		{
 			Notification: "zwemmen",
 			Hour:         15,
 			Minute:       45,
@@ -34,14 +34,14 @@ func main() {
 			Timer:        15 * time.Minute,
 			Repeat:       schedule.RepeatDays{Saturday: true, Thursday: true},
 		},
-		&schedule.RepeatedAppointment{
+		{
 			Notification: "bedtime-charlie",
 			Hour:         20,
-			Minute:       0,
-			Duration:     10 * time.Minute,
+			Minute:       10,
+			Duration:     15 * time.Minute,
 			Repeat:       schedule.Daily(),
 		},
-		&schedule.RepeatedAppointment{
+		{
 			Notification: "bedtime-bob",
 			Hour:         23,
 			Minute:       45,

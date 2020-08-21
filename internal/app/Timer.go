@@ -49,10 +49,7 @@ func (t *Timer) Close() error {
 	if err := t.green.Close(); err != nil {
 		return err
 	}
-	if err := t.orange.Close(); err != nil {
-		return err
-	}
-	return nil
+	return t.orange.Close()
 }
 
 // Compose the timer if needed

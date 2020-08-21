@@ -98,10 +98,7 @@ func (c *DigitalClock) Maximize() tween.Tween {
 func (c *DigitalClock) updateTime() error {
 	now := time.Now()
 	time := fmt.Sprintf("%d%s", now.Hour(), now.Format(":04"))
-	if err := c.text.SetText(time); err != nil {
-		return err
-	}
-	return nil
+	return c.text.SetText(time)
 }
 
 func (c *DigitalClock) tick() {
