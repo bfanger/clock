@@ -13,7 +13,7 @@ func main() {
 		{
 			Notification: "school",
 			Hour:         7,
-			Minute:       50,
+			Minute:       45,
 			Duration:     45 * time.Minute,
 			Timer:        30 * time.Minute,
 			Repeat:       schedule.RepeatDays{Tuesday: true, Wednesday: true, Friday: true},
@@ -21,7 +21,7 @@ func main() {
 		{
 			Notification: "gym",
 			Hour:         7,
-			Minute:       50,
+			Minute:       45,
 			Duration:     45 * time.Minute,
 			Timer:        30 * time.Minute,
 			Repeat:       schedule.RepeatDays{Monday: true, Thursday: true},
@@ -29,7 +29,7 @@ func main() {
 		{
 			Notification: "zwemmen",
 			Hour:         15,
-			Minute:       45,
+			Minute:       35,
 			Duration:     15 * time.Minute,
 			Timer:        15 * time.Minute,
 			Repeat:       schedule.RepeatDays{Saturday: true, Thursday: true},
