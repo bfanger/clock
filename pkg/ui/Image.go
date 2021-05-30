@@ -23,7 +23,7 @@ func (i *Image) Close() error {
 }
 
 // Image also implements the Imager interface
-func (i *Image) Image(r *sdl.Renderer) (*Image, error) {
+func (i *Image) Image(_ *sdl.Renderer) (*Image, error) {
 	return i, nil
 }
 

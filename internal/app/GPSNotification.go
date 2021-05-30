@@ -95,7 +95,7 @@ func (l *GPSNotification) Close() error {
 }
 
 // Compose to match Notification interface
-func (l *GPSNotification) Compose(r *sdl.Renderer) error {
+func (l *GPSNotification) Compose(_ *sdl.Renderer) error {
 	return nil
 }
 

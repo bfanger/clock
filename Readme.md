@@ -52,3 +52,45 @@ The Composer is responsible for rendering the texture(s) onto the screen
 Composers are added to Scene in the Engine and are rendered automaticly.
 All UI operation should be wrapped in a `engine.Go()` closure which are batched and executed in the main/ui thread.
 A useful side-effect of calling engine.Go is that it will trigger a re-render.
+
+# Getting latest SDL on Raspberry OS
+
+Download latest [libsdl2 source](https://www.libsdl.org/download-2.0.php)
+(2.0.14 at the time of writing)
+
+```
+unzip SDL2-2.0.14.zip
+cd SDL2-2.0.14
+./configure
+make
+sudo chmod -R pi /usr/local
+make install
+```
+
+Download [SDL_image](https://www.libsdl.org/projects/SDL_image/)
+
+```
+sudo apt install libjpeg-dev libtiff-dev
+tar -xvf ./SDL2_image-2.0.5.tar.gz
+cd SDL2_image-2.0.5
+./configure
+make
+make install
+```
+
+and [SDL_ttf](https://www.libsdl.org/projects/SDL_ttf/)
+
+```
+tar -xvf ./SDL2_ttf-2.0.15.tar.gz
+cd SDL2_ttf-2.0.15
+./configure
+make
+make install
+```
+
+Remove the packaged version:
+
+```
+sudo apt-get remove libsdl2{,-mixer,-image,-ttf,-gfx}-dev
+sudo apt-get remove libsdl2{,-mixer,-image,-ttf}-2.0
+```
