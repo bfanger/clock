@@ -37,8 +37,9 @@ type AnalogClock struct {
 	done chan bool
 }
 
-const radius = 180.0
-const fontSize = 62
+const scale = 1
+const radius = 180.0 * scale
+const fontSize = 60 * scale
 
 var color = sdl.Color{R: 202, G: 214, B: 217, A: 255}
 
