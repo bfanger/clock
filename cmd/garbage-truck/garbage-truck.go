@@ -39,15 +39,15 @@ func nextGarbageTruck() (*schedule.Appointment, error) {
 			At:       time.Date(e.Start.Year(), e.Start.Month(), e.Start.Day()-1, 20, 31, 0, 0, time.Local),
 			Duration: (12 + 9) * time.Hour,
 		}
-		switch e.Summary {
-		case "Plastic\\, blik & drinkpakken":
+		switch strings.ToLower(e.Summary) {
+		case "plastic\\, blik & drinkpakken":
 			notification.Notification = "plastic"
 			appointments = append(appointments, notification)
-		case "Papier en karton":
+		case "papier en karton":
 			notification.Notification = "papier"
 			appointments = append(appointments, notification)
-		case "Gft & etensresten":
-		case "Gft & etensresten.":
+		case "gft & etensresten":
+		case "gft & etensresten.":
 			notification.Notification = "gft"
 			appointments = append(appointments, notification)
 			continue

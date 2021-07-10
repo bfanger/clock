@@ -27,14 +27,6 @@ func main() {
 			Repeat:       schedule.RepeatDays{Monday: true, Thursday: true},
 		},
 		{
-			Notification: "zwemmen",
-			Hour:         15,
-			Minute:       35,
-			Duration:     15 * time.Minute,
-			Timer:        15 * time.Minute,
-			Repeat:       schedule.RepeatDays{Saturday: true, Thursday: true},
-		},
-		{
 			Notification: "bedtime-charlie",
 			Hour:         20,
 			Minute:       10,
