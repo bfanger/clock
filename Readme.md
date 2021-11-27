@@ -16,6 +16,13 @@ go get -v github.com/veandco/go-sdl2/{sdl,img,ttf}
 go get -v github.com/bfanger/clock
 ```
 
+## MacOS dev setup
+
+```
+brew install sdl2 sdl2_image sdl2_image
+go install github.com/mitranim/gow@latest
+```
+
 ## Architecture / Design
 
 An abstraction on top of SDL to make an efficient event-based ui.

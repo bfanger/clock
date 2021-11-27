@@ -4,11 +4,11 @@
   "private": true,
   "scripts": {
     "build": "go install ./cmd/clock",
-    "dev": "find . -name '*.go'|entr -rs 'go run ./cmd/clock'",
-    "dev:race": "find . -name '*.go'|entr -rs 'go run -race ./cmd/clock'",
-    "garbage-truck": "find . -name '*.go'|entr -rs 'go run ./cmd/garbage-truck'",
-    "reminders": "find . -name '*.go'|entr -rs 'go run ./cmd/reminders'",
-    "weather": "find . -name '*.go'|entr -rs 'go run ./cmd/weather'",
+    "dev": "gow run ./cmd/clock",
+    "dev:race": "gow run -race ./cmd/clock",
+    "garbage-truck": "gow run ./cmd/garbage-truck",
+    "reminders": "gow run ./cmd/reminders",
+    "weather": "gow run ./cmd/weather",
     "test": "go test ./pkg/tween ./internal/app ./internal/schedule"
   }
 }
