@@ -22,6 +22,21 @@ func (a *Appointment) Wait() {
 	time.Sleep(d)
 }
 
+// FromTill creates an appoinment based a start and end time.
+// Calculates the duration, and if the appointment is in progess, corrects/trims the appointment.
+func FromTill(start, end time.Time) *Appointment {
+	a := &Appointment{
+		At:       start,
+		Duration: end.Sub(start),
+	}
+	now := time.Now()
+	if end.After(now) && start.Before(now) {
+		a.Duration = a.Duration - now.Sub(start)
+		a.At = now.Add(time.Second)
+	}
+	return a
+}
+
 // RepeatedAppointment of an event, which can trigger a notification
 type RepeatedAppointment struct {
 	Notification string

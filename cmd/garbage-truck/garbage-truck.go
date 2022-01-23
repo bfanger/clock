@@ -24,6 +24,7 @@ func main() {
 		if err := app.ShowAppointment(appointment); err != nil {
 			app.Fatal(err)
 		}
+		time.Sleep(appointment.Duration)
 	}
 }
 
@@ -35,10 +36,10 @@ func nextGarbageTruck() (*schedule.Appointment, error) {
 	var appointments []*schedule.Appointment
 	for _, e := range events {
 
-		notification := &schedule.Appointment{
-			At:       time.Date(e.Start.Year(), e.Start.Month(), e.Start.Day()-1, 20, 31, 0, 0, time.Local),
-			Duration: (12 + 9) * time.Hour,
-		}
+		notification := schedule.FromTill(
+			time.Date(e.Start.Year(), e.Start.Month(), e.Start.Day()-1, 10, 0, 0, 0, time.Local),
+			time.Date(e.Start.Year(), e.Start.Month(), e.Start.Day(), 9, 0, 0, 0, time.Local),
+		)
 		switch strings.ToLower(e.Summary) {
 		case "plastic\\, blik & drinkpakken":
 			notification.Notification = "plastic"
