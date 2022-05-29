@@ -27,7 +27,7 @@ func NewTrayNotification(icon string, engine *ui.Engine, d time.Duration) (*Tray
 
 // Show the notification and start the swimming animation.
 func (n *TrayNotification) Show() tween.Tween {
-	return tween.FromToUint8(0, 255, 1000*time.Millisecond, tween.EaseOutQuad, n.sprite.SetAlpha)
+	return tween.FromTo(0, 255, 1000*time.Millisecond, tween.EaseOutQuad, n.sprite.SetAlpha)
 }
 
 // Close the notification and stop the animation

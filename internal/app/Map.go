@@ -109,10 +109,10 @@ func (m *Map) Compose(r *sdl.Renderer) error {
 // PanTo a position on the map
 func (m *Map) PanTo(latitude, longitude float64, d time.Duration) *tween.Timeline {
 	tl := &tween.Timeline{}
-	tl.Add(tween.FromToFloat64(m.Latitude, latitude, d, tween.EaseInOutQuad, func(v float64) {
+	tl.Add(tween.FromTo(m.Latitude, latitude, d, tween.EaseInOutQuad, func(v float64) {
 		m.Latitude = v
 	}))
-	tl.AddAt(0, tween.FromToFloat64(m.Longitude, longitude, d, tween.EaseInOutQuad, func(v float64) {
+	tl.AddAt(0, tween.FromTo(m.Longitude, longitude, d, tween.EaseInOutQuad, func(v float64) {
 		m.Longitude = v
 	}))
 	return tl

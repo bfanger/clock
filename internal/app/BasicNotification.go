@@ -48,12 +48,12 @@ func (n *BasicNotification) Compose(r *sdl.Renderer) error {
 
 // Show notification
 func (n *BasicNotification) Show() tween.Tween {
-	return tween.FromToUint8(0, 255, 1000*time.Millisecond, tween.EaseOutQuad, n.sprite.SetAlpha)
+	return tween.FromTo(0, 255, 1000*time.Millisecond, tween.EaseOutQuad, n.sprite.SetAlpha)
 }
 
 // Hide notification
 func (n *BasicNotification) Hide() tween.Tween {
-	return tween.FromToUint8(255, 0, 500*time.Millisecond, tween.EaseOutQuad, n.sprite.SetAlpha)
+	return tween.FromTo(255, 0, 500*time.Millisecond, tween.EaseOutQuad, n.sprite.SetAlpha)
 }
 
 // Wait the configured duration

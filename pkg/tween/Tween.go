@@ -2,6 +2,8 @@ package tween
 
 import (
 	"time"
+
+	"golang.org/x/exp/constraints"
 )
 
 // Tween interface
@@ -46,47 +48,17 @@ func (t *tween) progress(d time.Duration) float32 {
 	return float32(d) / float32(t.D)
 }
 
-// FromToFloat64 creates a new Tween for an float64
-func FromToFloat64(from, to float64, d time.Duration, e Ease, update func(float64)) Tween {
-	distance := to - from
-	return &tween{D: d, Ease: e, Update: func(v float32) {
-		update(from + (distance * float64(v)))
-	}}
-}
-
-// FromToFloat32 creates a new Tween for an float32
-func FromToFloat32(from, to float32, d time.Duration, e Ease, update func(float32)) Tween {
-	distance := to - from
-	return &tween{D: d, Ease: e, Update: func(v float32) {
-		update(from + (distance * v))
-	}}
-}
-
-// FromToInt creates a new Tween for an Int
-func FromToInt(from, to int, d time.Duration, e Ease, update func(int)) Tween {
-	f := float32(from)
-	distance := float32(to) - f
-	return &tween{D: d, Ease: e, Update: func(v float32) {
-		update(int(f + (distance * v)))
-	}}
-}
-
-// FromToInt32 creates a new Tween for an Int32
-func FromToInt32(from, to int32, d time.Duration, e Ease, update func(int32)) Tween {
-	f := float32(from)
-	distance := float32(to) - f
-	return &tween{D: d, Ease: e, Update: func(v float32) {
-		update(int32(f + (distance * v)))
-	}}
-}
-
-// FromToUint8 creates a new Tween for an Int8
-func FromToUint8(from, to uint8, d time.Duration, e Ease, update func(uint8)) Tween {
-	f := float32(from)
-	distance := float32(to) - f
-	return &tween{D: d, Ease: e, Update: func(v float32) {
-		update(uint8(f + (distance * v)))
-	}}
+// FromTo creates a new Tween for number types
+func FromTo[T constraints.Float | constraints.Integer](from, to T, d time.Duration, e Ease, update func(T)) Tween {
+	fromFloat := float32(from)
+	distance := float32(to) - fromFloat
+	return &tween{
+		D:    d,
+		Ease: e,
+		Update: func(v float32) {
+			update(T(fromFloat + (distance * v)))
+		},
+	}
 }
 
 // Empty creates a tween without a duration

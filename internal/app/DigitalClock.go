@@ -78,8 +78,8 @@ func (c *DigitalClock) Compose(r *sdl.Renderer) error {
 // Minimize time to make room for notifications
 func (c *DigitalClock) Minimize() tween.Tween {
 	tl := &tween.Timeline{}
-	tl.Add(tween.FromToFloat32(1, 0.78, 1*time.Second, tween.EaseInOutQuad, c.sprite.SetScale))
-	tl.AddAt(150*time.Millisecond, tween.FromToInt32(screenHeight/2, 110, 850*time.Millisecond, tween.EaseInOutQuad, func(v int32) {
+	tl.Add(tween.FromTo(1, 0.78, 1*time.Second, tween.EaseInOutQuad, c.sprite.SetScale))
+	tl.AddAt(150*time.Millisecond, tween.FromTo(screenHeight/2, 110, 850*time.Millisecond, tween.EaseInOutQuad, func(v int32) {
 		c.sprite.Y = v
 	}))
 	return tl
@@ -88,8 +88,8 @@ func (c *DigitalClock) Minimize() tween.Tween {
 // Maximize time
 func (c *DigitalClock) Maximize() tween.Tween {
 	tl := &tween.Timeline{}
-	tl.Add(tween.FromToFloat32(0.78, 1, 1*time.Second, tween.EaseInOutQuad, c.sprite.SetScale))
-	tl.AddAt(150*time.Millisecond, tween.FromToInt32(110, screenHeight/2, 850*time.Millisecond, tween.EaseInOutQuad, func(v int32) {
+	tl.Add(tween.FromTo(0.78, 1, 1*time.Second, tween.EaseInOutQuad, c.sprite.SetScale))
+	tl.AddAt(150*time.Millisecond, tween.FromTo(110, screenHeight/2, 850*time.Millisecond, tween.EaseInOutQuad, func(v int32) {
 		c.sprite.Y = v
 	}))
 	return tl

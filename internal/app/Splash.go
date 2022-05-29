@@ -41,10 +41,10 @@ func (s *Splash) Compose(r *sdl.Renderer) error {
 // Splash animation
 func (s *Splash) Splash() tween.Tween {
 	tl := &tween.Timeline{}
-	tl.Add(tween.FromToUint8(0, 255, 300*time.Millisecond, tween.EaseInOutQuad, func(a uint8) {
+	tl.Add(tween.FromTo(0, 255, 300*time.Millisecond, tween.EaseInOutQuad, func(a uint8) {
 		s.sprite.SetAlpha(a)
 	}))
-	tl.AddAt(500*time.Millisecond, tween.FromToUint8(255, 0, 400*time.Millisecond, tween.EaseInOutQuad, func(a uint8) {
+	tl.AddAt(500*time.Millisecond, tween.FromTo(255, 0, 400*time.Millisecond, tween.EaseInOutQuad, func(a uint8) {
 		s.sprite.SetAlpha(a)
 	}))
 	return tl

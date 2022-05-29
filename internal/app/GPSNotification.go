@@ -104,20 +104,20 @@ func (l *GPSNotification) Show() tween.Tween {
 	gps.LastUpdate = time.Now()
 	if gps.Active != nil {
 		tl := tween.Timeline{}
-		tl.AddAt(0, tween.FromToFloat64(gps.Marker.Latitude, l.Latitude, 3*time.Second, tween.EaseOutQuad, func(v float64) {
+		tl.AddAt(0, tween.FromTo(gps.Marker.Latitude, l.Latitude, 3*time.Second, tween.EaseOutQuad, func(v float64) {
 			gps.Marker.Latitude = v
 		}))
-		tl.AddAt(0, tween.FromToFloat64(gps.Marker.Longitude, l.Longitude, 3*time.Second, tween.EaseOutQuad, func(v float64) {
+		tl.AddAt(0, tween.FromTo(gps.Marker.Longitude, l.Longitude, 3*time.Second, tween.EaseOutQuad, func(v float64) {
 			gps.Marker.Longitude = v
 		}))
 		max := 0.0012
 		if l.Latitude-max > gps.Map.Latitude || l.Latitude+max < gps.Map.Latitude {
-			tl.AddAt(0, tween.FromToFloat64(gps.Map.Latitude, l.Latitude, 3*time.Second, tween.EaseOutQuad, func(v float64) {
+			tl.AddAt(0, tween.FromTo(gps.Map.Latitude, l.Latitude, 3*time.Second, tween.EaseOutQuad, func(v float64) {
 				gps.Map.Latitude = v
 			}))
 		}
 		if l.Longitude+max < gps.Map.Longitude || l.Longitude-max > gps.Map.Longitude {
-			tl.AddAt(0, tween.FromToFloat64(gps.Map.Longitude, l.Longitude, 3*time.Second, tween.EaseOutQuad, func(v float64) {
+			tl.AddAt(0, tween.FromTo(gps.Map.Longitude, l.Longitude, 3*time.Second, tween.EaseOutQuad, func(v float64) {
 				gps.Map.Longitude = v
 			}))
 		}

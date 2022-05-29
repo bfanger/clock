@@ -77,7 +77,7 @@ func (wm *WidgetManager) Notify(n Notification) {
 	wm.Scene.Append(n)
 	if len(wm.notifications) == 1 {
 		tl := &tween.Timeline{}
-		tl.Add(tween.FromToInt32(screenWidth/2, 240, 700*time.Millisecond, tween.EaseInOutQuad, func(x int32) {
+		tl.Add(tween.FromTo(screenWidth/2, 240, 700*time.Millisecond, tween.EaseInOutQuad, func(x int32) {
 			wm.clock.MoveTo(x, screenHeight/2)
 		}))
 		tl.AddAt(800*time.Millisecond, n.Show())
@@ -92,7 +92,7 @@ func (wm *WidgetManager) Notify(n Notification) {
 	if len(wm.notifications) == 1 {
 		tl := &tween.Timeline{}
 		tl.Add(n.Hide())
-		tl.Add(tween.FromToInt32(240, screenWidth/2, 100*time.Millisecond, tween.EaseInOutQuad, func(x int32) {
+		tl.Add(tween.FromTo(240, screenWidth/2, 100*time.Millisecond, tween.EaseInOutQuad, func(x int32) {
 			wm.clock.MoveTo(x, screenHeight/2)
 		}))
 		wm.engine.Animate(tl)

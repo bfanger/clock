@@ -19,7 +19,7 @@ func TestDuration(t *testing.T) {
 	t.Run("timeline with Add()", func(t *testing.T) {
 		assert := assert.New(t)
 		tl := Timeline{}
-		tween := FromToFloat32(0, 1, time.Second, Linear, noop)
+		tween := FromTo(0, 1, time.Second, Linear, noop)
 		tl.Add(tween)
 		d := tl.Duration()
 		assert.Equal(time.Second, d)
@@ -35,13 +35,13 @@ func TestLogic(t *testing.T) {
 		assert := assert.New(t)
 		tl := Timeline{}
 		var x1, x2, x3 int
-		tl.Add(FromToInt(1, 10, time.Second, Linear, func(v int) {
+		tl.Add(FromTo(1, 10, time.Second, Linear, func(v int) {
 			x1 += v
 		}))
-		tl.Add(FromToInt(20, 40, 2*time.Second, Linear, func(v int) {
+		tl.Add(FromTo(20, 40, 2*time.Second, Linear, func(v int) {
 			x2 += v
 		}))
-		tl.Add(FromToInt(1, 100, 1*time.Second, Linear, func(v int) {
+		tl.Add(FromTo(1, 100, 1*time.Second, Linear, func(v int) {
 			x3 += v
 		}))
 		assert.Equal(0, x1)
