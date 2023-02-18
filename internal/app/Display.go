@@ -54,8 +54,9 @@ func NewDisplay() (*Display, error) {
 			// Single monitor setup, show the clock bottom left.
 			x, y = 0, m.H-height
 		} else {
-			// In a multi monitor setup, show the clock the second screen.
-			x, y = sdl.WINDOWPOS_CENTERED_MASK+1, sdl.WINDOWPOS_CENTERED_MASK+1
+			// In a multi monitor setup, show the clock the centered.
+			var monitor int32
+			x, y = sdl.WINDOWPOS_CENTERED_MASK+monitor, sdl.WINDOWPOS_CENTERED_MASK+monitor
 		}
 	}
 	d := &Display{}
