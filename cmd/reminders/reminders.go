@@ -11,22 +11,6 @@ import (
 func main() {
 	schema := []*schedule.RepeatedAppointment{
 		{
-			Notification: "school",
-			Hour:         7,
-			Minute:       45,
-			Duration:     35 * time.Minute,
-			Timer:        30 * time.Minute,
-			Repeat:       schedule.RepeatDays{Monday: true, Wednesday: true, Friday: true},
-		},
-		{
-			Notification: "gym",
-			Hour:         7,
-			Minute:       45,
-			Duration:     35 * time.Minute,
-			Timer:        30 * time.Minute,
-			Repeat:       schedule.RepeatDays{Tuesday: true, Thursday: true},
-		},
-		{
 			Notification: "douche",
 			Hour:         19,
 			Minute:       35,

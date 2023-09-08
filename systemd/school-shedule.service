@@ -1,0 +1,15 @@
+[Unit]
+Description=Periodic reminders
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=pi
+WorkingDirectory=/home/pi/clock
+ExecStart=/home/pi/go/bin/school-schedule
+Restart=on-failure
+RestartSec=60s
+
+[Install]
+WantedBy=multi-user.target
