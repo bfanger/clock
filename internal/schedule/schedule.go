@@ -125,21 +125,21 @@ func planRepeatedAfter(schema []*RepeatedAppointment, after time.Time) []*Appoin
 	return planned
 }
 
-// Upcomming appointment(s), returns multiple if they are starting at the same time
-func Upcomming(appointments []*Appointment) []*Appointment {
-	return upcommingAfter(appointments, time.Now())
+// Upcoming appointment(s), returns multiple if they are starting at the same time
+func Upcoming(appointments []*Appointment) []*Appointment {
+	return upcomingAfter(appointments, time.Now())
 }
-func upcommingAfter(appointments []*Appointment, datetime time.Time) []*Appointment {
-	var upcomming []*Appointment
+func upcomingAfter(appointments []*Appointment, datetime time.Time) []*Appointment {
+	var upcoming []*Appointment
 	for _, a := range appointments {
 		if a.At.Before(datetime) {
 			continue
 		}
-		if len(upcomming) == 0 || a.At.Before(upcomming[0].At) {
-			upcomming = []*Appointment{a}
-		} else if upcomming[0].At == a.At {
-			upcomming = append(upcomming, a)
+		if len(upcoming) == 0 || a.At.Before(upcoming[0].At) {
+			upcoming = []*Appointment{a}
+		} else if upcoming[0].At == a.At {
+			upcoming = append(upcoming, a)
 		}
 	}
-	return upcomming
+	return upcoming
 }

@@ -6,7 +6,7 @@ A "smart" clock written in [Go](https://golang.org) which runs on a [4.0 inch sc
 
 - Show time
 - Alarm (for School)
-- Show train delayes
+- Show train delays
 
 ## Setup
 

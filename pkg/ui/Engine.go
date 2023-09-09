@@ -9,7 +9,7 @@ import (
 	"github.com/veandco/go-sdl2/sdl"
 )
 
-// Engine handles the event- & renderloop
+// Engine handles the event- & render-loop
 type Engine struct {
 	Renderer   *sdl.Renderer
 	Scene      Composer
@@ -27,8 +27,8 @@ func NewEngine(scene Composer, r *sdl.Renderer) *Engine {
 	return e
 }
 
-// Go shedules work that needs to be done in the ui thread
-// When calling Go inside a update, that work will be shedules for the next frame.
+// Go schedules work that needs to be done in the ui thread
+// When calling Go inside a update, that work will be schedules for the next frame.
 // The error wil be propagated to the EventLoop()
 func (e *Engine) Go(update func() error) {
 	e.mutex.Lock()
@@ -38,13 +38,13 @@ func (e *Engine) Go(update func() error) {
 	if e.waiting.Load().(bool) {
 		event := &sdl.UserEvent{Type: sdl.USEREVENT, Timestamp: sdl.GetTicks(), Code: 808}
 		if _, err := sdl.PushEvent(event); err != nil {
-			panic(err) // @todo propogate to EventLoop
+			panic(err) // @todo propagate to EventLoop
 		}
 	}
 }
 
 // Do run the code on the ui thread. Engine.Do() is the synchronisch variant of Engine.Go()
-// Is also returns the error that occured in the callback instead of ending the EventLoop.
+// Is also returns the error that occurred in the callback instead of ending the EventLoop.
 func (e *Engine) Do(fn func() error) error {
 	wg := sync.WaitGroup{}
 	wg.Add(1)
@@ -58,7 +58,7 @@ func (e *Engine) Do(fn func() error) error {
 	return err
 }
 
-// EventLoop runs the evenloop
+// EventLoop runs the event-loop
 func (e *Engine) EventLoop(handle func(sdl.Event)) error {
 	for {
 		if e.needsUpdate() {
@@ -100,7 +100,7 @@ func (e *Engine) Animate(a tween.Seeker) {
 	wg := sync.WaitGroup{}
 	done := false
 	update := func() error {
-		done = a.Seek(time.Now().Sub(start))
+		done = a.Seek(time.Since(start))
 		wg.Done()
 		return nil
 	}
@@ -158,6 +158,6 @@ func (e *Engine) render() error {
 // 	e.Go(noop)
 // }
 
-func noop() error {
-	return nil
-}
+// func noop() error {
+// 	return nil
+// }

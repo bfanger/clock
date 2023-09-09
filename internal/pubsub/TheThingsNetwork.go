@@ -51,7 +51,7 @@ type LatLng struct {
 	Time      time.Time `json:"time"`
 }
 
-// History loads historic data from the Data Storage intergration API.
+// History loads historic data from the Data Storage integration API.
 func (t *TheThingsNetwork) History(last string) ([]LatLng, error) {
 	if last == "" {
 		last = "1h"

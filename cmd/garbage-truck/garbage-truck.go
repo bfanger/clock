@@ -59,7 +59,7 @@ func nextGarbageTruck() (*schedule.Appointment, error) {
 	if len(appointments) == 0 {
 		return nil, errors.New("no valid entries found")
 	}
-	planned := schedule.Upcomming(appointments)
+	planned := schedule.Upcoming(appointments)
 	if len(planned) == 0 {
 		return nil, errors.New("outdated calender")
 	}

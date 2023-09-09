@@ -25,7 +25,7 @@ func (r *repeat) Duration() time.Duration {
 func (r *repeat) Seek(d time.Duration) bool {
 	r.t.Seek(d % r.t.Duration())
 	if r.infinite {
-		r.duration = d + time.Minute // the duration grows dynamicly
+		r.duration = d + time.Minute // the duration grows dynamically
 		return false
 	}
 	return d > r.Duration()

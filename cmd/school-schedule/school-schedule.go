@@ -16,7 +16,7 @@ import (
 
 func main() {
 	for {
-		appointment, err := nextSchoolday()
+		appointment, err := nextSchoolDay()
 		if err != nil {
 			app.Fatal(err)
 		}
@@ -28,7 +28,7 @@ func main() {
 	}
 }
 
-func nextSchoolday() (*schedule.Appointment, error) {
+func nextSchoolDay() (*schedule.Appointment, error) {
 	if err := godotenv.Load(); err != nil {
 		return nil, err
 	}
@@ -66,7 +66,7 @@ func nextSchoolday() (*schedule.Appointment, error) {
 		appointments = append(appointments, appointment)
 	}
 
-	planned := schedule.Upcomming(appointments)
+	planned := schedule.Upcoming(appointments)
 	if len(planned) == 0 {
 		return nil, errors.New("outdated calender")
 	}

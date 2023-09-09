@@ -10,11 +10,10 @@ import (
 // Guage clips a pie piece from an Image.
 // @todo Add support for larger pieces than 180deg
 type Guage struct {
-	imager   Imager  // The source image
-	start    float64 // in degrees
-	end      float64 // in degrees
-	image    *Image
-	renderer *sdl.Renderer
+	imager Imager  // The source image
+	start  float64 // in degrees
+	end    float64 // in degrees
+	image  *Image
 }
 
 // NewGuage creates a new guage

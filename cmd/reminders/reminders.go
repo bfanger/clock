@@ -37,7 +37,7 @@ func main() {
 		if len(appointments) == 0 {
 			app.Fatal(errors.New("Empty schedule"))
 		}
-		planned := schedule.Upcomming(appointments)
+		planned := schedule.Upcoming(appointments)
 		if len(planned) == 0 {
 			app.Fatal(errors.New("No appointments left"))
 		}
