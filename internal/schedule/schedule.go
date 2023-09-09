@@ -7,7 +7,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-// Appointment is a single occurance
+// Appointment is a single occurrence
 type Appointment struct {
 	Notification string
 	At           time.Time
@@ -18,12 +18,12 @@ type Appointment struct {
 // Wait until the appointment
 func (a *Appointment) Wait() {
 	d := time.Until(a.At)
-	fmt.Printf("waiting %s for %s: %s\n", d.Round(time.Second), a.Notification, a.At.Format("Mon 2 January 15:04"))
+	fmt.Printf("waiting %s for %s: %s\n", d.Round(time.Second), a.Notification, a.At.In(time.Local).Format("Mon 2 January 15:04 MST"))
 	time.Sleep(d)
 }
 
-// FromTill creates an appoinment based a start and end time.
-// Calculates the duration, and if the appointment is in progess, corrects/trims the appointment.
+// FromTill creates an appointment based a start and end time.
+// Calculates the duration, and if the appointment is in progress, corrects/trims the appointment.
 func FromTill(start, end time.Time) *Appointment {
 	a := &Appointment{
 		At:       start,

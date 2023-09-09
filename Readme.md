@@ -20,7 +20,7 @@ go get -v github.com/bfanger/clock
 ## MacOS dev setup
 
 ```
-brew install sdl2 sdl2_image sdl2_image
+brew install pkg-config sdl2 sdl2_image sdl2_ttf
 go install github.com/mitranim/gow@latest
 ```
 

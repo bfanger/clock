@@ -124,7 +124,7 @@ func GroupByDay(events []Event) []PerDay {
 	for _, c := range events {
 		var day *PerDay
 		for _, d := range grouped {
-			if d.Date.Format("20060102") == c.Start.Format("20060102") {
+			if d.Date.In(time.Local).Format(time.DateOnly) == c.Start.In(time.Local).Format(time.DateOnly) {
 				day = &d
 			}
 		}
