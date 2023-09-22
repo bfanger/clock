@@ -46,13 +46,13 @@ func Parse(r io.ReadCloser) ([]Event, error) {
 		case "UID":
 			event.Uid = s.Value
 		case "DTSTART":
-			start, err := time.Parse("20060102T150405Z", s.Value)
+			start, err := s.Date()
 			if err != nil {
 				return nil, err
 			}
 			event.Start = start
 		case "DTEND":
-			end, err := time.Parse("20060102T150405Z", s.Value)
+			end, err := s.Date()
 			if err != nil {
 				return nil, err
 			}
@@ -69,13 +69,15 @@ func Parse(r io.ReadCloser) ([]Event, error) {
 
 type Scanner struct {
 	Key    string
+	Meta   string
 	Value  string
 	source *bufio.Scanner
 	buffer string
 	Err    error
 }
 
-var r = regexp.MustCompile(`^([^:]+):(.*)$`)
+var keyValueSplit = regexp.MustCompile(`^([^:]+):(.*)$`)
+var keyMetaSplit = regexp.MustCompile(`^([^;]+);(.*)$`)
 
 func (s *Scanner) Scan() bool {
 	if s.Err != nil {
@@ -103,15 +105,26 @@ func (s *Scanner) Scan() bool {
 		s.buffer = next
 		break
 	}
-	matches := r.FindStringSubmatch(line)
+	matches := keyValueSplit.FindStringSubmatch(line)
 	if len(matches) != 3 {
 		s.Err = fmt.Errorf("invalid line: %s", line)
 		return false
 	}
 	s.Key = matches[1]
 	s.Value = matches[2]
-
+	matches = keyMetaSplit.FindStringSubmatch(s.Key)
+	if len(matches) == 3 {
+		s.Key = matches[1]
+		s.Meta = matches[2]
+	}
 	return more
+}
+
+func (s *Scanner) Date() (time.Time, error) {
+	if len(s.Value) == 8 {
+		return time.Parse("20060102", s.Value)
+	}
+	return time.Parse("20060102T150405Z", s.Value)
 }
 
 type PerDay struct {
