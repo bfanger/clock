@@ -16,7 +16,7 @@ type Timer struct {
 	started  time.Time
 	scale    time.Duration
 	engine   *ui.Engine
-	gauge    *ui.Guage
+	gauge    *ui.Gauge
 	green    *ui.Image
 	orange   *ui.Image
 	done     chan bool
@@ -34,7 +34,7 @@ func NewTimer(e *ui.Engine) (*Timer, error) {
 	if err != nil {
 		return nil, err
 	}
-	t.gauge = ui.NewGuage(t.green, 0, 0)
+	t.gauge = ui.NewGauge(t.green, 0, 0)
 	t.Sprite = ui.NewSprite(t.gauge)
 	go t.tick()
 	return t, nil
@@ -62,8 +62,8 @@ func (t *Timer) Compose(r *sdl.Renderer) error {
 
 // SetDuration of the timer
 func (t *Timer) SetDuration(d time.Duration, scale time.Duration) error {
-	if d > 30*time.Minute {
-		return errors.Errorf("maximun duration of 30 min exceeded, got %v", d)
+	if d > time.Hour {
+		return errors.Errorf("maximum duration of 60 min exceeded, got %v", d)
 	}
 	if d <= 0 {
 		return errors.Errorf("invalid duration: %v", d)
@@ -113,7 +113,7 @@ func (t *Timer) tick() {
 		case <-t.done:
 			return
 		case <-time.After(time.Second):
-			if t.completed() == false {
+			if !t.completed() {
 				t.engine.Go(t.update)
 			}
 		}
@@ -133,6 +133,9 @@ func time2deg(t time.Time, scale time.Duration) float64 {
 		minute := float64(t.Minute()) // 6deg per minute
 		second := float64(t.Second()) // 0.1deg per sec
 		return minute*6 + (second / 10)
+
+	case time.Second:
+		return float64(t.Second()) * 6 // 6deg per second
 
 	default:
 		panic(fmt.Errorf("no time2deg for: %v", scale))

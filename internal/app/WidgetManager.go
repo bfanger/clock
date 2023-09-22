@@ -36,9 +36,8 @@ func NewWidgetManager(scene *ui.Container, e *ui.Engine) (*WidgetManager, error)
 	}
 	wm.Scene.Append(wm.background)
 
-	clock, err := NewAnalogClock(e)
-
 	// clock, err := NewDigitalClock(e)
+	clock, err := NewAnalogClock(e)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to create clock")
 	}

@@ -63,6 +63,9 @@ func (s *Server) notify(w http.ResponseWriter, r *http.Request) {
 					return err
 				}
 				n, err = NewGPSNotification(lat, lng, s.engine, s.wm.background)
+				if err != nil {
+					return err
+				}
 			} else {
 				n, err = NewBasicNotification(s.engine, icon, duration)
 			}

@@ -11,8 +11,8 @@ import (
 	"github.com/veandco/go-sdl2/ttf"
 )
 
+// var orange = sdl.Color{R: 203, G: 87, B: 0, A: 255}
 var white = sdl.Color{R: 255, G: 255, B: 255}
-var orange = sdl.Color{R: 203, G: 87, B: 0, A: 255}
 
 // DigitalClock displays the current time
 type DigitalClock struct {
@@ -23,7 +23,7 @@ type DigitalClock struct {
 	done   chan bool
 }
 
-// NewDigitalClock creats a new time widget
+// NewDigitalClock creates a new time widget
 func NewDigitalClock(engine *ui.Engine) (*DigitalClock, error) {
 	font, err := ttf.OpenFont(Asset("Roboto-Light.ttf"), 180)
 	if err != nil {

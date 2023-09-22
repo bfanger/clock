@@ -7,30 +7,29 @@ import (
 	"github.com/veandco/go-sdl2/sdl"
 )
 
-// Guage clips a pie piece from an Image.
-// @todo Add support for larger pieces than 180deg
-type Guage struct {
+// Gauge clips a pie piece from an Image.
+type Gauge struct {
 	imager Imager  // The source image
 	start  float64 // in degrees
 	end    float64 // in degrees
 	image  *Image
 }
 
-// NewGuage creates a new guage
-func NewGuage(i Imager, start, end float64) *Guage {
-	return &Guage{
+// NewGauge creates a new Gauge
+func NewGauge(i Imager, start, end float64) *Gauge {
+	return &Gauge{
 		start:  start,
 		end:    end,
 		imager: i}
 }
 
 // Close free the texture memory
-func (g *Guage) Close() error {
+func (g *Gauge) Close() error {
 	return g.needsUpdate()
 }
 
 // Image creates the texture based of the values
-func (g *Guage) Image(r *sdl.Renderer) (*Image, error) {
+func (g *Gauge) Image(r *sdl.Renderer) (*Image, error) {
 	if g.image != nil {
 		return g.image, nil
 	}
@@ -45,6 +44,7 @@ func (g *Guage) Image(r *sdl.Renderer) (*Image, error) {
 		start -= 360
 	}
 	size := end - start
+
 	diameter := int32(math.Max(float64(source.Frame.W), float64(source.Frame.H)))
 	radius := diameter / 2
 	g.image = &Image{Frame: sdl.Rect{W: diameter, H: diameter}}
@@ -56,14 +56,20 @@ func (g *Guage) Image(r *sdl.Renderer) (*Image, error) {
 	}
 	prevTarget := r.GetRenderTarget()
 	defer r.SetRenderTarget(prevTarget)
-	if size == 0 {
+	if size == 0 || size == 360 {
 		if err := r.SetRenderTarget(g.image.Texture); err != nil {
 			return nil, err
 		}
 		if err := r.Clear(); err != nil {
 			return nil, err
 		}
+		if size == 360 {
+			if err := r.Copy(source.Texture, &source.Frame, &source.Frame); err != nil {
+				return nil, err
+			}
+		}
 	} else {
+		// Render semi-circle rotated based on the start
 		offset, err := r.CreateTexture(sdl.PIXELFORMAT_RGBA8888, sdl.TEXTUREACCESS_TARGET, radius, diameter)
 		if err != nil {
 			return nil, errors.Wrap(err, "couldn't create offset texture")
@@ -80,22 +86,36 @@ func (g *Guage) Image(r *sdl.Renderer) (*Image, error) {
 		if err := r.CopyEx(source.Texture, &source.Frame, &pos, -start, nil, sdl.FLIP_NONE); err != nil {
 			return nil, err
 		}
-		limit, err := r.CreateTexture(sdl.PIXELFORMAT_RGBA8888, sdl.TEXTUREACCESS_TARGET, radius, diameter)
-		if err != nil {
-			return nil, errors.Wrap(err, "couldn't create limit texture")
-		}
-		defer limit.Destroy()
-		if err := r.SetRenderTarget(limit); err != nil {
-			return nil, err
-		}
-		if err := r.Clear(); err != nil {
-			return nil, err
-		}
+		var slice *sdl.Texture
 		src := &sdl.Rect{W: radius, H: diameter}
 		pivot := &sdl.Point{Y: radius}
-		if err := r.CopyEx(offset, src, src, 180-size, pivot, sdl.FLIP_NONE); err != nil {
-			return nil, err
+		var angle float64
+		if size >= 180 {
+			// Use the semi-circle
+			slice = offset
+			angle = start
+		} else {
+			// Clip the semi-circle into a pizza slice
+			angle = -180 + size + start
+			limit, err := r.CreateTexture(sdl.PIXELFORMAT_RGBA8888, sdl.TEXTUREACCESS_TARGET, radius, diameter)
+			if err != nil {
+				return nil, errors.Wrap(err, "couldn't create limit texture")
+			}
+			defer limit.Destroy()
+			if err := r.SetRenderTarget(limit); err != nil {
+				return nil, err
+			}
+			if err := r.Clear(); err != nil {
+				return nil, err
+			}
+			if err := r.CopyEx(offset, src, src, 180-size, pivot, sdl.FLIP_NONE); err != nil {
+				return nil, err
+			}
+			slice = limit
 		}
+
+		// Render the slice into the texture with with the same dimensions as the source
+		// rotated back so the pixel roughly match the original source.
 		if err := r.SetRenderTarget(g.image.Texture); err != nil {
 			return nil, err
 		}
@@ -103,33 +123,56 @@ func (g *Guage) Image(r *sdl.Renderer) (*Image, error) {
 			return nil, err
 		}
 		dst := &sdl.Rect{X: radius, W: radius, H: diameter}
-		if err := r.CopyEx(limit, src, dst, -180+size+start, pivot, sdl.FLIP_NONE); err != nil {
+		if err := r.CopyEx(slice, src, dst, angle, pivot, sdl.FLIP_NONE); err != nil {
 			return nil, err
+		}
+		if size > 180 {
+			// Render semi-circle into a half, clipping the based on the end rotation
+			overflow, err := r.CreateTexture(sdl.PIXELFORMAT_RGBA8888, sdl.TEXTUREACCESS_TARGET, radius, diameter)
+			if err != nil {
+				return nil, errors.Wrap(err, "couldn't create offset texture")
+			}
+			defer overflow.Destroy()
+			if err := r.SetRenderTarget(overflow); err != nil {
+				return nil, err
+			}
+			if err := r.Clear(); err != nil {
+				return nil, err
+			}
+			if err := r.CopyEx(source.Texture, &source.Frame, &pos, 180-end, nil, sdl.FLIP_NONE); err != nil {
+				return nil, err
+			}
+			if err := r.SetRenderTarget(g.image.Texture); err != nil {
+				return nil, err
+			}
+			if err := r.CopyEx(overflow, src, dst, end-180, pivot, sdl.FLIP_NONE); err != nil {
+				return nil, err
+			}
 		}
 	}
 	return g.image, nil
 }
 
 // SetImager source
-func (g *Guage) SetImager(i Imager) error {
+func (g *Gauge) SetImager(i Imager) error {
 	g.imager = i
 	return g.needsUpdate()
 }
 
 // SetStart angle in degrees
-func (g *Guage) SetStart(angle float64) error {
+func (g *Gauge) SetStart(angle float64) error {
 	g.start = angle
 	return g.needsUpdate()
 }
 
 // SetEnd angle in degrees
-func (g *Guage) SetEnd(angle float64) error {
+func (g *Gauge) SetEnd(angle float64) error {
 	g.end = angle
 	return g.needsUpdate()
 }
 
 // needsUpdate destroys the texture so the next call to Image() will generate a new image.
-func (g *Guage) needsUpdate() error {
+func (g *Gauge) needsUpdate() error {
 	if g.image != nil {
 		if err := g.image.Close(); err != nil {
 			return err

@@ -31,6 +31,13 @@ func main() {
 			Duration:     45 * time.Minute,
 			Repeat:       schedule.Daily(),
 		},
+		{
+			Notification: "sport",
+			Hour:         9,
+			Minute:       30,
+			Duration:     45 * time.Minute,
+			Repeat:       schedule.RepeatDays{Saturday: true},
+		},
 	}
 	for {
 		appointments := schedule.PlanRepeated(schema)
