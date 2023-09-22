@@ -18,7 +18,7 @@ func ImageWidth(i Imager, r *sdl.Renderer) (int32, error) {
 	return image.Frame.W, nil
 }
 
-// ImageHeight get the heigth of the image
+// ImageHeight get the height of the image
 func ImageHeight(i Imager, r *sdl.Renderer) (int32, error) {
 	image, err := i.Image(r)
 	if err != nil {

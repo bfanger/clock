@@ -63,7 +63,7 @@ func (t *Timer) Compose(r *sdl.Renderer) error {
 // SetDuration of the timer
 func (t *Timer) SetDuration(d time.Duration, scale time.Duration) error {
 	if d > 30*time.Minute {
-		return errors.Errorf("maximun duration of 30 min exceeded, got %v", d)
+		return errors.Errorf("maximum duration of 30 min exceeded, got %v", d)
 	}
 	if d <= 0 {
 		return errors.Errorf("invalid duration: %v", d)
@@ -113,7 +113,7 @@ func (t *Timer) tick() {
 		case <-t.done:
 			return
 		case <-time.After(time.Second):
-			if t.completed() == false {
+			if !t.completed() {
 				t.engine.Go(t.update)
 			}
 		}
@@ -133,6 +133,9 @@ func time2deg(t time.Time, scale time.Duration) float64 {
 		minute := float64(t.Minute()) // 6deg per minute
 		second := float64(t.Second()) // 0.1deg per sec
 		return minute*6 + (second / 10)
+
+	case time.Second:
+		return float64(t.Second()) * 6 // 6deg per second
 
 	default:
 		panic(fmt.Errorf("no time2deg for: %v", scale))

@@ -33,7 +33,7 @@ func NewGPSNotification(latitude, longitude float64, e *ui.Engine, c *ui.Contain
 	if gps.Map == nil {
 		key := os.Getenv("MAPTILER_KEY")
 		if key == "" {
-			return nil, errors.New("Invalid MAPTILER_KEY")
+			return nil, errors.New("invalid MAPTILER_KEY")
 		}
 		gps.Map = NewMap(key, e)
 		gps.Map.Alpha = 210
@@ -75,11 +75,11 @@ func NewGPSNotification(latitude, longitude float64, e *ui.Engine, c *ui.Contain
 	}, nil
 }
 
-// Wait until no there are no new notications for x minuts
+// Wait until no there are no new notifications for x minutes
 func (l *GPSNotification) Wait() {
 	if gps.Active == l {
 		for {
-			d := gps.Timeout - time.Now().Sub(gps.LastUpdate)
+			d := gps.Timeout - time.Since(gps.LastUpdate)
 			if d < 0 {
 				break
 			}

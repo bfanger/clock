@@ -36,6 +36,7 @@ func main() {
 	}
 	defer wm.Close()
 
+	addGauge(scene, engine)
 	if *fpsVisible {
 		font, err := ttf.OpenFont(app.Asset("Roboto-Light.ttf"), 24)
 		if err != nil {
@@ -66,5 +67,30 @@ func main() {
 	if err != nil {
 		app.Fatal(errors.Wrap(err, "eventloop exit"))
 	}
+
+}
+
+func addGauge(scene *ui.Container, engine *ui.Engine) {
+	conic, err := ui.ImageFromFile(app.Asset("conic.png"), engine.Renderer)
+	if err != nil {
+		app.Fatal(err)
+	}
+	gauge1 := ui.NewGuage(conic, -45, 45)
+	sprite1 := ui.NewSprite(gauge1)
+	scene.Append(sprite1)
+
+	gauge2 := ui.NewGuage(conic, 0, 200)
+	sprite2 := ui.NewSprite(gauge2)
+	sprite2.X = 300
+	scene.Append(sprite2)
+
+	// go engine.Animate(tween.FromTo(120, 270, 5*time.Second, tween.Linear, func(x float64) {
+	// 	gauge.SetStart(45)
+	// 	gauge.SetEnd(45 + x)
+	// }))
+
+	// sprite1.X = 180
+	// sprite1.Y = 30
+	// sprite1.SetScale(1.5)
 
 }

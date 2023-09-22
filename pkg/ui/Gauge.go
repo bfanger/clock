@@ -1,6 +1,7 @@
 package ui
 
 import (
+	"fmt"
 	"math"
 
 	"github.com/pkg/errors"
@@ -64,6 +65,7 @@ func (g *Guage) Image(r *sdl.Renderer) (*Image, error) {
 			return nil, err
 		}
 	} else {
+		// Render half of source, rotated based on the start
 		offset, err := r.CreateTexture(sdl.PIXELFORMAT_RGBA8888, sdl.TEXTUREACCESS_TARGET, radius, diameter)
 		if err != nil {
 			return nil, errors.Wrap(err, "couldn't create offset texture")
@@ -80,6 +82,7 @@ func (g *Guage) Image(r *sdl.Renderer) (*Image, error) {
 		if err := r.CopyEx(source.Texture, &source.Frame, &pos, -start, nil, sdl.FLIP_NONE); err != nil {
 			return nil, err
 		}
+		//
 		limit, err := r.CreateTexture(sdl.PIXELFORMAT_RGBA8888, sdl.TEXTUREACCESS_TARGET, radius, diameter)
 		if err != nil {
 			return nil, errors.Wrap(err, "couldn't create limit texture")
@@ -92,6 +95,7 @@ func (g *Guage) Image(r *sdl.Renderer) (*Image, error) {
 			return nil, err
 		}
 		src := &sdl.Rect{W: radius, H: diameter}
+		fmt.Printf("src: %v\n", src)
 		pivot := &sdl.Point{Y: radius}
 		if err := r.CopyEx(offset, src, src, 180-size, pivot, sdl.FLIP_NONE); err != nil {
 			return nil, err
