@@ -13,9 +13,9 @@ func main() {
 		{
 			Notification: "douche",
 			Hour:         19,
-			Minute:       35,
-			Duration:     40 * time.Minute,
-			Repeat:       schedule.RepeatDays{Tuesday: true, Thursday: true, Saturday: true},
+			Minute:       30,
+			Duration:     30 * time.Minute,
+			Repeat:       schedule.RepeatDays{Monday: true, Wednesday: true, Friday: true},
 		},
 		{
 			Notification: "bedtime-charlie",

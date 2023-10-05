@@ -54,7 +54,7 @@ func nextSchoolDay() (*schedule.Appointment, error) {
 	for _, d := range ical.GroupByDay(events) {
 		appointment := &schedule.Appointment{
 			Notification: "school",
-			At:           d.Date.Add(-45 * time.Minute),
+			At:           d.Date.Add(-50 * time.Minute),
 			Duration:     35 * time.Minute,
 			Timer:        30 * time.Minute,
 		}
