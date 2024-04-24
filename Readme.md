@@ -11,7 +11,7 @@ A "smart" clock written in [Go](https://golang.org) which runs on a [4.0 inch sc
 ## Setup
 
 ```sh
-go install github.com/mitranim/gow@latest
+go install github.com/bokwoon95/wgo@latest
 apt-get install libsdl2{,-mixer,-image,-ttf,-gfx}-dev
 go get -v github.com/veandco/go-sdl2/{sdl,img,ttf}
 go get -v github.com/bfanger/clock
@@ -21,7 +21,6 @@ go get -v github.com/bfanger/clock
 
 ```
 brew install pkg-config sdl2 sdl2_image sdl2_ttf
-go install github.com/mitranim/gow@latest
 ```
 
 ## Architecture / Design

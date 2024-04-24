@@ -4,12 +4,12 @@
   "private": true,
   "scripts": {
     "build": "go install ./cmd/clock",
-    "dev": "gow -c run ./cmd/clock",
-    "dev:race": "gow -c run -race ./cmd/clock",
-    "garbage-truck": "gow -c run ./cmd/garbage-truck",
-    "school-schedule": "gow -c run ./cmd/school-schedule",
-    "reminders": "gow -c run ./cmd/reminders",
-    "weather": "gow -c run ./cmd/weather",
+    "dev": "wgo go run ./cmd/clock",
+    "dev:race": "wgo go run -race ./cmd/clock",
+    "garbage-truck": "wgo go run ./cmd/garbage-truck",
+    "school-schedule": "wgo go run ./cmd/school-schedule",
+    "reminders": "wgo go run ./cmd/reminders",
+    "weather": "wgo go run ./cmd/weather",
     "test": "go test ./pkg/tween ./internal/app ./internal/schedule"
   }
 }
