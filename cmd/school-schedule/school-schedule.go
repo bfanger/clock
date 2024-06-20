@@ -52,17 +52,23 @@ func nextSchoolDay() (*schedule.Appointment, error) {
 	var appointments []*schedule.Appointment
 
 	for _, d := range ical.GroupByDay(events) {
+
 		appointment := &schedule.Appointment{
 			Notification: "school",
 			At:           d.Date.Add(-50 * time.Minute),
 			Duration:     35 * time.Minute,
 			Timer:        30 * time.Minute,
 		}
-		for _, e := range d.Events {
+		for i, e := range d.Events {
+			if i == 0 && e.Start.Hour() == 6 && e.End.Sub((e.Start)).Minutes() == 1 && e.Location == "verborgen" && strings.HasPrefix(e.Summary, "Gezamenlijke afspraak") {
+				// 40 minute roster
+				appointment.At = d.Date.Add(-25 * time.Minute)
+			}
 			if strings.Contains(e.Summary, " lo ") {
 				appointment.Notification = "gym"
 			}
 		}
+
 		appointments = append(appointments, appointment)
 	}
 
