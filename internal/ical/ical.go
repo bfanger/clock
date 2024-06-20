@@ -134,20 +134,22 @@ type PerDay struct {
 
 func GroupByDay(events []Event) []PerDay {
 	var grouped []PerDay
-	for _, c := range events {
+
+	for _, event := range events {
 		var day *PerDay
-		for _, d := range grouped {
-			if d.Date.In(time.Local).Format(time.DateOnly) == c.Start.In(time.Local).Format(time.DateOnly) {
-				day = &d
+		for i, d := range grouped {
+			if d.Date.Local().Format(time.DateOnly) == event.Start.Local().Format(time.DateOnly) {
+				day = &grouped[i]
+				break
 			}
 		}
 		if day == nil {
 			grouped = append(grouped, PerDay{
-				Date:   c.Start,
-				Events: []Event{c},
+				Date:   event.Start,
+				Events: []Event{event},
 			})
 		} else {
-			day.Events = append(day.Events, c)
+			day.Events = append(day.Events, event)
 		}
 	}
 	return grouped
