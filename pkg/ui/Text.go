@@ -55,7 +55,7 @@ func (t *Text) SetFont(f *ttf.Font) error {
 // Image convert the text into an image (and caches the result)
 func (t *Text) Image(r *sdl.Renderer) (*Image, error) {
 	if t.text == "" {
-		return nil, nil
+		return nil, errors.New("sd")
 	}
 	if t.image == nil {
 		if t.font == nil {

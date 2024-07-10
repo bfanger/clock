@@ -19,6 +19,7 @@ type WidgetManager struct {
 		Compose(*sdl.Renderer) error
 	}
 	timer            *Timer
+	volume           *Volume
 	splash           *Splash
 	background       *ui.Container
 	notifications    []Notification
@@ -41,9 +42,14 @@ func NewWidgetManager(scene *ui.Container, e *ui.Engine) (*WidgetManager, error)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to create clock")
 	}
+	volume, err := NewVolume(e)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to create volume")
+	}
 	wm.clock = clock
 	wm.timer = clock.timer
 	wm.Scene.Append(wm.clock)
+	wm.volume = volume
 	if wm.splash, err = NewSplash(e.Renderer); err != nil {
 		return nil, errors.Wrap(err, "failed to create splash")
 	}
@@ -58,6 +64,10 @@ func (wm *WidgetManager) Close() error {
 	}
 	wm.Scene.Remove(wm.splash)
 	if err := wm.splash.Close(); err != nil {
+		return err
+	}
+	wm.Scene.Remove(wm.volume)
+	if err := wm.volume.Close(); err != nil {
 		return err
 	}
 	// @todo use notificationLock?
@@ -115,4 +125,15 @@ func (wm *WidgetManager) ButtonPressed() {
 	wm.Scene.Append(wm.splash)
 	wm.engine.Animate(wm.splash.Splash())
 	wm.Scene.Remove(wm.splash)
+}
+
+// Show the volume indicator
+func (wm *WidgetManager) VolumeChanged(value int) {
+	wm.engine.Go(func() error {
+		wm.Scene.Remove(wm.volume)
+		wm.Scene.Append(wm.volume)
+		wm.volume.SetValue(value)
+		return nil
+	})
+
 }

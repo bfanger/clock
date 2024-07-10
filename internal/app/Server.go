@@ -13,10 +13,12 @@ import (
 type Server struct {
 	wm     *WidgetManager
 	engine *ui.Engine
+	volume *Volume
 }
 
 // NewServer creates a new webserver and creates the widgets controlled by the endpoints
 func NewServer(wm *WidgetManager, e *ui.Engine) *Server {
+
 	return &Server{wm: wm, engine: e}
 }
 
@@ -25,6 +27,8 @@ func (s *Server) ListenAndServe() {
 	http.HandleFunc("/", s.notify)
 	http.HandleFunc("/notify", s.notify)
 	http.HandleFunc("/button", s.button)
+	http.HandleFunc("/volume", s.volumeHandler)
+
 	if err := http.ListenAndServe(":8080", nil); err != nil {
 		panic(err)
 	}
@@ -107,6 +111,28 @@ func (s *Server) button(w http.ResponseWriter, r *http.Request) {
 			panic(err)
 		}
 		go s.wm.ButtonPressed()
+	}
+	w.Header().Add("Content-Type", "text/html")
+	if err := t.Execute(w, struct{}{}); err != nil {
+		panic(err)
+	}
+}
+
+func (s *Server) volumeHandler(w http.ResponseWriter, r *http.Request) {
+	defer r.Body.Close()
+	t, err := template.ParseFiles(Asset("volume.html"))
+	if err != nil {
+		panic(err)
+	}
+	if r.Method == "POST" {
+		if err := r.ParseForm(); err != nil {
+			panic(err)
+		}
+		value, err := strconv.Atoi(r.PostForm.Get("volume"))
+		if err != nil {
+			panic(err)
+		}
+		go s.wm.VolumeChanged(value)
 	}
 	w.Header().Add("Content-Type", "text/html")
 	if err := t.Execute(w, struct{}{}); err != nil {

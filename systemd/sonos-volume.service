@@ -1,0 +1,15 @@
+[Unit]
+Description=Sonon Volume
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=pi
+WorkingDirectory=/home/pi/clock
+ExecStart=/home/pi/go/bin/sonos-volume
+Restart=on-failure
+RestartSec=15s
+
+[Install]
+WantedBy=multi-user.target

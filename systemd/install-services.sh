@@ -20,3 +20,7 @@ sudo systemctl enable garbage-truck
 go install -v ~/clock/cmd/weather/weather.go
 sudo ln -s ~/clock/systemd/weather.service /etc/systemd/system/weather.service
 sudo systemctl enable weather
+# sonos-volume (Show the volume of the sonos speaker)
+go install -v ~/clock/cmd/sonos-volume/sonos-volume.go
+sudo ln -s ~/clock/systemd/sonos-volume.service /etc/systemd/system/sonos-volume.service
+sudo systemctl enable sonos-volume
