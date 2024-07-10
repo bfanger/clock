@@ -7,11 +7,15 @@ package sonos
 import (
 	"bytes"
 	"encoding/xml"
+	"errors"
 	"io"
 	"net"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
+
+	"golang.org/x/net/html"
 )
 
 type Speaker struct {
@@ -70,8 +74,9 @@ func FindRoom(room string) (*Speaker, error) {
 	}
 }
 
+// Get the current volume of the speaker
 func (s *Speaker) GetVolume() (int, error) {
-	res, err := s.request("GetVolume", map[string]string{
+	res, err := s.request("RenderingControl", "GetVolume", map[string]string{
 		"InstanceID": "0",
 		"Channel":    "Master",
 	})
@@ -87,14 +92,58 @@ func (s *Speaker) GetVolume() (int, error) {
 	return response.CurrentVolume, err
 }
 
-func (s *Speaker) request(action string, variables map[string]string) (string, error) {
-	url := "http://" + s.IP.String() + ":1400/MediaRenderer/RenderingControl/Control"
-	req, err := http.NewRequest("POST", url, bytes.NewBufferString(requestBody(action, variables)))
+// Start http server and register callback for (volume) events
+func (s *Speaker) HandleVolumeEvents(fn func(int)) error {
+	ip, err := localIP()
+	if err != nil {
+		return err
+	}
+	request, err := http.NewRequest("SUBSCRIBE", "http://"+s.IP.String()+":1400/MediaRenderer/RenderingControl/Event", bytes.NewBufferString(""))
+	if err != nil {
+		return err
+	}
+	request.Header.Set("callback", "<http://"+ip.String()+":4444/notify>")
+	request.Header.Set("NT", "upnp:event")
+	request.Header.Set("Timeout", "Second-1800")
+	res, err := http.DefaultClient.Do(request)
+	if err != nil {
+		return err
+	}
+	res.Body.Close()
+
+	return http.ListenAndServe(":4444", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		defer r.Body.Close()
+		if r.Method != "NOTIFY" || r.URL.Path != "/notify" {
+			w.WriteHeader(http.StatusNotFound)
+			w.Write([]byte("Not Found"))
+			return
+		}
+
+		bytes, err := io.ReadAll(r.Body)
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte("Internal Server Error"))
+			return
+		}
+		volume, err := parseVolumeEvent(string(bytes))
+
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			w.Write([]byte("Internal Server Error"))
+		}
+		w.Write([]byte("OK"))
+		fn(volume)
+	}))
+}
+
+func (s *Speaker) request(control string, action string, variables map[string]string) (string, error) {
+	url := "http://" + s.IP.String() + ":1400/MediaRenderer/" + control + "/Control"
+	req, err := http.NewRequest("POST", url, bytes.NewBufferString(requestBody(control, action, variables)))
 	if err != nil {
 		return "", err
 	}
 	req.Header.Set("Content-Type", "text/xml; charset=utf8")
-	req.Header.Set("SOAPAction", "urn:schemas-upnp-org:service:RenderingControl:1#"+action)
+	req.Header.Set("SOAPAction", "urn:schemas-upnp-org:service:"+control+":1#"+action)
 	res, err := http.DefaultClient.Do(req)
 	if err != nil {
 		return "", err
@@ -111,9 +160,9 @@ func (s *Speaker) request(action string, variables map[string]string) (string, e
 	return result[start:end], nil
 }
 
-func requestBody(action string, variables map[string]string) string {
+func requestBody(control string, action string, variables map[string]string) string {
 	request := "<?xml version=\"1.0\" ?>\n<s:Envelope s:encodingStyle=\"http://schemas.xmlsoap.org/soap/encoding/\" xmlns:s=\"http://schemas.xmlsoap.org/soap/envelope/\">\n  <s:Body>\n"
-	request += "    <u:" + action + " xmlns:u=\"urn:schemas-upnp-org:service:RenderingControl:1\">\n"
+	request += "    <u:" + action + " xmlns:u=\"urn:schemas-upnp-org:service:" + control + ":1\">\n"
 	for k, v := range variables {
 		request += "      <" + k + ">" + v + "</" + k + ">\n"
 	}
@@ -121,4 +170,42 @@ func requestBody(action string, variables map[string]string) string {
 	request += "  </s:Body>\n</s:Envelope>"
 	return request
 
+}
+
+func localIP() (net.IP, error) {
+	addresses, err := net.InterfaceAddrs()
+	if err != nil {
+		return nil, err
+	}
+
+	for _, addr := range addresses {
+		if ipnet, ok := addr.(*net.IPNet); ok && !ipnet.IP.IsLoopback() {
+			if ipnet.IP.To4() != nil {
+				return ipnet.IP, nil
+			}
+		}
+	}
+	return nil, errors.New("no IP address found")
+
+}
+
+func parseVolumeEvent(request string) (int, error) {
+
+	start := strings.Index(request, "<LastChange>") + 12
+	end := strings.LastIndex(request, "</LastChange>")
+	if end == -1 {
+		return -1, errors.New("could not find <LastChange> tag")
+	}
+	decoded := html.UnescapeString(request[start:end])
+
+	start = strings.Index(decoded, `<Volume channel="Master" val="`)
+	if start == -1 {
+		return 0, errors.New("could not find <Volume> tag")
+	}
+	decoded = decoded[start+30:]
+	end = strings.Index(decoded, `"`)
+	if end == -1 {
+		return 0, errors.New("could not find closing quote")
+	}
+	return strconv.Atoi(decoded[:end])
 }

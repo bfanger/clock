@@ -14,12 +14,10 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	volume, err := speaker.GetVolume()
+	err = speaker.HandleVolumeEvents(sendVolume)
 	if err != nil {
 		panic(err)
 	}
-	sendVolume(volume)
-
 }
 
 func sendVolume(volume int) {
