@@ -43,7 +43,7 @@ const fontSize = 60 * scale
 
 var color = sdl.Color{R: 202, G: 214, B: 217, A: 255}
 
-// NewAnalogClock creats a new time widget
+// NewAnalogClock creates a new time widget
 func NewAnalogClock(engine *ui.Engine) (*AnalogClock, error) {
 	c := &AnalogClock{
 		engine:    engine,
