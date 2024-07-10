@@ -2,6 +2,8 @@
 
 A "smart" clock written in [Go](https://golang.org) which runs on a [4.0 inch screen](https://shop.pimoroni.com/products/hyperpixel-4) connected to a [Raspberry Pi Zero W](https://www.raspberrypi.org/)
 
+![Time for feeding the fish and going to bed](./screenshot.png)
+
 ## Goal
 
 - Show time
@@ -29,7 +31,7 @@ An abstraction on top of SDL to make an efficient event-based ui.
 
 ### Lazy execution
 
-Allow work to be deferred until the result are needed. This allows freely changing individual properties of a layer without causing an updated texture for every change.
+Allow work is deferred until the results are needed. This allows freely changing individual properties of a layer without causing an updated texture for every change.
 
 The actual work is performed when a `Image(\*sdl.Renderer)` via `Compose(\*sdl.Renderer)` is called.
 The resulting texture is cached, so drawing the next frame will be even faster.
@@ -56,40 +58,40 @@ The Composer is responsible for rendering the texture(s) onto the screen
 
 #### Engine
 
-Composers are added to Scene in the Engine and are rendered automaticly.
-All UI operation should be wrapped in a `engine.Go()` closure which are batched and executed in the main/ui thread.
+Composers are added to a Scene in the Engine and are rendered automatically.
+All UI operations should be wrapped in a `engine.Go()` closure which are batched and executed in the main/ui thread.
 A useful side-effect of calling engine.Go is that it will trigger a re-render.
 
 # Getting latest SDL on Raspberry OS
 
-Download latest [libsdl2 source](https://www.libsdl.org/download-2.0.php)
-(2.0.14 at the time of writing)
+Download latest [libsdl2 source](https://github.com/libsdl-org/SDL/releases)
+(2.30.5 at the time of writing)
 
-```
-unzip SDL2-2.0.14.zip
-cd SDL2-2.0.14
+```sh
+tar -xvf ./SDL2-2.30.5.tar.gz
+cd SDL2-2.30.5
 ./configure
 make
 sudo chmod -R pi /usr/local
 make install
 ```
 
-Download [SDL_image](https://www.libsdl.org/projects/SDL_image/)
+Download [SDL_image](https://github.com/libsdl-org/SDL_image/releases)
 
-```
+```sh
 sudo apt install libjpeg-dev libtiff-dev
-tar -xvf ./SDL2_image-2.0.5.tar.gz
-cd SDL2_image-2.0.5
+tar -xvf ./SDL2_image-2.8.2.tar.gz
+cd SDL2_image-2.8.2
 ./configure
 make
 make install
 ```
 
-and [SDL_ttf](https://www.libsdl.org/projects/SDL_ttf/)
+and [SDL_ttf](https://github.com/libsdl-org/SDL_ttf/releases)
 
-```
-tar -xvf ./SDL2_ttf-2.0.15.tar.gz
-cd SDL2_ttf-2.0.15
+```sh
+tar -xvf ./SDL2_ttf-2.22.0.tar.gz
+cd SDL2_ttf-2.22.0
 ./configure
 make
 make install
@@ -97,7 +99,7 @@ make install
 
 Remove the packaged version:
 
-```
+```sh
 sudo apt-get remove libsdl2{,-mixer,-image,-ttf,-gfx}-dev
 sudo apt-get remove libsdl2{,-mixer,-image,-ttf}-2.0
 ```
