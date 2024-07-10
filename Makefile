@@ -16,10 +16,10 @@ setup:
 
 install:
 	go install ${static} ./cmd/clock
-	go install ./cmd/garbage-truck
-	go install ./cmd/school-schedule
-	go install ./cmd/reminders
-	go install ./cmd/weather
+	go install ${static} ./cmd/garbage-truck
+	go install ${static} ./cmd/school-schedule
+	go install ${static} ./cmd/reminders
+	go install ${static} ./cmd/weather
 
 dev:
 	wgo run ${static} ./cmd/clock

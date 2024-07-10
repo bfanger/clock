@@ -8,6 +8,7 @@ import (
 	"bytes"
 	"encoding/xml"
 	"errors"
+	"fmt"
 	"io"
 	"net"
 	"net/http"
@@ -98,18 +99,24 @@ func (s *Speaker) HandleVolumeEvents(fn func(int)) error {
 	if err != nil {
 		return err
 	}
-	request, err := http.NewRequest("SUBSCRIBE", "http://"+s.IP.String()+":1400/MediaRenderer/RenderingControl/Event", bytes.NewBufferString(""))
-	if err != nil {
-		return err
-	}
-	request.Header.Set("callback", "<http://"+ip.String()+":4444/notify>")
-	request.Header.Set("NT", "upnp:event")
-	request.Header.Set("Timeout", "Second-1800")
-	res, err := http.DefaultClient.Do(request)
-	if err != nil {
-		return err
-	}
-	res.Body.Close()
+	go func() {
+		for {
+			request, err := http.NewRequest("SUBSCRIBE", "http://"+s.IP.String()+":1400/MediaRenderer/RenderingControl/Event", bytes.NewBufferString(""))
+			if err != nil {
+				panic(err)
+			}
+			request.Header.Set("callback", "<http://"+ip.String()+":4444/notify>")
+			request.Header.Set("NT", "upnp:event")
+			request.Header.Set("Timeout", "Second-1800")
+			res, err := http.DefaultClient.Do(request)
+			if err != nil {
+				panic(err)
+			}
+			res.Body.Close()
+			fmt.Printf("Listening to events from \"%s\"\n", s.Room)
+			time.Sleep(time.Second * 1800)
+		}
+	}()
 
 	return http.ListenAndServe(":4444", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		defer r.Body.Close()

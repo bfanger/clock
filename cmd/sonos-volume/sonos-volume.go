@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"net/url"
 
+	"github.com/bfanger/clock/internal/app"
 	"github.com/bfanger/clock/internal/sonos"
 )
 
@@ -12,24 +13,23 @@ var room = "Woonkamer"
 
 func main() {
 	speaker, err := sonos.FindRoom(room)
-	fmt.Printf("Found: %s\n", speaker.Name)
+	fmt.Printf("Found: \"%s\" (%s) in \"%s\"\n", speaker.Name, speaker.IP.String(), speaker.Room)
 	if err != nil {
-		panic(err)
+		app.Fatal(err)
 	}
-	err = speaker.HandleVolumeEvents(func(volume int) { sendVolume(volume) })
+	err = speaker.HandleVolumeEvents(sendVolume)
 	if err != nil {
-		panic(err)
+		app.Fatal(err)
 	}
 }
 
-func sendVolume(volume int) error {
-	fmt.Printf("Sonos volume: %d\n", volume)
+func sendVolume(volume int) {
+	fmt.Printf("Volume: %d\n", volume)
 	data := url.Values{}
 	data.Set("volume", fmt.Sprintf("%d", volume))
 	r, err := http.PostForm("http://localhost:8080/volume", data)
 	if err != nil {
-		return err
+		app.Fatal(err)
 	}
 	defer r.Body.Close()
-	return nil
 }
