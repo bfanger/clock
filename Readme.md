@@ -1,6 +1,6 @@
 # Clock
 
-A "smart" clock written in [Go](https://golang.org) which runs on a [4.0 inch screen](https://shop.pimoroni.com/products/hyperpixel-4) connected to a [Raspberry Pi Zero W](https://www.raspberrypi.org/)
+A "smart" clock written in [Go](https://golang.org) which runs on a [4.0 inch screen](https://shop.pimoroni.com/products/hyperpixel-4) connected to a [Raspberry Pi](https://www.raspberrypi.org/)
 
 ![Time for feeding the fish and going to bed](./screenshot.png)
 

@@ -32,9 +32,7 @@ func NewWidgetManager(scene *ui.Container, e *ui.Engine) (*WidgetManager, error)
 	wm := &WidgetManager{engine: e, Scene: scene}
 	var err error
 	wm.background = &ui.Container{}
-	if err != nil {
-		return nil, err
-	}
+
 	wm.Scene.Append(wm.background)
 
 	// clock, err := NewDigitalClock(e)
@@ -42,14 +40,16 @@ func NewWidgetManager(scene *ui.Container, e *ui.Engine) (*WidgetManager, error)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to create clock")
 	}
+	wm.timer = clock.timer
+	wm.clock = clock
+	wm.Scene.Append(clock)
+
 	volume, err := NewVolume(e)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to create volume")
 	}
-	wm.clock = clock
-	wm.timer = clock.timer
-	wm.Scene.Append(wm.clock)
 	wm.volume = volume
+
 	if wm.splash, err = NewSplash(e.Renderer); err != nil {
 		return nil, errors.Wrap(err, "failed to create splash")
 	}
