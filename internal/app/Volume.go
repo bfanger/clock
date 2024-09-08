@@ -15,15 +15,21 @@ var volumeText = sdl.Color{R: 200, G: 200, B: 200}
 
 // Volume displays the volume
 type Volume struct {
-	visible   bool
 	value     int
 	engine    *ui.Engine
 	container *ui.Container
 	font      *ttf.Font
 	text      *ui.Text
-	full      *ui.Image
-	empty     *ui.Image
 	clip      *ui.Clip
+	images    struct {
+		empty *ui.Image
+		full  *ui.Image
+	}
+	sprites struct {
+		empty *ui.Sprite
+		full  *ui.Sprite
+		text  *ui.Sprite
+	}
 }
 
 // NewVolume creates a new time widget
@@ -37,46 +43,49 @@ func NewVolume(engine *ui.Engine) (*Volume, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "unable to open font")
 	}
-	v.empty, err = ui.ImageFromFile(Asset("volume-bar/volume-empty.png"), engine.Renderer)
+	v.images.empty, err = ui.ImageFromFile(Asset("volume-bar/volume-empty.png"), engine.Renderer)
 	if err != nil {
 		return nil, err
 	}
-	sprite := ui.NewSprite(v.empty)
-	sprite.X = screenWidth
-	sprite.AnchorX = 1
-	v.container.Append(sprite)
-	v.full, err = ui.ImageFromFile(Asset("volume-bar/volume-full.png"), engine.Renderer)
+	empty := ui.NewSprite(v.images.empty)
+	empty.X = screenWidth
+	empty.AnchorX = 1
+	v.sprites.empty = empty
+	v.container.Append(empty)
+
+	v.images.full, err = ui.ImageFromFile(Asset("volume-bar/volume-full.png"), engine.Renderer)
 	if err != nil {
 		return nil, err
 	}
 
-	sprite = ui.NewSprite(v.full)
-	sprite.X = screenWidth
-	sprite.AnchorX = 1
+	full := ui.NewSprite(v.images.full)
+	full.X = screenWidth
+	full.AnchorX = 1
+	v.sprites.full = full
 	v.clip = &ui.Clip{
 		Rect:     &sdl.Rect{X: 0, Y: screenHeight - 1, W: screenWidth, H: screenHeight},
-		Composer: sprite,
+		Composer: full,
 	}
 	v.container.Append(v.clip)
 
 	v.text = ui.NewText("0", v.font, volumeText)
-	sprite = ui.NewSprite(v.text)
-	sprite.X = screenWidth - 60
-	sprite.Y = screenHeight - 80
-	sprite.AnchorX = 1
-	sprite.AnchorY = 0.5
-	v.container.Append(sprite)
-	v.SetValue(0)
+	text := ui.NewSprite(v.text)
+	text.X = screenWidth - 60
+	text.Y = screenHeight - 80
+	text.AnchorX = 1
+	text.AnchorY = 0.5
+	v.sprites.text = text
+	v.container.Append(text)
 	return v, nil
 }
 
 // Close free resources
 func (v *Volume) Close() error {
 	v.font.Close()
-	if err := v.empty.Close(); err != nil {
+	if err := v.images.empty.Close(); err != nil {
 		return err
 	}
-	if err := v.full.Close(); err != nil {
+	if err := v.images.full.Close(); err != nil {
 		return err
 	}
 	if err := v.text.Close(); err != nil {
@@ -87,10 +96,13 @@ func (v *Volume) Close() error {
 
 // Update the volume indicator value
 func (v *Volume) SetValue(value int) {
+	if v.value == value {
+		return
+	}
 	v.value = value
 	v.text.SetText(fmt.Sprintf("%d", value))
+	v.sprites.text.SetAlpha(255)
 
-	v.visible = true
 	height := 0
 
 	if value < 20 {
@@ -104,22 +116,34 @@ func (v *Volume) SetValue(value int) {
 	height += padding * 2
 	target := screenHeight - int32(height)
 	if target == screenHeight {
-		// Weird bug where the clip rect is not working
-		target -= 1
+		target -= 1 // Fixes a weird bug where the clip is not working
 	}
-
+	go v.engine.Animate(tween.FromTo(v.clip.Y, target, 300*time.Millisecond, tween.EaseOutQuad, func(y int32) {
+		if v.value == value {
+			v.clip.Y = y
+		}
+	}))
+	go v.engine.Animate(tween.FromTo(v.sprites.empty.GetAlpha(), 255, 300*time.Millisecond, tween.Linear, func(alpha uint8) {
+		if v.value == value {
+			v.sprites.empty.SetAlpha(alpha)
+		}
+	}))
+	go v.engine.Animate(tween.FromTo(v.sprites.full.GetAlpha(), 255, 100*time.Millisecond, tween.Linear, func(alpha uint8) {
+		if v.value == value {
+			v.sprites.full.SetAlpha(alpha)
+		}
+	}))
 	go func() {
-		v.engine.Animate(tween.FromTo(v.clip.Y, target, 300*time.Millisecond, tween.EaseOutQuad, func(y int32) {
-			if value == v.value {
-				v.clip.Y = y
-			}
-		}))
-		time.Sleep(time.Second)
+		time.Sleep(1750 * time.Millisecond)
 		if value == v.value {
-			v.engine.Go(func() error {
-				v.visible = false
-				return nil
-			})
+			v.engine.Animate(tween.FromTo(v.sprites.empty.GetAlpha(), 0, 1500*time.Millisecond, tween.Linear, func(alpha uint8) {
+				if v.value == value {
+					v.sprites.empty.SetAlpha(alpha)
+					v.sprites.full.SetAlpha(alpha)
+					v.sprites.text.SetAlpha(alpha)
+				}
+			}))
+
 		}
 	}()
 
@@ -127,7 +151,7 @@ func (v *Volume) SetValue(value int) {
 
 // Compose renders the volume indicator
 func (v *Volume) Compose(r *sdl.Renderer) error {
-	if !v.visible {
+	if v.sprites.text.GetAlpha() == 0 {
 		return nil
 	}
 	return v.container.Compose(r)

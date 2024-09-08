@@ -88,3 +88,7 @@ func (s *Sprite) SetAlpha(a uint8) {
 		s.image = nil
 	}
 }
+
+func (s *Sprite) GetAlpha() uint8 {
+	return s.alpha
+}
