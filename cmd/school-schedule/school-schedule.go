@@ -14,7 +14,14 @@ import (
 	"github.com/pkg/errors"
 )
 
+var nl *time.Location
+
 func main() {
+	var err error
+	nl, err = time.LoadLocation("Europe/Amsterdam")
+	if err != nil {
+		app.Fatal(err)
+	}
 	for {
 		appointment, err := nextSchoolDay()
 		if err != nil {
@@ -60,7 +67,7 @@ func nextSchoolDay() (*schedule.Appointment, error) {
 			Timer:        30 * time.Minute,
 		}
 		for i, e := range d.Events {
-			if i == 0 && e.Start.Hour() == 6 && e.End.Sub((e.Start)).Minutes() == 1 && e.Location == "verborgen" && strings.HasPrefix(e.Summary, "Gezamenlijke afspraak") {
+			if i == 0 && e.Start.In(nl).Hour() == 8 && e.End.Sub((e.Start)).Minutes() == 1 && e.Location == "verborgen" && strings.HasPrefix(e.Summary, "Gezamenlijke afspraak") {
 				// 40 minute roster
 				appointment.At = d.Date.Add(-25 * time.Minute)
 			}
