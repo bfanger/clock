@@ -112,6 +112,7 @@ func (a *RepeatedAppointment) repeatedWeekdays() map[time.Weekday]bool {
 func PlanRepeated(schema []*RepeatedAppointment) []*Appointment {
 	return planRepeatedAfter(schema, time.Now())
 }
+
 func planRepeatedAfter(schema []*RepeatedAppointment, after time.Time) []*Appointment {
 	var planned []*Appointment
 	for _, a := range schema {
@@ -129,6 +130,7 @@ func planRepeatedAfter(schema []*RepeatedAppointment, after time.Time) []*Appoin
 func Upcoming(appointments []*Appointment) []*Appointment {
 	return upcomingAfter(appointments, time.Now())
 }
+
 func upcomingAfter(appointments []*Appointment, datetime time.Time) []*Appointment {
 	var upcoming []*Appointment
 	for _, a := range appointments {

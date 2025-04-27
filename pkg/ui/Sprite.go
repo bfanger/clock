@@ -24,7 +24,8 @@ func NewSprite(imager Imager) *Sprite {
 		ScaleX: 1,
 		ScaleY: 1,
 		alpha:  255,
-		dst:    &sdl.Rect{}}
+		dst:    &sdl.Rect{},
+	}
 }
 
 // Compose the sprite

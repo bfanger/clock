@@ -18,8 +18,7 @@ type Event struct {
 	End         time.Time
 }
 
-func Parse(r io.ReadCloser) ([]Event, error) {
-	defer r.Close()
+func Parse(r io.Reader) ([]Event, error) {
 	s := &Scanner{source: bufio.NewScanner(r)}
 	var events []Event
 	var event *Event
@@ -76,8 +75,10 @@ type Scanner struct {
 	Err    error
 }
 
-var keyValueSplit = regexp.MustCompile(`^([^:]+):(.*)$`)
-var keyMetaSplit = regexp.MustCompile(`^([^;]+);(.*)$`)
+var (
+	keyValueSplit = regexp.MustCompile(`^([^:]+):(.*)$`)
+	keyMetaSplit  = regexp.MustCompile(`^([^;]+);(.*)$`)
+)
 
 func (s *Scanner) Scan() bool {
 	if s.Err != nil {

@@ -1,0 +1,35 @@
+version: "2"
+run:
+  concurrency: 8
+  allow-parallel-runners: true
+
+output:
+  formats:
+    text:
+      path: stdout
+linters:
+  enable:
+    - bodyclose
+    - dupl
+    - goconst
+    - nakedret
+    - revive
+    - tparallel
+    - unconvert
+  disable:
+    - errcheck
+  settings:
+    revive:
+      rules:
+        - name: exported
+          disabled: true
+    staticcheck:
+      checks:
+        - -S1000
+issues:
+  max-issues-per-linter: 0
+  max-same-issues: 0
+formatters:
+  enable:
+    - gofumpt
+    - goimports

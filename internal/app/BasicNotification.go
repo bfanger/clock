@@ -33,7 +33,8 @@ func NewBasicNotification(engine *ui.Engine, icon string, d time.Duration) (*Bas
 		image:    image,
 		sprite:   sprite,
 		duration: d,
-		engine:   engine}, nil
+		engine:   engine,
+	}, nil
 }
 
 // Close free memory used by the Notification

@@ -23,7 +23,6 @@ func main() {
 	engine.Wait = time.Second / 120 // Limit framerate (VSYNC doesn't work on macOS Mohave)
 
 	err = engine.EventLoop(func(event sdl.Event) {
-
 	})
 	if err != nil {
 		app.Fatal(errors.Wrap(err, "event loop"))

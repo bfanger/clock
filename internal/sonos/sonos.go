@@ -133,7 +133,6 @@ func (s *Speaker) HandleVolumeEvents(fn func(int)) error {
 			return
 		}
 		volume, err := parseVolumeEvent(string(bytes))
-
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Write([]byte("Internal Server Error"))
@@ -176,7 +175,6 @@ func requestBody(control string, action string, variables map[string]string) str
 	request += "    </u:" + action + ">\n"
 	request += "  </s:Body>\n</s:Envelope>"
 	return request
-
 }
 
 func localIP() (net.IP, error) {
@@ -193,11 +191,9 @@ func localIP() (net.IP, error) {
 		}
 	}
 	return nil, errors.New("no IP address found")
-
 }
 
 func parseVolumeEvent(request string) (int, error) {
-
 	start := strings.Index(request, "<LastChange>") + 12
 	end := strings.LastIndex(request, "</LastChange>")
 	if end == -1 {

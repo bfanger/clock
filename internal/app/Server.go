@@ -13,12 +13,10 @@ import (
 type Server struct {
 	wm     *WidgetManager
 	engine *ui.Engine
-	volume *Volume
 }
 
 // NewServer creates a new webserver and creates the widgets controlled by the endpoints
 func NewServer(wm *WidgetManager, e *ui.Engine) *Server {
-
 	return &Server{wm: wm, engine: e}
 }
 
@@ -41,7 +39,7 @@ type formViewModel struct {
 func (s *Server) notify(w http.ResponseWriter, r *http.Request) {
 	vm := formViewModel{}
 	defer r.Body.Close()
-	if r.Method == "POST" {
+	if r.Method == http.MethodPost {
 		if err := r.ParseForm(); err != nil {
 			panic(err)
 		}

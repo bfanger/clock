@@ -52,6 +52,7 @@ func nextSchoolDay() (*schedule.Appointment, error) {
 	if err != nil {
 		return nil, err
 	}
+	defer r.Body.Close()
 	events, err := ical.Parse(r.Body)
 	if err != nil {
 		return nil, err
@@ -84,5 +85,4 @@ func nextSchoolDay() (*schedule.Appointment, error) {
 		return nil, errors.New("outdated calender")
 	}
 	return planned[0], nil
-
 }

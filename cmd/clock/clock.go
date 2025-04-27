@@ -52,7 +52,6 @@ func main() {
 		switch e := event.(type) {
 		case *sdl.MouseButtonEvent:
 			if e.Type == sdl.MOUSEBUTTONDOWN {
-
 				go wm.ButtonPressed()
 				// go func() {
 				// 	if err := app.ShowNotification("vis", 10*time.Second); err != nil {
@@ -67,5 +66,4 @@ func main() {
 	if err != nil {
 		app.Fatal(errors.Wrap(err, "eventloop exit"))
 	}
-
 }

@@ -25,7 +25,8 @@ func NewSplash(r *sdl.Renderer) (*Splash, error) {
 
 	return &Splash{
 		image:  image,
-		sprite: sprite}, nil
+		sprite: sprite,
+	}, nil
 }
 
 // Close free memory used by the Splash

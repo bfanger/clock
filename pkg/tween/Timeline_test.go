@@ -27,7 +27,6 @@ func TestDuration(t *testing.T) {
 		d = tl.Duration()
 		assert.Equal(2*time.Second, d)
 	})
-
 }
 
 func TestLogic(t *testing.T) {
@@ -69,6 +68,7 @@ func TestLogic(t *testing.T) {
 		assert.Equal(151, x3)
 	})
 }
+
 func TestFunc(t *testing.T) {
 	t.Run("timeline should call func", func(t *testing.T) {
 		assert := assert.New(t)

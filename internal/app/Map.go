@@ -44,7 +44,8 @@ func NewMap(key string, e *ui.Engine) *Map {
 		key:       key,
 		engine:    e,
 		tiles:     make(map[int]map[int]*ui.Image),
-		downloads: make(map[string]bool)}
+		downloads: make(map[string]bool),
+	}
 }
 
 // Close map and free memory used by the tiles

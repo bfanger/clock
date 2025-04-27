@@ -48,7 +48,8 @@ func NewGPSNotification(latitude, longitude float64, e *ui.Engine, c *ui.Contain
 		gps.Marker = &Marker{
 			Latitude:  52.4900311,
 			Longitude: 4.7602125,
-			Sprite:    ui.NewSprite(home)}
+			Sprite:    ui.NewSprite(home),
+		}
 		gps.Marker.Sprite.AnchorX = 0.5
 		gps.Marker.Sprite.AnchorY = 0.5
 		gps.Map.Markers = append(gps.Map.Markers, gps.Marker)
@@ -61,7 +62,8 @@ func NewGPSNotification(latitude, longitude float64, e *ui.Engine, c *ui.Contain
 		gps.Marker = &Marker{
 			Latitude:  latitude,
 			Longitude: longitude,
-			Sprite:    ui.NewSprite(charlie)}
+			Sprite:    ui.NewSprite(charlie),
+		}
 		gps.Marker.Sprite.AnchorX = 0.5
 		gps.Marker.Sprite.AnchorY = 0.5
 		gps.Map.Markers = append(gps.Map.Markers, gps.Marker)

@@ -44,7 +44,8 @@ func NewDigitalClock(engine *ui.Engine) (*DigitalClock, error) {
 		text:   text,
 		font:   font,
 		sprite: sprite,
-		done:   make(chan bool)}
+		done:   make(chan bool),
+	}
 
 	if err := c.updateTime(); err != nil {
 		return nil, err

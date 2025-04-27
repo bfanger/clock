@@ -4,11 +4,13 @@ import (
 	"github.com/veandco/go-sdl2/sdl"
 )
 
-const SCREEN_WIDTH = 800
-const SCREEN_HEIGHT = 480
+const (
+	SCREEN_WIDTH  = 800
+	SCREEN_HEIGHT = 480
+)
 
 func main() {
-	//Initialize SDL
+	// Initialize SDL
 	if err := sdl.Init(sdl.INIT_VIDEO); err != nil {
 		panic(err)
 	}
@@ -21,10 +23,10 @@ func main() {
 	// if err != nil {
 	// 	return nil, errors.Wrap(err, "could not create renderer")
 	// }
-	//The surface contained by the window
+	// The surface contained by the window
 	// SDL_Surface* screenSurface = NULL;
 
-	//Create window
+	// Create window
 	window, err := sdl.CreateWindow("SDL Tutorial", sdl.WINDOWPOS_UNDEFINED, sdl.WINDOWPOS_UNDEFINED, SCREEN_WIDTH, SCREEN_HEIGHT, sdl.WINDOW_FULLSCREEN|sdl.WINDOW_SHOWN|sdl.WINDOW_OPENGL)
 	if err != nil {
 		panic(err)

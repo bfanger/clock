@@ -21,6 +21,7 @@ func TestRepeating(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, actual.At, datetime.Add(26*time.Hour), "not scheduled today, planned the next day")
 }
+
 func TestSchedule(t *testing.T) {
 	schema := []*RepeatedAppointment{
 		{Notification: "half vijf", Hour: 16, Minute: 30, Repeat: Daily()},

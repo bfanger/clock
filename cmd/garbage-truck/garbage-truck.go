@@ -33,6 +33,7 @@ func nextGarbageTruck() (*schedule.Appointment, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to load events")
 	}
+	defer r.Body.Close()
 	events, err := ical.Parse(r.Body)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to parse calendar")

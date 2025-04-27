@@ -83,5 +83,4 @@ func ShowAppointment(a *schedule.Appointment) error {
 		opts = append(opts, NotificationOption{Key: "timer", Value: strconv.Itoa(int(a.Timer.Minutes()))})
 	}
 	return ShowNotification(a.Notification, a.Duration, opts...)
-
 }

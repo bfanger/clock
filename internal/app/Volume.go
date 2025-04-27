@@ -143,10 +143,8 @@ func (v *Volume) SetValue(value int) {
 					v.sprites.text.SetAlpha(alpha)
 				}
 			}))
-
 		}
 	}()
-
 }
 
 // Compose renders the volume indicator

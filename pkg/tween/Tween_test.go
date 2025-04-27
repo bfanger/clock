@@ -20,5 +20,4 @@ func TestFromTo(t *testing.T) {
 		})
 		tween.Seek(25 * time.Second)
 	})
-
 }

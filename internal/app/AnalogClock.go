@@ -37,9 +37,11 @@ type AnalogClock struct {
 	done chan bool
 }
 
-const scale = 1
-const radius = 180.0 * scale
-const fontSize = 60 * scale
+const (
+	scale    = 1
+	radius   = 180.0 * scale
+	fontSize = 60 * scale
+)
 
 var color = sdl.Color{R: 202, G: 214, B: 217, A: 255}
 
@@ -48,7 +50,8 @@ func NewAnalogClock(engine *ui.Engine) (*AnalogClock, error) {
 	c := &AnalogClock{
 		engine:    engine,
 		container: &ui.Container{},
-		done:      make(chan bool)}
+		done:      make(chan bool),
+	}
 	i, err := ui.ImageFromFile(Asset("analog-clock/face.png"), engine.Renderer)
 	if err != nil {
 		return nil, err
@@ -143,7 +146,8 @@ func (c *AnalogClock) Close() error {
 		c.face.image,
 		c.timer,
 		c.minuteHand.image,
-		c.hourHand.image}
+		c.hourHand.image,
+	}
 	for i := 0; i < 12; i++ {
 		closers = append(closers, c.hours[i].text)
 	}

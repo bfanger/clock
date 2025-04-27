@@ -135,5 +135,4 @@ func (wm *WidgetManager) VolumeChanged(value int) {
 		wm.volume.SetValue(value)
 		return nil
 	})
-
 }

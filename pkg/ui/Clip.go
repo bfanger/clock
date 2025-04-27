@@ -24,5 +24,4 @@ func (c *Clip) Compose(r *sdl.Renderer) error {
 		return err
 	}
 	return nil
-
 }

@@ -15,7 +15,8 @@ func Repeat(times int, t Tween) Tween {
 	return &repeat{
 		duration: time.Duration(times) * t.Duration(),
 		infinite: times == 0,
-		t:        t}
+		t:        t,
+	}
 }
 
 func (r *repeat) Duration() time.Duration {

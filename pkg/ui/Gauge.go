@@ -20,7 +20,8 @@ func NewGauge(i Imager, start, end float64) *Gauge {
 	return &Gauge{
 		start:  start,
 		end:    end,
-		imager: i}
+		imager: i,
+	}
 }
 
 // Close free the texture memory
