@@ -136,6 +136,7 @@ func (s *Speaker) HandleVolumeEvents(fn func(int)) error {
 		if err != nil {
 			w.WriteHeader(http.StatusInternalServerError)
 			w.Write([]byte("Internal Server Error"))
+			return
 		}
 		w.Write([]byte("OK"))
 		fn(volume)
@@ -197,10 +198,12 @@ func parseVolumeEvent(request string) (int, error) {
 	start := strings.Index(request, "<LastChange>") + 12
 	end := strings.LastIndex(request, "</LastChange>")
 	if end == -1 {
-		return -1, errors.New("could not find <LastChange> tag")
+		return 0, errors.New("could not find <LastChange> tag")
 	}
 	decoded := html.UnescapeString(request[start:end])
-
+	if strings.Contains(decoded, `<Mute channel="Master" val="1"/>`) {
+		return 0, nil
+	}
 	start = strings.Index(decoded, `<Volume channel="Master" val="`)
 	if start == -1 {
 		return 0, errors.New("could not find <Volume> tag")
