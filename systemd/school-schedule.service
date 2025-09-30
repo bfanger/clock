@@ -5,9 +5,9 @@ Wants=network-online.target
 
 [Service]
 Type=simple
-User=pi
-WorkingDirectory=/home/pi/clock
-ExecStart=/home/pi/go/bin/school-schedule
+User=bob
+WorkingDirectory=/home/bob/clock
+ExecStart=/home/bob/go/bin/school-schedule
 Restart=on-failure
 RestartSec=60s
 

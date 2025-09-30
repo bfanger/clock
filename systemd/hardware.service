@@ -1,3 +1,5 @@
+# Dim the hyperpixel screen (needs apt get wiringpi)
+
 [Unit]
 Description=Hardware tweaks
 After=network-online.target
@@ -6,7 +8,7 @@ Wants=network-online.target
 [Service]
 Type=simple
 User=root
-ExecStart=/home/pi/clock/systemd/hardware.sh
+ExecStart=/home/bob/clock/systemd/hardware.sh
 
 [Install]
 WantedBy=multi-user.target

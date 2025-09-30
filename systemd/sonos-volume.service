@@ -5,9 +5,9 @@ Wants=network-online.target
 
 [Service]
 Type=simple
-User=pi
-WorkingDirectory=/home/pi/clock
-ExecStart=/home/pi/go/bin/sonos-volume
+User=bob
+WorkingDirectory=/home/bob/clock
+ExecStart=/home/bob/go/bin/sonos-volume
 Restart=on-failure
 RestartSec=15s
 

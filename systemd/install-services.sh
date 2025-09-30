@@ -1,13 +1,9 @@
 #!/bin/sh
 
-
 # Start the graphical clock interface
 go install -v ~/clock/cmd/clock/clock.go
 sudo ln -s ~/clock/systemd/clock.service /etc/systemd/system/clock.service
 sudo systemctl enable clock
-# Dim the hyperpixel screen (needs apt get wiringpi)
-sudo ln -s ~/clock/systemd/hardware.service /etc/systemd/system/hardware.service
-sudo systemctl enable hardware
 # reminders (bedtime notifications)
 go install -v ~/clock/cmd/reminders/reminders.go
 sudo ln -s ~/clock/systemd/reminders.service /etc/systemd/system/reminders.service

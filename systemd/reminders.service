@@ -5,9 +5,9 @@ Wants=network-online.target
 
 [Service]
 Type=simple
-User=pi
-WorkingDirectory=/home/pi/clock
-ExecStart=/home/pi/go/bin/reminders
+User=bob
+WorkingDirectory=/home/bob/clock
+ExecStart=/home/bob/go/bin/reminders
 Restart=on-failure
 RestartSec=60s
 

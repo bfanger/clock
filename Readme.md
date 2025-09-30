@@ -65,14 +65,15 @@ A useful side-effect of calling engine.Go is that it will trigger a re-render.
 # Getting latest SDL on Raspberry OS
 
 Download latest [libsdl2 source](https://github.com/libsdl-org/SDL/releases)
-(2.30.5 at the time of writing)
+(2.32.10 at the time of writing)
 
 ```sh
-tar -xvf ./SDL2-2.30.5.tar.gz
-cd SDL2-2.30.5
-./configure
+tar -xvf ./SDL2-2.32.10.tar.gz
+cd SDL2-2.32.10
+sudo apt install libdirectfb-dev
+./configure --disable-video-rpi --enable-video-directfb
 make
-sudo chmod -R pi /usr/local
+sudo chown -R pi /usr/local
 make install
 ```
 
@@ -80,8 +81,8 @@ Download [SDL_image](https://github.com/libsdl-org/SDL_image/releases)
 
 ```sh
 sudo apt install libjpeg-dev libtiff-dev
-tar -xvf ./SDL2_image-2.8.2.tar.gz
-cd SDL2_image-2.8.2
+tar -xvf ./SDL2_image-2.8.8.tar.gz
+cd SDL2_image-2.8.8
 ./configure
 make
 make install
@@ -90,8 +91,8 @@ make install
 and [SDL_ttf](https://github.com/libsdl-org/SDL_ttf/releases)
 
 ```sh
-tar -xvf ./SDL2_ttf-2.22.0.tar.gz
-cd SDL2_ttf-2.22.0
+tar -xvf ./SDL2_ttf-2.24.0.tar.gz
+cd SDL2_ttf-2.24.0
 ./configure
 make
 make install
