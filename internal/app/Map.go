@@ -194,7 +194,7 @@ func minmax(size, offset int32) (min, max int) {
 	if after > 0 {
 		max = int(math.Ceil(float64(after) / float64(tileSize)))
 	}
-	return
+	return min, max
 }
 
 // Convert latitude and longitude into x and y of the tile

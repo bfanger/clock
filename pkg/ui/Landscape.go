@@ -18,6 +18,7 @@ func NewLandscape(composer Composer) *Landscape {
 		Composer: composer,
 	}
 }
+
 func (l *Landscape) Compose(r *sdl.Renderer) error {
 	if l.passthrough {
 		return l.Composer.Compose(r)
@@ -54,6 +55,7 @@ func (l *Landscape) Compose(r *sdl.Renderer) error {
 	}
 	return r.CopyEx(l.texture, &l.src, &l.dest, 90, &l.pivot, sdl.FLIP_NONE)
 }
+
 func (l *Landscape) Close() error {
 	if l.texture == nil {
 		return nil

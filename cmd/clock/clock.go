@@ -27,7 +27,7 @@ func main() {
 		app.Fatal(errors.Wrap(err, "failed to create display"))
 	}
 	defer display.Close()
-	var scene = &ui.Container{}
+	scene := &ui.Container{}
 	rotate := ui.NewLandscape(scene)
 	engine := ui.NewEngine(rotate, display.Renderer)
 	engine.Wait = time.Second / 120 // Limit framerate (VSYNC doesn't work on macOS Mohave)

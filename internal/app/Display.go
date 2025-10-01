@@ -36,7 +36,6 @@ func NewDisplay() (*Display, error) {
 		return nil, errors.Wrap(err, "can't read display mode")
 	}
 	var x, y int32 = sdl.WINDOWPOS_UNDEFINED, sdl.WINDOWPOS_UNDEFINED
-	var rendererFlags uint32 = sdl.RENDERER_SOFTWARE
 	var windowFlags uint32
 	width, height := screenWidth, screenHeight
 	if (m.W == screenWidth && m.H == screenHeight) || (m.W == screenHeight && m.H == screenWidth) {
@@ -47,7 +46,6 @@ func NewDisplay() (*Display, error) {
 		}
 	} else {
 		windowFlags |= sdl.WINDOW_ALLOW_HIGHDPI
-		rendererFlags = sdl.RENDERER_ACCELERATED | sdl.RENDERER_PRESENTVSYNC
 		width /= 2
 		height /= 2
 		if n == 1 {
@@ -64,7 +62,7 @@ func NewDisplay() (*Display, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "couldn't create window")
 	}
-	d.Renderer, err = sdl.CreateRenderer(d.Window, -1, rendererFlags)
+	d.Renderer, err = sdl.CreateRenderer(d.Window, -1, sdl.RENDERER_ACCELERATED|sdl.RENDERER_PRESENTVSYNC)
 	if err != nil {
 		return nil, errors.Wrap(err, "could not create renderer")
 	}
