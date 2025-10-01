@@ -39,7 +39,7 @@ func NewDisplay() (*Display, error) {
 	var rendererFlags uint32 = sdl.RENDERER_SOFTWARE
 	var windowFlags uint32
 	width, height := screenWidth, screenHeight
-	if m.W == screenWidth {
+	if (m.W == screenWidth && m.H == screenHeight) || (m.W == screenHeight && m.H == screenWidth) {
 		// fullscreen mode when the windowsize matches the displaysize
 		windowFlags |= sdl.WINDOW_FULLSCREEN
 		if _, err := sdl.ShowCursor(sdl.DISABLE); err != nil {

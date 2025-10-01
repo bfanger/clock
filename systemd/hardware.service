@@ -1,5 +1,3 @@
-# Dim the hyperpixel screen (needs apt get wiringpi)
-
 [Unit]
 Description=Hardware tweaks
 After=network-online.target
