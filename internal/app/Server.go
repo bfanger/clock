@@ -1,7 +1,9 @@
 package app
 
 import (
+	"encoding/json"
 	"html/template"
+	"io"
 	"net/http"
 	"strconv"
 	"time"
@@ -26,6 +28,7 @@ func (s *Server) ListenAndServe() {
 	http.HandleFunc("/notify", s.notify)
 	http.HandleFunc("/button", s.button)
 	http.HandleFunc("/volume", s.volumeHandler)
+	http.HandleFunc("/rainfall", s.rainfallHandler)
 
 	if err := http.ListenAndServe(":8080", nil); err != nil {
 		panic(err)
@@ -136,4 +139,36 @@ func (s *Server) volumeHandler(w http.ResponseWriter, r *http.Request) {
 	if err := t.Execute(w, struct{}{}); err != nil {
 		panic(err)
 	}
+}
+
+func (s *Server) rainfallHandler(w http.ResponseWriter, r *http.Request) {
+	defer r.Body.Close()
+	if r.Method == "POST" {
+		body, err := io.ReadAll(r.Body)
+		if err != nil {
+			panic(err)
+		}
+		data := []struct {
+			PercentageValue float64 `json:"percentageValue"`
+			UTCDateTime     string  `json:"utcDateTime"`
+		}{}
+		if err := json.Unmarshal(body, &data); err != nil {
+			panic(err)
+		}
+		forecasts := make([]RainfallForecast, len(data))
+		for i, v := range data {
+			t, err := time.Parse("2006-01-02T15:04:05", v.UTCDateTime)
+			if err != nil {
+				panic(err)
+			}
+			forecasts[i] = RainfallForecast{
+				Timestamp:  t,
+				Percentage: v.PercentageValue,
+			}
+		}
+
+		go s.wm.rainfall.SetForecasts(forecasts)
+	}
+	w.Write([]byte("null"))
+
 }

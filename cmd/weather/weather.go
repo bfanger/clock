@@ -1,11 +1,13 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
 	"os"
+	"sync"
 	"time"
 
 	"github.com/bfanger/clock/internal/app"
@@ -24,35 +26,58 @@ func main() {
 	if weathermapParams == "" {
 		app.Fatal(errors.New("Missing OPENWEATHERMAP_PARAMS"))
 	}
-
+	wg := &sync.WaitGroup{}
 	if buienradarParams != "" {
-		go buienradar(buienradarParams)
+		wg.Go(func() { buienradar(buienradarParams) })
 	}
 	if weathermapParams != "" {
-		openweathermap(weathermapParams)
+		wg.Go(func() { openweathermap(weathermapParams) })
 	}
+	wg.Wait()
 }
 
 func buienradar(params string) {
+	time.Sleep(time.Second)
+	fmt.Println("buienradar enabled")
+	for {
+		if err := sendForecast(params); err != nil {
+			app.Fatal(err)
+		}
+		time.Sleep(15 * time.Minute)
+	}
+
+}
+func sendForecast(params string) error {
 	res, err := http.Get("https://graphdata.buienradar.nl/3.0/forecast/geo/RainHistoryForecast?" + params)
 	if err != nil {
-		app.Fatal(err)
+		return err
 	}
 	defer res.Body.Close()
 	body, err := io.ReadAll(res.Body)
 	if err != nil {
-		app.Fatal(errors.Wrap(err, "invalid response"))
+		return errors.Wrap(err, "invalid response")
 	}
 	var data struct {
-		Forecasts []BuienradarForecast `json:"forecasts"`
+		Forecasts []struct {
+			UTCDateTime     string  `json:"utcDateTime"`
+			PercentageValue float64 `json:"percentageValue"`
+		} `json:"forecasts"`
 	}
-	fmt.Println(string(body))
+
 	if err := json.Unmarshal(body, &data); err != nil {
 		app.Fatal(errors.Wrap(err, "invalid json"))
 	}
-	for _, forecast := range data.Forecasts {
-		fmt.Printf("%s: %.1fmm/h ( %.0f %% )\n", forecast.Timestamp.Format("2-15:04"), forecast.Value, forecast.Percentage)
+	buffer, err := json.Marshal(data.Forecasts)
+	if err != nil {
+		app.Fatal(err)
 	}
+	r, err := http.Post("http://localhost:8080/rainfall", "application/json", bytes.NewBuffer(buffer))
+	if err != nil {
+		app.Fatal(err)
+	}
+	defer r.Body.Close()
+	return nil
+
 }
 
 func openweathermap(params string) {
@@ -104,30 +129,4 @@ func getTemperature(params string) (float64, error) {
 		return 0, errors.Errorf("status: %d: %s", r.StatusCode, obj.Message)
 	}
 	return obj.Main.Temp, nil
-}
-
-type BuienradarForecast struct {
-	Timestamp  Timestamp `json:"utcDateTime"`
-	Value      float64   `json:"dataValue"`
-	Percentage float64   `json:"percentageValue"`
-}
-
-type Timestamp struct {
-	time.Time
-}
-
-func (p *Timestamp) UnmarshalJSON(bytes []byte) error {
-	var raw string
-	err := json.Unmarshal(bytes, &raw)
-
-	if err != nil {
-		return errors.Wrap(err, "error decoding timestamp")
-	}
-	timestamp, err := time.Parse("2006-01-02T15:04:05", raw)
-	if err != nil {
-		return errors.Wrap(err, "error parsing timestamp")
-	}
-	fmt.Println(timestamp)
-	p.Time = timestamp
-	return nil
 }
