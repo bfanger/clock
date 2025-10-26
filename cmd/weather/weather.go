@@ -19,38 +19,39 @@ func main() {
 		fmt.Println(err)
 	}
 	weathermapParams := os.Getenv("OPENWEATHERMAP_PARAMS")
-	weerliveParams := os.Getenv("WEERLIVE_PARAMS")
+	buienradarParams := os.Getenv("BUIENRADAR_PARAMS")
 
-	if weathermapParams == "" && weerliveParams == "" {
-		app.Fatal(errors.New("Missing OPENWEATHERMAP_PARAMS or WEERLIVE_PARAMS"))
+	if weathermapParams == "" {
+		app.Fatal(errors.New("Missing OPENWEATHERMAP_PARAMS"))
 	}
-	if weerliveParams == "" {
-		openweathermap(weathermapParams)
-	} else {
-		go weerlive(weerliveParams)
+
+	if buienradarParams != "" {
+		go buienradar(buienradarParams)
+	}
+	if weathermapParams != "" {
 		openweathermap(weathermapParams)
 	}
 }
 
-func weerlive(apiparams string) {
-	res, err := http.Get("https://weerlive.nl/api/weerlive_api_v2.php?" + apiparams)
+func buienradar(params string) {
+	res, err := http.Get("https://graphdata.buienradar.nl/3.0/forecast/geo/RainHistoryForecast?" + params)
 	if err != nil {
 		app.Fatal(err)
 	}
 	defer res.Body.Close()
-	var data struct {
-		Hours []WeerliveHour `json:"uur_verw"`
-	}
 	body, err := io.ReadAll(res.Body)
 	if err != nil {
 		app.Fatal(errors.Wrap(err, "invalid response"))
 	}
-	err = json.Unmarshal(body, &data)
-	if err != nil {
-		app.Fatal(errors.Wrap(err, "invalid format"))
+	var data struct {
+		Forecasts []BuienradarForecast `json:"forecasts"`
 	}
-	for _, hour := range data.Hours {
-		fmt.Printf("%s: %.2f°C, rainfall: %.2fmm, %s\n", hour.Timestamp.Format("15:00"), hour.Temperature, hour.Rainfall, hour.Keyword)
+	fmt.Println(string(body))
+	if err := json.Unmarshal(body, &data); err != nil {
+		app.Fatal(errors.Wrap(err, "invalid json"))
+	}
+	for _, forecast := range data.Forecasts {
+		fmt.Printf("%s: %.1fmm/h ( %.0f %% )\n", forecast.Timestamp.Format("2-15:04"), forecast.Value, forecast.Percentage)
 	}
 }
 
@@ -105,14 +106,10 @@ func getTemperature(params string) (float64, error) {
 	return obj.Main.Temp, nil
 }
 
-type WeerliveHour struct {
-	Hour      string    `json:"uur"`
-	Timestamp Timestamp `json:"timestamp"`
-	Keyword   string    `json:"image"`
-	// Expected temperature in °C
-	Temperature float64 `json:"temp"`
-	// Cumulative rainfall in mm
-	Rainfall float64 `json:"neersl"`
+type BuienradarForecast struct {
+	Timestamp  Timestamp `json:"utcDateTime"`
+	Value      float64   `json:"dataValue"`
+	Percentage float64   `json:"percentageValue"`
 }
 
 type Timestamp struct {
@@ -120,12 +117,17 @@ type Timestamp struct {
 }
 
 func (p *Timestamp) UnmarshalJSON(bytes []byte) error {
-	var raw int64
+	var raw string
 	err := json.Unmarshal(bytes, &raw)
 
 	if err != nil {
 		return errors.Wrap(err, "error decoding timestamp")
 	}
-	p.Time = time.Unix(raw, 0)
+	timestamp, err := time.Parse("2006-01-02T15:04:05", raw)
+	if err != nil {
+		return errors.Wrap(err, "error parsing timestamp")
+	}
+	fmt.Println(timestamp)
+	p.Time = timestamp
 	return nil
 }
