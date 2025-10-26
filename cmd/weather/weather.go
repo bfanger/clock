@@ -3,7 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"os"
 	"time"
@@ -18,6 +18,43 @@ func main() {
 	if err := godotenv.Load(); err != nil {
 		fmt.Println(err)
 	}
+	weathermapParams := os.Getenv("OPENWEATHERMAP_PARAMS")
+	weerliveParams := os.Getenv("WEERLIVE_PARAMS")
+
+	if weathermapParams == "" && weerliveParams == "" {
+		app.Fatal(errors.New("Missing OPENWEATHERMAP_PARAMS or WEERLIVE_PARAMS"))
+	}
+	if weerliveParams == "" {
+		openweathermap(weathermapParams)
+	} else {
+		go weerlive(weerliveParams)
+		openweathermap(weathermapParams)
+	}
+}
+
+func weerlive(apiparams string) {
+	res, err := http.Get("https://weerlive.nl/api/weerlive_api_v2.php?" + apiparams)
+	if err != nil {
+		app.Fatal(err)
+	}
+	defer res.Body.Close()
+	var data struct {
+		Hours []WeerliveHour `json:"uur_verw"`
+	}
+	body, err := io.ReadAll(res.Body)
+	if err != nil {
+		app.Fatal(errors.Wrap(err, "invalid response"))
+	}
+	err = json.Unmarshal(body, &data)
+	if err != nil {
+		app.Fatal(errors.Wrap(err, "invalid format"))
+	}
+	for _, hour := range data.Hours {
+		fmt.Printf("%s: %.2f°C, rainfall: %.2fmm, %s\n", hour.Timestamp.Format("15:00"), hour.Temperature, hour.Rainfall, hour.Keyword)
+	}
+}
+
+func openweathermap(params string) {
 	trigger := schedule.RepeatedAppointment{
 		Notification: "ice",
 		Hour:         6,
@@ -25,11 +62,6 @@ func main() {
 		Duration:     2 * time.Hour,
 		Repeat:       schedule.RepeatDays{Monday: true, Tuesday: true, Wednesday: true, Thursday: true, Friday: true},
 	}
-	appid := os.Getenv("OPENWEATHERMAP_APPID")
-	if appid == "" {
-		app.Fatal(errors.New("Missing OPENWEATHERMAP_APPID"))
-	}
-
 	for {
 		appointment, err := trigger.Planned()
 		if err != nil {
@@ -37,7 +69,7 @@ func main() {
 		}
 		appointment.Wait()
 		fmt.Println("Getting temp from openweathermap")
-		temp, err := getTemp(appid)
+		temp, err := getTemperature(params)
 		if err != nil {
 			app.Fatal(err)
 		}
@@ -48,13 +80,13 @@ func main() {
 	}
 }
 
-func getTemp(appid string) (float64, error) {
-	r, err := http.Get("https://api.openweathermap.org/data/2.5/weather?units=metric&lat=52.49&lon=4.76&appid=" + appid)
+func getTemperature(params string) (float64, error) {
+	r, err := http.Get("https://api.openweathermap.org/data/2.5/weather?" + params)
 	if err != nil {
 		return 0, err
 	}
 	defer r.Body.Close()
-	data, err := ioutil.ReadAll(r.Body)
+	data, err := io.ReadAll(r.Body)
 	if err != nil {
 		return 0, errors.Wrap(err, "invalid response")
 	}
@@ -71,4 +103,29 @@ func getTemp(appid string) (float64, error) {
 		return 0, errors.Errorf("status: %d: %s", r.StatusCode, obj.Message)
 	}
 	return obj.Main.Temp, nil
+}
+
+type WeerliveHour struct {
+	Hour      string    `json:"uur"`
+	Timestamp Timestamp `json:"timestamp"`
+	Keyword   string    `json:"image"`
+	// Expected temperature in °C
+	Temperature float64 `json:"temp"`
+	// Cumulative rainfall in mm
+	Rainfall float64 `json:"neersl"`
+}
+
+type Timestamp struct {
+	time.Time
+}
+
+func (p *Timestamp) UnmarshalJSON(bytes []byte) error {
+	var raw int64
+	err := json.Unmarshal(bytes, &raw)
+
+	if err != nil {
+		return errors.Wrap(err, "error decoding timestamp")
+	}
+	p.Time = time.Unix(raw, 0)
+	return nil
 }
