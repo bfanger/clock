@@ -36,6 +36,13 @@ func NewWidgetManager(scene *ui.Container, e *ui.Engine) (*WidgetManager, error)
 
 	wm.Scene.Append(wm.background)
 
+	rainfall, err := NewRainfall(e)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to create rainfall")
+	}
+	wm.rainfall = rainfall
+	wm.Scene.Append(rainfall)
+
 	// clock, err := NewDigitalClock(e)
 	clock, err := NewAnalogClock(e)
 	if err != nil {
@@ -50,13 +57,6 @@ func NewWidgetManager(scene *ui.Container, e *ui.Engine) (*WidgetManager, error)
 		return nil, errors.Wrap(err, "failed to create volume")
 	}
 	wm.volume = volume
-
-	rainfall, err := NewRainfall(e)
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to create rainfall")
-	}
-	wm.rainfall = rainfall
-	wm.Scene.Append(rainfall)
 
 	if wm.splash, err = NewSplash(e.Renderer); err != nil {
 		return nil, errors.Wrap(err, "failed to create splash")

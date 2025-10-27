@@ -37,16 +37,16 @@ func main() {
 }
 
 func buienradar(params string) {
-	time.Sleep(time.Second)
+	time.Sleep(2 * time.Second)
 	fmt.Println("buienradar enabled")
 	for {
 		if err := sendForecast(params); err != nil {
 			app.Fatal(err)
 		}
-		time.Sleep(15 * time.Minute)
+		time.Sleep(10 * time.Minute)
 	}
-
 }
+
 func sendForecast(params string) error {
 	res, err := http.Get("https://graphdata.buienradar.nl/3.0/forecast/geo/RainHistoryForecast?" + params)
 	if err != nil {
@@ -77,7 +77,6 @@ func sendForecast(params string) error {
 	}
 	defer r.Body.Close()
 	return nil
-
 }
 
 func openweathermap(params string) {

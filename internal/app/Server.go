@@ -107,7 +107,7 @@ func (s *Server) button(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		panic(err)
 	}
-	if r.Method == "POST" {
+	if r.Method == http.MethodPost {
 		if err := r.ParseForm(); err != nil {
 			panic(err)
 		}
@@ -125,7 +125,7 @@ func (s *Server) volumeHandler(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		panic(err)
 	}
-	if r.Method == "POST" {
+	if r.Method == http.MethodPost {
 		if err := r.ParseForm(); err != nil {
 			panic(err)
 		}
@@ -143,7 +143,7 @@ func (s *Server) volumeHandler(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) rainfallHandler(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
-	if r.Method == "POST" {
+	if r.Method == http.MethodPost {
 		body, err := io.ReadAll(r.Body)
 		if err != nil {
 			panic(err)
@@ -162,13 +162,12 @@ func (s *Server) rainfallHandler(w http.ResponseWriter, r *http.Request) {
 				panic(err)
 			}
 			forecasts[i] = RainfallForecast{
-				Timestamp:  t,
-				Percentage: v.PercentageValue,
+				Timestamp: t,
+				Factor:    v.PercentageValue / 100.0,
 			}
 		}
 
 		go s.wm.rainfall.SetForecasts(forecasts)
 	}
 	w.Write([]byte("null"))
-
 }
