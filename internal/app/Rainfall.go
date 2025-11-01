@@ -82,14 +82,16 @@ func (r *Rainfall) SetForecasts(forecasts []RainfallForecast) {
 		if forecasts[len(forecasts)-1].Timestamp.Before(time.Now().Add(time.Hour)) {
 			log.Println("no relevant forecasts available")
 			return nil
-
 		}
 
 		r.start = forecasts[0].Timestamp
 		for i, forecast := range forecasts {
 			height := int32(math.Ceil(float64(rainfallHeight) * forecast.Factor))
 			if height < 1 {
+				r.graph.Texture.SetAlphaMod(128)
 				height = 1
+			} else {
+				r.graph.Texture.SetAlphaMod(255)
 			}
 			src := sdl.Rect{X: 0, Y: rainfallHeight - height, W: rainfallBar, H: height}
 			dest := src
