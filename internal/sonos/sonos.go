@@ -53,9 +53,12 @@ func FindRoom(room string) (*Speaker, error) {
 	}
 	for {
 		buf := make([]byte, 1024)
-		_, addr, err := connection.ReadFromUDP(buf)
+		n, addr, err := connection.ReadFromUDP(buf)
 		if err != nil {
 			return nil, err
+		}
+		if !bytes.Contains(buf[:n], []byte("Sonos")) {
+			continue
 		}
 		res, err := http.Get("http://" + addr.IP.String() + ":1400/xml/device_description.xml")
 		if err != nil {
