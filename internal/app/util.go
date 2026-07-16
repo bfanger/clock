@@ -14,7 +14,18 @@ import (
 	"github.com/veandco/go-sdl2/sdl"
 )
 
-const endpoint = "http://localhost:8080/"
+// Port returns the configured port
+func port() string {
+	if port := os.Getenv("PORT"); port != "" {
+		return port
+	}
+	return "8888"
+}
+
+// Endpoint prepends the url origin
+func Endpoint(path string) string {
+	return "http://localhost:" + port() + path
+}
 
 // Asset returns the absolute path for a file in the assets folder
 func Asset(filename string) string {
@@ -68,7 +79,7 @@ func ShowNotification(notification string, d time.Duration, opts ...Notification
 	for _, o := range opts {
 		data.Set(o.Key, o.Value)
 	}
-	r, err := http.PostForm(endpoint+"notify", data)
+	r, err := http.PostForm(Endpoint("/notify"), data)
 	if err != nil {
 		return err
 	}

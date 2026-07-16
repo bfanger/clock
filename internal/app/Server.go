@@ -30,7 +30,7 @@ func (s *Server) ListenAndServe() {
 	http.HandleFunc("/volume", s.volumeHandler)
 	http.HandleFunc("/rainfall", s.rainfallHandler)
 
-	if err := http.ListenAndServe(":8080", nil); err != nil {
+	if err := http.ListenAndServe(":"+port(), nil); err != nil {
 		panic(err)
 	}
 }

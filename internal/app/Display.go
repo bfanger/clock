@@ -1,6 +1,8 @@
 package app
 
 import (
+	"runtime"
+
 	"github.com/pkg/errors"
 	"github.com/veandco/go-sdl2/img"
 	"github.com/veandco/go-sdl2/sdl"
@@ -51,6 +53,9 @@ func NewDisplay() (*Display, error) {
 		if n == 1 {
 			// Single monitor setup, show the clock bottom left.
 			x, y = 0, m.H-height
+			if runtime.GOOS == "windows" {
+				y -= 50 // move above the taskbar
+			}
 		} else {
 			// In a multi monitor setup, show the clock the centered.
 			var monitor int32
@@ -66,6 +71,7 @@ func NewDisplay() (*Display, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "could not create renderer")
 	}
+	d.Renderer.SetLogicalSize(screenWidth, screenHeight)
 	return d, nil
 }
 

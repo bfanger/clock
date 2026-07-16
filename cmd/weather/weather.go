@@ -71,7 +71,7 @@ func sendForecast(params string) error {
 	if err != nil {
 		app.Fatal(err)
 	}
-	r, err := http.Post("http://localhost:8080/rainfall", "application/json", bytes.NewBuffer(buffer))
+	r, err := http.Post(app.Endpoint("/rainfall"), "application/json", bytes.NewBuffer(buffer))
 	if err != nil {
 		app.Fatal(err)
 	}

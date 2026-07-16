@@ -28,7 +28,7 @@ func sendVolume(volume int) {
 	fmt.Printf("Volume: %d\n", volume)
 	data := url.Values{}
 	data.Set("volume", fmt.Sprintf("%d", volume))
-	r, err := http.PostForm("http://localhost:8080/volume", data)
+	r, err := http.PostForm(app.Endpoint("/volume"), data)
 	if err != nil {
 		app.Fatal(err)
 	}
