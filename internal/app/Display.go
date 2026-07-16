@@ -71,7 +71,12 @@ func NewDisplay() (*Display, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "could not create renderer")
 	}
-	d.Renderer.SetLogicalSize(screenWidth, screenHeight)
+	if runtime.GOOS == "windows" {
+		err := d.Renderer.SetLogicalSize(screenWidth, screenHeight)
+		if err != nil {
+			return nil, errors.Wrap(err, "could not set logical size")
+		}
+	}
 	return d, nil
 }
 
