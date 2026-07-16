@@ -32,11 +32,11 @@ func main() {
 			Repeat:       schedule.Daily(),
 		},
 		{
-			Notification: "sport",
-			Hour:         9,
-			Minute:       30,
-			Duration:     45 * time.Minute,
-			Repeat:       schedule.RepeatDays{Saturday: true},
+			Notification: "gordijn",
+			Hour:         18,
+			Minute:       20,
+			Duration:     5 * time.Minute,
+			Repeat:       schedule.Daily(),
 		},
 	}
 	for {

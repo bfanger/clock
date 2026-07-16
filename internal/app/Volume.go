@@ -39,7 +39,7 @@ func NewVolume(engine *ui.Engine) (*Volume, error) {
 		container: &ui.Container{},
 	}
 	var err error
-	v.font, err = ttf.OpenFont(Asset("Roboto-Regular.ttf"), 80)
+	v.font, err = ttf.OpenFont(Asset("PlusJakartaSans-Regular.ttf"), 74)
 	if err != nil {
 		return nil, errors.Wrap(err, "unable to open font")
 	}
@@ -48,6 +48,7 @@ func NewVolume(engine *ui.Engine) (*Volume, error) {
 		return nil, err
 	}
 	empty := ui.NewSprite(v.images.empty)
+	empty.SetAlpha(0)
 	empty.X = screenWidth
 	empty.AnchorX = 1
 	v.sprites.empty = empty
@@ -60,6 +61,7 @@ func NewVolume(engine *ui.Engine) (*Volume, error) {
 
 	full := ui.NewSprite(v.images.full)
 	full.X = screenWidth
+	full.SetAlpha(0)
 	full.AnchorX = 1
 	v.sprites.full = full
 	v.clip = &ui.Clip{
@@ -123,7 +125,7 @@ func (v *Volume) SetValue(value int) {
 			v.clip.Y = y
 		}
 	}))
-	go v.engine.Animate(tween.FromTo(v.sprites.empty.GetAlpha(), 255, 300*time.Millisecond, tween.Linear, func(alpha uint8) {
+	go v.engine.Animate(tween.FromTo(v.sprites.empty.GetAlpha(), 128, 300*time.Millisecond, tween.Linear, func(alpha uint8) {
 		if v.value == value {
 			v.sprites.empty.SetAlpha(alpha)
 		}
@@ -136,9 +138,9 @@ func (v *Volume) SetValue(value int) {
 	go func() {
 		time.Sleep(1750 * time.Millisecond)
 		if value == v.value {
-			v.engine.Animate(tween.FromTo(v.sprites.empty.GetAlpha(), 0, 1500*time.Millisecond, tween.Linear, func(alpha uint8) {
+			v.engine.Animate(tween.FromTo(v.sprites.full.GetAlpha(), 0, 1750*time.Millisecond, tween.Linear, func(alpha uint8) {
 				if v.value == value {
-					v.sprites.empty.SetAlpha(alpha)
+					v.sprites.empty.SetAlpha(alpha / 2)
 					v.sprites.full.SetAlpha(alpha)
 					v.sprites.text.SetAlpha(alpha)
 				}

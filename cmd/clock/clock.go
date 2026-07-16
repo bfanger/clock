@@ -55,7 +55,7 @@ func main() {
 			if e.Type == sdl.MOUSEBUTTONDOWN {
 				go wm.ButtonPressed()
 				// go func() {
-				// 	if err := app.ShowNotification("vis", 10*time.Second); err != nil {
+				// 	if err := app.ShowNotification("gordijn", 5*time.Second); err != nil {
 				// 		app.Fatal(err)
 				// 	}
 				// }()

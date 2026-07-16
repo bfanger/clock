@@ -54,11 +54,14 @@ func (s *Server) notify(w http.ResponseWriter, r *http.Request) {
 				return err
 			}
 			duration := time.Duration(d) * time.Second
-			if icon == "ice" || icon == "plastic" || icon == "papier" || icon == "gft" {
+			switch icon {
+			case "ice", "plastic", "papier", "gft":
 				n, err = NewTrayNotification(icon, s.engine, duration)
-			} else if icon == "vis" {
+			case "vis":
 				n, err = NewFeedFishNotification(s.engine, duration)
-			} else if icon == "gps" {
+			case "gordijn":
+				n, err = NewCurtainNotification(s.engine, duration)
+			case "gps":
 				lat, err := strconv.ParseFloat(r.PostForm.Get("latitude"), 64)
 				if err != nil {
 					return err
@@ -71,7 +74,7 @@ func (s *Server) notify(w http.ResponseWriter, r *http.Request) {
 				if err != nil {
 					return err
 				}
-			} else {
+			default:
 				n, err = NewBasicNotification(s.engine, icon, duration)
 			}
 			if err != nil {

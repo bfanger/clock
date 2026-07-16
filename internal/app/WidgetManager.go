@@ -36,12 +36,10 @@ func NewWidgetManager(scene *ui.Container, e *ui.Engine) (*WidgetManager, error)
 
 	wm.Scene.Append(wm.background)
 
-	rainfall, err := NewRainfall(e)
-	if err != nil {
+	if wm.rainfall, err = NewRainfall(e); err != nil {
 		return nil, errors.Wrap(err, "failed to create rainfall")
 	}
-	wm.rainfall = rainfall
-	wm.Scene.Append(rainfall)
+	wm.Scene.Append(wm.rainfall)
 
 	// clock, err := NewDigitalClock(e)
 	clock, err := NewAnalogClock(e)

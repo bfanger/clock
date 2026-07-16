@@ -70,7 +70,7 @@ func NewAnalogClock(engine *ui.Engine) (*AnalogClock, error) {
 	c.timer.Sprite.AnchorY = 0.5
 	c.container.Append(c.timer)
 
-	c.font, err = ttf.OpenFont(Asset("Roboto-Regular.ttf"), fontSize)
+	c.font, err = ttf.OpenFont(Asset("PlusJakartaSans-Regular.ttf"), fontSize)
 	if err != nil {
 		return nil, err
 	}
