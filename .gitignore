@@ -1,3 +1,5 @@
 assets/poc.png
 /node_modules
+/.pnpm-store
 /.env
+/magisterState.json
