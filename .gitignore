@@ -3,3 +3,5 @@ assets/poc.png
 /.pnpm-store
 /.env
 /magisterState.json
+/.magisterPasskey.json
+package.json

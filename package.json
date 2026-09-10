@@ -2,16 +2,12 @@
   "name": "clock",
   "type": "module",
   "private": true,
-  "varlock": {
-    "loadPath": ".env.schema"
-  },
   "scripts": {
-    "magister": "node scripts/magister.ts"
+    "magister": "node --env-file .env scripts/magister.ts"
   },
   "dependencies": {
     "@playwright/test": "^1.63.0",
-    "readline-sync": "^1.4.10",
-    "varlock": "^1.18.0"
+    "readline-sync": "^1.4.10"
   },
   "devDependencies": {
     "@types/node": "^26.5.0",
