@@ -3,7 +3,7 @@
   "type": "module",
   "private": true,
   "scripts": {
-    "magister": "node --env-file .env scripts/magister.ts"
+    "magister": "node scripts/magister.ts"
   },
   "dependencies": {
     "@playwright/test": "^1.63.0",
