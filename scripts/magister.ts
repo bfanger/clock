@@ -61,10 +61,10 @@ async function openMagister(page: Page) {
     });
     return await Promise.race([
       expect(page.locator("#menu-agenda"))
-        .toBeVisible()
+        .toBeVisible({ timeout: 30_000 })
         .then(() => true),
       expect(page.getByRole("heading", { name: "Vul je gebruikersnaam in" }))
-        .toBeVisible()
+        .toBeVisible({ timeout: 30_000 })
         .then(() => false),
     ]);
   });
@@ -89,7 +89,7 @@ async function nextItem(page: Page) {
     const data = await Promise.race([
       promise,
       expect(page.locator("sl-format-date").filter({ hasText: "ma" }))
-        .toBeVisible()
+        .toBeVisible({ timeout: 15_000 })
         .then(
           () => new Promise((resolve) => setTimeout(resolve, 5_000, false)),
         ),
