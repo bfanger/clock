@@ -59,14 +59,12 @@ async function openMagister(page: Page) {
     await page.goto("https://sovozaanstad.magister.net/magister/", {
       waitUntil: "load",
     });
-    return await Promise.race([
-      expect(page.locator("#menu-agenda"))
-        .toBeVisible({ timeout: 30_000 })
-        .then(() => true),
-      expect(page.getByRole("heading", { name: "Vul je gebruikersnaam in" }))
-        .toBeVisible({ timeout: 30_000 })
-        .then(() => false),
-    ]);
+    const agendaMenu = page.locator("#menu-agenda");
+    const loginHeading = page.getByRole("heading", {
+      name: "Vul je gebruikersnaam in",
+    });
+    await expect(agendaMenu.or(loginHeading)).toBeVisible({ timeout: 30_000 });
+    return await agendaMenu.isVisible();
   });
 }
 
