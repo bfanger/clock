@@ -75,13 +75,19 @@ type Item = {
 };
 async function nextItem(page: Page) {
   const items: Item[] = await step("checking agenda", async () => {
+    const abortController = new AbortController();
     const promise = new Promise<any>((resolve) => {
-      page.on("response", async (res) => {
+      async function detect(res: Response) {
         if (res.url().match(/afspraken/)) {
           const body = await res.text();
           resolve(JSON.parse(body));
+          abortController.abort();
         }
-      });
+      }
+      page.on("response", detect);
+      abortController.signal.addEventListener("abort", () =>
+        page.off("response", detect),
+      );
     });
     await page.locator("#menu-agenda").click();
     const data = await Promise.race([
