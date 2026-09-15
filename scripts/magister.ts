@@ -1,4 +1,4 @@
-import { chromium, expect, type Page } from "@playwright/test";
+import { chromium, expect, type Response, type Page } from "@playwright/test";
 import { question } from "readline-sync";
 import fs from "node:fs";
 
@@ -98,6 +98,7 @@ async function nextItem(page: Page) {
           () => new Promise((resolve) => setTimeout(resolve, 5_000, false)),
         ),
     ]);
+    abortController.abort();
     if (!data) {
       throw new Error("Failed to intercept agenda request");
     }
@@ -167,13 +168,35 @@ async function authenticate(page: Page): Promise<void> {
       throw new Error("Opening after authenticating failed");
     }
   } else {
-    await step("passkey", async () => {
-      await page.locator("#use_fido_link").click();
-      await page.waitForURL(
-        "https://sovozaanstad.magister.net/magister/#/vandaag",
-        { waitUntil: "commit" },
+    for (let attempt = 1; attempt <= 3; attempt++) {
+      const loginWithPasskey = page.locator("#use_fido_link");
+      const agendaMenu = page.locator("#menu-agenda");
+      const passkeyError = page.getByText(
+        "Er is een onbekende fout opgetreden.",
       );
-    });
+      const success = await step(`passkey, attempt ${attempt}`, async () => {
+        await expect(loginWithPasskey.or(agendaMenu)).toBeVisible({
+          timeout: 30_000,
+        });
+        if (await agendaMenu.isVisible()) {
+          return true;
+        }
+        await loginWithPasskey.click();
+        expect(agendaMenu.or(passkeyError)).toBeVisible({ timeout: 30_000 });
+        if (await agendaMenu.isVisible()) {
+          return true;
+        }
+        process.stdout.write(".");
+        await page.waitForTimeout(30_000);
+        await page.goto("about:blank", { waitUntil: "load" });
+      });
+      if (success) {
+        return;
+      } else if (await openMagister(page)) {
+        return;
+      }
+    }
+    throw new Error("Passkey authenticating failed");
   }
 }
 
@@ -235,7 +258,7 @@ async function step<T>(name: string, fn: () => Promise<T>) {
   try {
     process.stdout.write(name + " ...");
     const result = await fn();
-    process.stdout.write(" [ok] \n");
+    process.stdout.write(" [done] \n");
     return result;
   } catch (err) {
     process.stdout.write(" [failed] \n");
